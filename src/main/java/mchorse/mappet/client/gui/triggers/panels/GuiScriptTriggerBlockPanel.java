@@ -1,0 +1,85 @@
+package mchorse.mappet.client.gui.triggers.panels;
+
+import java.util.List;
+import mchorse.mappet.api.triggers.blocks.ScriptTriggerBlock;
+import mchorse.mappet.api.utils.ContentType;
+import mchorse.mappet.client.gui.panels.GuiScriptPanel;
+import mchorse.mappet.client.gui.scripts.GuiTextEditor;
+import mchorse.mappet.client.gui.triggers.GuiTriggerOverlayPanel;
+import mchorse.mclib.client.gui.framework.elements.GuiElement;
+import mchorse.mclib.client.gui.framework.elements.IGuiElement;
+import mchorse.mclib.client.gui.framework.elements.buttons.GuiToggleElement;
+import mchorse.mclib.client.gui.framework.elements.input.GuiTextElement;
+import mchorse.mclib.client.gui.utils.Elements;
+import mchorse.mclib.client.gui.utils.keys.IKey;
+import net.minecraft.class_310;
+
+public class GuiScriptTriggerBlockPanel extends GuiDataTriggerBlockPanel<ScriptTriggerBlock> {
+   public GuiTextElement function;
+   public GuiToggleElement inline;
+   public GuiToggleElement clientScript;
+   public GuiTextEditor code;
+   private List<GuiElement> allElements;
+   private GuiElement elements;
+
+   public GuiScriptTriggerBlockPanel(class_310 mc, GuiTriggerOverlayPanel overlay, ScriptTriggerBlock block) {
+      super(mc, overlay, block);
+      this.clientScript = new GuiToggleElement(mc, IKey.lang("mappet.gui.triggers.script.client_script"), (this.block).clientScript, (b) -> {
+         (this.block).clientScript = b.isToggled();
+         this.updateFields();
+      });
+      this.inline = new GuiToggleElement(mc, IKey.lang("mappet.gui.triggers.script.inline"), (this.block).inline, (b) -> {
+         (this.block).inline = b.isToggled();
+         this.updateFields();
+      });
+      this.code = new GuiTextEditor(mc, (s) -> (this.block).code = s);
+      this.code.setJavaScriptDiagnostics(true);
+      this.code.context(() -> GuiScriptPanel.createScriptContextMenu(this.mc, this.code));
+      this.code.setText((this.block).code);
+      this.code.background().flex().h(160);
+      this.function = new GuiTextElement(mc, 100, (text) -> (this.block).function = text);
+      this.function.setText(block.function);
+      this.function.tooltip(IKey.lang("mappet.gui.triggers.script.function_tooltip"));
+      this.elements = Elements.column(mc, 5, new GuiElement[0]);
+      this.add(this.picker);
+      this.add(new IGuiElement[]{Elements.label(IKey.lang("mappet.gui.nodes.event.data")).marginTop(12), this.data});
+      this.add(new IGuiElement[]{Elements.label(IKey.lang("mappet.gui.triggers.function")).marginTop(12), this.function});
+      this.allElements = this.getChildren(GuiElement.class);
+      this.allElements.remove(0);
+
+      for(GuiElement element : this.allElements) {
+         element.removeFromParent();
+         this.elements.add(element);
+      }
+
+      this.add(this.elements);
+      this.updateFields();
+      this.addDelay();
+   }
+
+   private void updateFields() {
+      this.elements.removeAll();
+      this.elements.add(this.clientScript);
+      this.elements.add(this.inline);
+      if ((this.block).inline) {
+         this.elements.add(this.code);
+      } else {
+         for(GuiElement element : this.allElements) {
+            this.elements.add(element);
+         }
+      }
+
+      if (this.hasParent()) {
+         this.getParentContainer().resize();
+      }
+
+   }
+
+   protected IKey getLabel() {
+      return IKey.lang("mappet.gui.overlays.script");
+   }
+
+   protected ContentType getType() {
+      return (this.block).clientScript ? ContentType.CLIENT_SCRIPTS : ContentType.SCRIPTS;
+   }
+}

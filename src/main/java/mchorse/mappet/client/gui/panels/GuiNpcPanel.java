@@ -1,0 +1,87 @@
+package mchorse.mappet.client.gui.panels;
+
+import mchorse.mappet.api.npcs.Npc;
+import mchorse.mappet.api.npcs.NpcState;
+import mchorse.mappet.api.utils.ContentType;
+import mchorse.mappet.client.gui.GuiMappetDashboard;
+import mchorse.mappet.client.gui.npc.GuiNpcEditor;
+import mchorse.mappet.client.gui.npc.utils.GuiNpcStatesOverlayPanel;
+import mchorse.mappet.client.gui.utils.overlays.GuiOverlay;
+import mchorse.mclib.client.gui.framework.GuiBase;
+import mchorse.mclib.client.gui.framework.elements.IGuiElement;
+import mchorse.mclib.client.gui.framework.elements.buttons.GuiIconElement;
+import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
+import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
+import mchorse.mclib.client.gui.utils.Icons;
+import mchorse.mclib.client.gui.utils.keys.IKey;
+import net.minecraft.class_310;
+
+public class GuiNpcPanel extends GuiMappetDashboardPanel<Npc> {
+   public static final IKey EMPTY = IKey.lang("mappet.gui.npcs.info.empty");
+   public GuiIconElement states;
+   public GuiNpcEditor npcEditor;
+   private String state = "";
+
+   public GuiNpcPanel(class_310 mc, GuiMappetDashboard dashboard) {
+      super(mc, dashboard);
+      this.namesList.setFileIcon(Icons.PROCESSOR);
+      this.states = new GuiIconElement(mc, Icons.MORE, (b) -> this.openNpcStates());
+      this.states.flex().relative(this);
+      this.npcEditor = new GuiNpcEditor(mc, false);
+      this.npcEditor.flex().relative(this).y(10).wTo(this.editor.area, 1.0F).h(1.0F, -10);
+      this.npcEditor.setVisible(false);
+      this.editor.add(new IGuiElement[]{this.npcEditor, this.states});
+      this.fill(null);
+   }
+
+   private void openNpcStates() {
+      GuiNpcStatesOverlayPanel overlay = new GuiNpcStatesOverlayPanel(this.mc, this.data, this::pickState);
+      GuiOverlay.addOverlay(GuiBase.getCurrent(), overlay.set(this.state), 0.4F, 0.6F);
+   }
+
+   private void pickState(String name) {
+      this.state = name;
+      NpcState state = (NpcState)(this.data).states.get(name);
+      this.npcEditor.setVisible(state != null);
+      if (state != null) {
+         this.npcEditor.set(state);
+      }
+
+      this.resize();
+   }
+
+   public void fill(Npc data, boolean allowed) {
+      super.fill(data, allowed);
+      this.npcEditor.setVisible(data != null);
+      this.states.setVisible(data != null);
+      if (data != null) {
+         String key = "default";
+         if (!data.states.containsKey(key) && !data.states.isEmpty()) {
+            key = (String)data.states.keySet().iterator().next();
+         }
+
+         this.pickState(key);
+      }
+
+   }
+
+   public ContentType getType() {
+      return ContentType.NPC;
+   }
+
+   public String getTitle() {
+      return "mappet.gui.panels.npcs";
+   }
+
+   public void draw(GuiContext context) {
+      if (this.npcEditor.isVisible()) {
+         GuiDraw.drawTextBackground(this.font, this.state, this.states.area.ex() + 3, this.states.area.my() - 4, 16777215, -2013265920, 2);
+      } else {
+         int w = (this.editor.area.ex() - this.area.x) / 2;
+         int x = (this.area.x + this.editor.area.ex()) / 2 - w / 2;
+         GuiDraw.drawMultiText(this.font, EMPTY.get(), x, this.area.my(), 16777215, w, 12, 0.5F, 0.5F);
+      }
+
+      super.draw(context);
+   }
+}

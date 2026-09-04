@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "powered=false": { "model": "mappet:block/emitter" },
+    "powered=true": { "model": "mappet:block/emitter_powered" }
+  }
+}

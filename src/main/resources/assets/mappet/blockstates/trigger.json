@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "collidable=false": {
+            "model": "mappet:block/trigger"
+        },
+        "collidable=true": {
+            "model": "mappet:block/trigger"
+        }
+    }
+}

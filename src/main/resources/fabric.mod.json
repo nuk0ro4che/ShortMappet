@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "mappet",
+  "version": "1.1-1.20.1",
+  "name": "ShortMappet",
+  "description": "Adventure map toolset for Minecraft 1.20.1",
+  "authors": [
+    "McHorse",
+    "bay4lly (1.20 port)",
+    "pok0roche (fix)",
+    "Kerilom (special)"
+  ],
+  "contact": {
+    "sources": "https://github.com/Bay4lly/mappet-reforged",
+    "homepage": "https://discord.gg/QhvbgSWpYn"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "mchorse.mappet.Mappet"
+    ],
+    "client": [
+      "mchorse.mappet.MappetClient"
+    ],
+    "voicechat": [
+      "mchorse.mappet.compat.voicechat.MappetSimpleVoiceChatPlugin"
+    ]
+  },
+  "mixins": [
+    "mappet.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*",
+    "blockbuster": ">=2.7.2-1.20.1"
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/javassist-3.28.0-GA.jar"
+    },
+    {
+      "file": "META-INF/jars/nashorn-core-15.4.jar"
+    },
+    {
+      "file": "META-INF/jars/reflections-0.10.2.jar"
+    },
+    {
+      "file": "META-INF/jars/rhino-1.7.15.jar"
+    }
+  ]
+}

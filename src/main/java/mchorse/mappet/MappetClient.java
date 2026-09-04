@@ -64,9 +64,15 @@ public class MappetClient implements ClientModInitializer {
    private static boolean soundsPackLoaded;
    private static boolean soundsPackWarningShown;
    private static Field soundPackProviders;
+   private static boolean customSoundsChecked;
+   private static boolean customSoundsPresent;
 
    private static boolean hasCustomSounds() {
-      return !SoundPack.getCustomSoundEvents().isEmpty();
+      if (!customSoundsChecked) {
+         customSoundsChecked = true;
+         customSoundsPresent = !SoundPack.getCustomSoundEvents().isEmpty();
+      }
+      return customSoundsPresent;
    }
 
    private static boolean addSoundPackProvider(class_3283 packs) {
@@ -160,9 +166,6 @@ public class MappetClient implements ClientModInitializer {
           ClientEventHandler.instance().tick();
           if (MappetClient.clientScriptRuntime != null) {
              MappetClient.clientScriptRuntime.checkAndInvalidateCache();
-          }
-          if (Mappet.settings != null && !Mappet.settings.playerTick.isEmpty() && client.field_1724 != null) {
-             Mappet.settings.playerTick.trigger(DataContext.client(client.field_1724));
           }
           if (MappetClient.clientSettings != null && !MappetClient.clientSettings.playerTick.isEmpty() && client.field_1724 != null) {
              MappetClient.clientSettings.playerTick.trigger(DataContext.client(client.field_1724));

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
+import mchorse.mclib.McLib;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
 import net.minecraft.class_310;
@@ -107,7 +108,7 @@ public class GuiScriptTabBar extends GuiElement {
    public int drawDetachedTab(String tab, int x, int y) {
       int width = this.getTabWidth(tab);
       GuiDraw.drawRect(x, y, x + width - 1, y + HEIGHT, -13487566);
-      GuiDraw.drawRect(x, y, x + width - 1, y + 2, -10053172);
+      GuiDraw.drawRect(x, y, x + width - 1, y + 2, getAccentColor());
       String label = this.getLabel(tab, width - CLOSE_WIDTH - 12);
       GuiDraw.drawString(this.font, label, x + 8, y + 7, -1, false);
       return width;
@@ -120,7 +121,7 @@ public class GuiScriptTabBar extends GuiElement {
       int background = selected || draggedTab ? -13487566 : -15132391;
       GuiDraw.drawRect(x, this.area.y, x + width - 1, this.area.ey(), background);
       if (selected || draggedTab) {
-         GuiDraw.drawRect(x, this.area.y, x + width - 1, this.area.y + 2, -10053172);
+         GuiDraw.drawRect(x, this.area.y, x + width - 1, this.area.y + 2, getAccentColor());
       }
 
       String label = this.getLabel(tab, width - CLOSE_WIDTH - 12);
@@ -290,5 +291,9 @@ public class GuiScriptTabBar extends GuiElement {
 
    public static int getHeight() {
       return HEIGHT;
+   }
+
+   public static int getAccentColor() {
+      return -16777216 | (Integer)McLib.primaryColor.get() & 16777215;
    }
 }

@@ -565,7 +565,7 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
             case ENTITY:
                return key.startsWith("entity_") || key.startsWith("projectile_");
             default:
-               return !key.startsWith("server_") && !key.startsWith("player_") && !key.startsWith("block_") && !key.startsWith("living_") && !key.startsWith("entity_") && !key.startsWith("projectile_") && !key.equals("mouse_input") && !key.equals("sound_ended");
+               return !key.startsWith("server_") && !key.toLowerCase().contains("player") && !key.startsWith("block_") && !key.startsWith("living_") && !key.startsWith("entity_") && !key.startsWith("projectile_") && !key.startsWith("voicechat_") && !key.equals("mouse_input") && !key.equals("sound_ended");
          }
       }
 

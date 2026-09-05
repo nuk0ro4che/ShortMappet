@@ -24,6 +24,7 @@ import net.minecraft.class_310;
 public class DocResolver {
    private static final Map<String, String> HEAD_TYPES = new HashMap();
    private static final Map<String, String> KNOWN_RETURN_TYPES;
+   private static final ThreadLocal<LinkedHashSet<String>> RESOLVING_VARS = ThreadLocal.withInitial(LinkedHashSet::new);
 
    private static Object resolveDocs() {
       try {
@@ -414,8 +415,22 @@ public class DocResolver {
    }
 
    private static String resolveHeadType(String varName, String fullText) {
+      if (varName == null || varName.isEmpty()) {
+         return null;
+      }
       String known = (String)HEAD_TYPES.get(varName);
-      return known != null ? known : resolveVarReturnClass(varName, fullText);
+      if (known != null) {
+         return known;
+      }
+      LinkedHashSet<String> resolving = RESOLVING_VARS.get();
+      if (!resolving.add(varName)) {
+         return null;
+      }
+      try {
+         return resolveVarReturnClass(varName, fullText);
+      } finally {
+         resolving.remove(varName);
+      }
    }
 
    public static String resolveVarClassFromJavaType(String varName, String fullText) {

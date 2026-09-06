@@ -69,7 +69,17 @@ public class CommandClientScript extends MappetSubCommandBase {
 
       public List<String> getTabCompletions(MinecraftServer server, class_2168 sender, String[] args) {
          if (args.length == 1 && Mappet.clientScripts != null) {
-            return getListOfStringsMatchingLastWord(args, Mappet.clientScripts.getKeys());
+            List<String> clientScripts = new java.util.ArrayList<String>();
+            for (String id : Mappet.clientScripts.getKeys()) {
+               if (id.endsWith("/")) {
+                  continue;
+               }
+               Script script = Mappet.clientScripts.load(id);
+               if (script != null && script.client) {
+                  clientScripts.add(id);
+               }
+            }
+            return getListOfStringsMatchingLastWord(args, clientScripts);
          }
          return java.util.Collections.emptyList();
       }

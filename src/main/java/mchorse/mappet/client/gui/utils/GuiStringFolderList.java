@@ -30,6 +30,7 @@ public class GuiStringFolderList extends GuiStringListElement
     private final Map<String, TreeEntry> entries = new HashMap();
     private String activeFolder = "";
     private Icon fileIcon;
+    private Function<String, Icon> fileIconResolver;
     private Function<String, Integer> diagnosticStatusResolver;
     private Consumer<String> middleClickCallback;
     private Consumer<List<String>> fileSelectionCallback;
@@ -81,6 +82,11 @@ public class GuiStringFolderList extends GuiStringListElement
     public void setFileIcon(Icon icon)
     {
         this.fileIcon = icon;
+    }
+
+    public void setFileIconResolver(Function<String, Icon> resolver)
+    {
+        this.fileIconResolver = resolver;
     }
 
     
@@ -483,7 +489,12 @@ public class GuiStringFolderList extends GuiStringListElement
             }
             GuiDraw.drawRect(this.area.x, y, this.area.ex(), y + 16, -11513776);
         }
-        this.fileIcon.render(entryX + 10, y);
+        Icon icon = this.fileIconResolver == null ? null : this.fileIconResolver.apply(entry.path);
+        if (icon == null)
+        {
+            icon = this.fileIcon;
+        }
+        icon.render(entryX + 10, y);
         super.drawElementPart(entry.name, index, entryX + 22, y, hover, selected);
         if (this.diagnosticStatusResolver != null)
         {

@@ -59,7 +59,7 @@ public class ServerHandlerContentData extends ServerMessageHandler<PacketContent
             }
          }
 
-         if (message.type == ContentType.CLIENT_SCRIPTS) {
+         if (message.type == ContentType.SCRIPTS) {
             this.pushClientScriptsToAllPlayers();
          }
 
@@ -78,7 +78,7 @@ public class ServerHandlerContentData extends ServerMessageHandler<PacketContent
             continue;
          }
          Script script = Mappet.clientScripts.load(id);
-         if (script != null) {
+         if (script != null && script.client) {
             payload.put(id, script.serializeNBT());
          }
       }

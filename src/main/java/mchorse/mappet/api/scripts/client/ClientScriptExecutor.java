@@ -22,6 +22,10 @@ public final class ClientScriptExecutor {
    }
 
    public static boolean execute(class_3222 player, String scriptId, String function) {
+      return execute(player, scriptId, function, (Object[])null);
+   }
+
+   public static boolean execute(class_3222 player, String scriptId, String function, Object... args) {
       if (player == null || Mappet.clientScripts == null || scriptId == null) {
          return false;
       }
@@ -45,12 +49,21 @@ public final class ClientScriptExecutor {
          }
 
          Script current = Mappet.clientScripts.load(currentId);
-         if (current != null) {
+         if (current != null && (current.client || currentId.equals(id))) {
             payload.put(currentId, current.serializeNBT());
          }
       }
 
-      Dispatcher.sendTo(new PacketClientScriptExecute(id, entry, payload), player);
+      Dispatcher.sendTo(new PacketClientScriptExecute(id, entry, payload, args), player);
+      return true;
+   }
+
+   public static boolean executeInline(class_3222 player, String source, Object... args) {
+      if (player == null || source == null || source.trim().isEmpty()) {
+         return false;
+      }
+
+      Dispatcher.sendTo(new PacketClientScriptExecute(source, args), player);
       return true;
    }
 }

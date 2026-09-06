@@ -15,7 +15,7 @@ public class ClientHandlerScriptDiagnosticCode extends ClientMessageHandler<Pack
    public void run(class_746 player, PacketScriptDiagnosticCode message) {
       class_437 screen = class_310.method_1551().field_1755;
       if (screen instanceof GuiMappetDashboard dashboard) {
-         GuiScriptPanel panel = message.clientScript ? dashboard.clientScript : dashboard.script;
+         GuiScriptPanel panel = dashboard.script;
          if (panel != null) {
             panel.receiveScriptDiagnosticCode(message.script, message.code, message.libraryFunctions, message.library);
          }

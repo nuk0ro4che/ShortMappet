@@ -344,6 +344,7 @@ public class AutoCompleteEngine {
          addApiSuggestion(suggestions, lowerPrefix, "setSolidHitbox", "boolean solid", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "executeClientScript", "String script", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "executeClientScript", "String script, String function", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "executeClientScript", "String script, String function, Object... args", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "disableJump", "boolean disabled", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "disableSprint", "boolean disabled", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "openUI", "String id, boolean defaultData", "fn");

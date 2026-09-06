@@ -16,6 +16,7 @@ import mchorse.mappet.api.npcs.NpcManager;
 import mchorse.mappet.api.quests.QuestManager;
 import mchorse.mappet.api.quests.chains.QuestChainManager;
 import mchorse.mappet.api.schematics.SchematicManager;
+import mchorse.mappet.api.scripts.Script;
 import mchorse.mappet.api.scripts.ScriptManager;
 import mchorse.mappet.api.scripts.lights.VanillaWorldLightManager;
 import mchorse.mappet.api.states.States;
@@ -221,7 +222,7 @@ public final class Mappet implements ModInitializer {
       data = new DataManager(new File(root, "data"));
       chains = new QuestChainManager(new File(root, "chains"));
       scripts = new ScriptManager(new File(root, "scripts"));
-      clientScripts = new ScriptManager(new File(root, "client_scripts"));
+      clientScripts = scripts;
       huds = new HUDManager(new File(root, "huds"));
       shaders = new ShaderManager(new File(root, "shaders"));
       uis = new UIManager(new File(root, "uis"));
@@ -231,6 +232,7 @@ public final class Mappet implements ModInitializer {
 
       ScriptUtils.initiateScriptEngines();
       scripts.initiateAllScripts();
+      migrateLegacyClientScripts(new File(root, "client_scripts"));
       
 
       EventHandler.getRegisteredEvents();
@@ -266,6 +268,37 @@ public final class Mappet implements ModInitializer {
 
       closeLogger();
       Mappet.server = null;
+   }
+
+   private static void migrateLegacyClientScripts(File folder) {
+      if (folder == null || !folder.isDirectory() || scripts == null) {
+         return;
+      }
+
+      boolean imported = false;
+      ScriptManager legacy = new ScriptManager(folder);
+
+      for (String id : legacy.getKeys()) {
+         if (id.endsWith("/") || !id.endsWith(".js")) {
+            continue;
+         }
+
+         try {
+            Script script = legacy.load(id);
+            if (script == null || script.code == null || script.code.trim().isEmpty() || scripts.exists(id)) {
+               continue;
+            }
+            script.client = true;
+            scripts.save(id, script.serializeNBT());
+            imported = true;
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
+
+      if (imported) {
+         LOGGER.info("Imported legacy client scripts from 'client_scripts' into 'scripts' (marked as client scripts).");
+      }
    }
 
    private static void closeLogger() {

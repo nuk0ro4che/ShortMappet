@@ -18,8 +18,10 @@ public class ClientHandlerClientScriptExecute extends ClientMessageHandler<Packe
       }
       try {
          MappetClient.clientScriptRuntime.receiveScripts(message.scripts);
-         if (message.script != null && !message.script.isEmpty()) {
-            MappetClient.clientScriptRuntime.executeClient(message.script, message.function);
+         if (message.code != null && !message.code.isEmpty()) {
+            MappetClient.clientScriptRuntime.executeInline(message.code, message.args);
+         } else if (message.script != null && !message.script.isEmpty()) {
+            MappetClient.clientScriptRuntime.executeClient(message.script, message.function, message.args);
          }
       } catch (Exception exception) {
          Mappet.LOGGER.error("Ошибка выполнения клиентского скрипта {}.{}", message.script, message.function, exception);

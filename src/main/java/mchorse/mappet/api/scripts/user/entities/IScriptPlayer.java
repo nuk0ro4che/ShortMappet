@@ -29,7 +29,16 @@ public interface IScriptPlayer extends IScriptEntity {
    boolean executeClientScript(String script, String function);
 
    
-   void disableJump(boolean disabled);
+boolean executeClientScript(String script, String function, Object... args);
+
+   
+    boolean executeClientScript(Object code);
+
+   
+    boolean executeClientScript(Object code, Object... args);
+
+   
+    void disableJump(boolean disabled);
 
    
    void disableSprint(boolean disabled);

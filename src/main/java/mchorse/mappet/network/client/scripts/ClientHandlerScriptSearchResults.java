@@ -16,7 +16,7 @@ public class ClientHandlerScriptSearchResults extends ClientMessageHandler<Packe
     public void run(class_746 player, PacketScriptSearchResults message)
     {
         GuiMappetDashboard dashboard = GuiMappetDashboard.get(class_310.method_1551());
-        GuiScriptPanel panel = message.clientScript ? dashboard.clientScript : dashboard.script;
+        GuiScriptPanel panel = dashboard.script;
         if (panel != null)
         {
             panel.showSearchResults(message.results);

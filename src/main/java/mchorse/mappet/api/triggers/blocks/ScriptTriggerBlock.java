@@ -3,6 +3,7 @@ package mchorse.mappet.api.triggers.blocks;
 import javax.script.ScriptException;
 import mchorse.mappet.Mappet;
 import mchorse.mappet.MappetClient;
+import mchorse.mappet.api.scripts.Script;
 import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.utils.ScriptUtils;
 import net.minecraft.class_124;
@@ -31,7 +32,7 @@ public class ScriptTriggerBlock extends DataTriggerBlock {
 
    public String stringify() {
       if (!this.string.isEmpty() && !this.function.isEmpty()) {
-         String prefix = this.clientScript ? "[CLIENT] " : "";
+         String prefix = this.isClientScript() ? "[CLIENT] " : "";
          String var10000 = this.string;
          return prefix + var10000 + " (" + String.valueOf(class_124.field_1080) + this.function + String.valueOf(class_124.field_1070) + ")";
       } else {
@@ -39,8 +40,21 @@ public class ScriptTriggerBlock extends DataTriggerBlock {
       }
    }
 
+   private boolean isClientScript() {
+      if (this.inline) {
+         return this.clientScript;
+      }
+      if (!this.string.isEmpty() && Mappet.scripts != null) {
+         Script script = Mappet.scripts.load(this.string);
+         if (script != null) {
+            return script.client;
+         }
+      }
+      return this.clientScript;
+   }
+
    public void trigger(DataContext context) {
-      if (this.clientScript) {
+      if (this.isClientScript()) {
          this.triggerClient(context);
          return;
       }

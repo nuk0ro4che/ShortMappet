@@ -204,7 +204,7 @@ public enum ContentType implements IContentType {
 
       @Environment(EnvType.CLIENT)
       public GuiMappetDashboardPanel get(GuiMappetDashboard dashboard) {
-         return dashboard.clientScript;
+         return dashboard.script;
       }
 
       @Environment(EnvType.CLIENT)

@@ -736,6 +736,7 @@
     "mappet.gui.scripts.savetemp": "Сохранить шаблон",
     "mappet.gui.scripts.findreplace": "Поиск и замена",
     "mappet.gui.scripts.globalsearch": "Глобальный поиск",
+    "mappet.gui.scripts.client": "Клиентский",
     "mappet.gui.scripts.global_library": "Глобальная библиотека",
     "mappet.gui.scripts.libraries.title": "Библиотеки",
     "mappet.gui.scripts.libraries.tooltip": "Управление библиотеками...",

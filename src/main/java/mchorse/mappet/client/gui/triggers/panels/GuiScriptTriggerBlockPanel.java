@@ -17,17 +17,12 @@ import net.minecraft.class_310;
 public class GuiScriptTriggerBlockPanel extends GuiDataTriggerBlockPanel<ScriptTriggerBlock> {
    public GuiTextElement function;
    public GuiToggleElement inline;
-   public GuiToggleElement clientScript;
    public GuiTextEditor code;
    private List<GuiElement> allElements;
    private GuiElement elements;
 
    public GuiScriptTriggerBlockPanel(class_310 mc, GuiTriggerOverlayPanel overlay, ScriptTriggerBlock block) {
       super(mc, overlay, block);
-      this.clientScript = new GuiToggleElement(mc, IKey.lang("mappet.gui.triggers.script.client_script"), (this.block).clientScript, (b) -> {
-         (this.block).clientScript = b.isToggled();
-         this.updateFields();
-      });
       this.inline = new GuiToggleElement(mc, IKey.lang("mappet.gui.triggers.script.inline"), (this.block).inline, (b) -> {
          (this.block).inline = b.isToggled();
          this.updateFields();
@@ -59,7 +54,6 @@ public class GuiScriptTriggerBlockPanel extends GuiDataTriggerBlockPanel<ScriptT
 
    private void updateFields() {
       this.elements.removeAll();
-      this.elements.add(this.clientScript);
       this.elements.add(this.inline);
       if ((this.block).inline) {
          this.elements.add(this.code);
@@ -80,6 +74,6 @@ public class GuiScriptTriggerBlockPanel extends GuiDataTriggerBlockPanel<ScriptT
    }
 
    protected ContentType getType() {
-      return (this.block).clientScript ? ContentType.CLIENT_SCRIPTS : ContentType.SCRIPTS;
+      return ContentType.SCRIPTS;
    }
 }

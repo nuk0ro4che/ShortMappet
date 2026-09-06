@@ -46,9 +46,8 @@ public class GuiMappetDashboard extends GuiAbstractDashboard {
    public GuiNpcPanel npc;
    public GuiFactionPanel faction;
    public GuiQuestChainPanel chain;
-   public GuiScriptPanel script;
-   public GuiScriptPanel clientScript;
-   public GuiHUDScenePanel hud;
+    public GuiScriptPanel script;
+    public GuiHUDScenePanel hud;
    public GuiShaderPanel shader;
    public GuiUIFilePanel ui;
    public GuiLogPanel logs;
@@ -110,7 +109,6 @@ public class GuiMappetDashboard extends GuiAbstractDashboard {
       this.npc = new GuiNpcPanel(mc, this);
       this.faction = new GuiFactionPanel(mc, this);
       this.script = new GuiScriptPanel(mc, this);
-      this.clientScript = new GuiScriptPanel(mc, this, ContentType.CLIENT_SCRIPTS);
       this.hud = new GuiHUDScenePanel(mc, this);
       this.shader = new GuiShaderPanel(mc, this);
       this.ui = new GuiUIFilePanel(mc, this);
@@ -125,7 +123,6 @@ public class GuiMappetDashboard extends GuiAbstractDashboard {
       this.panels.registerPanel(this.npc, IKey.lang("mappet.gui.panels.npcs"), Icons.PROCESSOR);
       this.panels.registerPanel(this.faction, IKey.lang("mappet.gui.panels.factions"), Icons.BOOKMARK);
       this.panels.registerPanel(this.script, IKey.lang("mappet.gui.panels.scripts"), MMIcons.PROPERTIES);
-      this.panels.registerPanel(this.clientScript, IKey.str("Клиентские скрипты"), Icons.CODE);
       this.panels.registerPanel(this.hud, IKey.lang("mappet.gui.panels.huds"), Icons.POSE);
       this.panels.registerPanel(this.shader, IKey.lang("mappet.gui.panels.shaders"), Icons.MATERIAL);
       this.panels.registerPanel(this.ui, IKey.lang("mappet.gui.panels.uis"), Icons.ALL_DIRECTIONS);

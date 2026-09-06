@@ -101,6 +101,7 @@ import net.minecraft.class_5903;
 import net.minecraft.class_5904;
 import net.minecraft.class_5905;
 import net.minecraft.class_2561.class_2562;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPlayer {
    private IMappetQuests quests;
@@ -122,11 +123,47 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
    }
 
    public boolean executeClientScript(String script) {
-      return this.executeClientScript(script, "main");
+      return this.executeClientScript(script, "main", new Object[0]);
    }
 
    public boolean executeClientScript(String script, String function) {
-      return this.entity instanceof class_3222 && ClientScriptExecutor.execute((class_3222)this.entity, script, function);
+      return this.executeClientScript(script, function, new Object[0]);
+   }
+
+   public boolean executeClientScript(String script, String function, Object... args) {
+      return this.entity instanceof class_3222 && ClientScriptExecutor.execute((class_3222)this.entity, script, function, args);
+   }
+
+   public boolean executeClientScript(Object code) {
+      return this.executeClientScript(code, new Object[0]);
+   }
+
+   public boolean executeClientScript(Object code, Object... args) {
+      if (!(this.entity instanceof class_3222)) {
+         return false;
+      }
+
+      String source = this.getClientScriptCode(code);
+      return source != null && ClientScriptExecutor.executeInline((class_3222)this.entity, source, args);
+   }
+
+   private String getClientScriptCode(Object code) {
+      if (code instanceof ScriptObjectMirror) {
+         ScriptObjectMirror mirror = (ScriptObjectMirror)code;
+         if (mirror.isFunction()) {
+            String source = mirror.toString();
+            if (source != null && !source.trim().isEmpty()) {
+               return source;
+            }
+         }
+      } else if (code instanceof String) {
+         String text = ((String)code).trim();
+         if (!text.isEmpty()) {
+            return text;
+         }
+      }
+
+      return null;
    }
 
    public void disableJump(boolean disabled) {
@@ -848,6 +885,8 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
       class_3419 soundCategory = category != null && !category.isEmpty() ? class_3419.valueOf(category.toUpperCase(Locale.ROOT)) : null;
       if (this.entity instanceof class_3222) {
          ((class_3222)this.entity).field_13987.method_14364(new class_2770(id, soundCategory));
+      } else if (this.entity instanceof class_746) {
+         class_310.method_1551().method_1483().method_4875(id, soundCategory);
       }
    }
 

@@ -744,6 +744,7 @@
     "mappet.gui.scripts.savetemp": "Save template",
     "mappet.gui.scripts.findreplace": "Find and replace",
     "mappet.gui.scripts.globalsearch": "Global Search",
+    "mappet.gui.scripts.client": "Client script",
     "mappet.gui.scripts.global_library": "Global library",
     "mappet.gui.scripts.libraries.title": "Script libraries",
     "mappet.gui.scripts.libraries.tooltip": "Manage libraries...",

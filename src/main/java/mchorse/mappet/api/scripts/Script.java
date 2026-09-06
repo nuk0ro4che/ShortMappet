@@ -55,6 +55,7 @@ public class Script extends AbstractData {
    public String code = "";
    public boolean unique = true;
    public boolean globalLibrary = false;
+   public boolean client = false;
    public List<String> libraries = new ArrayList();
    public long lastLoadedAt = 0;
    private ScriptEngine engine;
@@ -452,6 +453,7 @@ public class Script extends AbstractData {
 
       tag.method_10556("Unique", this.unique);
       tag.method_10556("GlobalLibrary", this.globalLibrary);
+      tag.method_10556("Client", this.client);
       tag.method_10566("Libraries", libraries);
       tag.method_10570("Code", this.code.getBytes(StandardCharsets.UTF_8));
       return tag;
@@ -471,6 +473,10 @@ public class Script extends AbstractData {
 
       if (tag.method_10545("GlobalLibrary")) {
          this.globalLibrary = tag.method_10577("GlobalLibrary");
+      }
+
+      if (tag.method_10545("Client")) {
+         this.client = tag.method_10577("Client");
       }
 
       this.code = new String(tag.method_10547("Code"), StandardCharsets.UTF_8);

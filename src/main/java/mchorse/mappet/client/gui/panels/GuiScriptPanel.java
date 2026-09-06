@@ -2,6 +2,7 @@ package mchorse.mappet.client.gui.panels;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,7 @@ import mchorse.mappet.client.gui.utils.overlays.GuiOverlayPanel;
 import mchorse.mappet.client.gui.utils.overlays.GuiSoundOverlayPanel;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketRequestScriptDiagnostic;
+import mchorse.mappet.network.common.scripts.PacketRequestClientScriptFlags;
 import mchorse.mappet.network.common.scripts.PacketRequestScriptSearch;
 import mchorse.mappet.network.common.scripts.ScriptSearchResult;
 import mchorse.mappet.utils.MPIcons;
@@ -92,6 +94,8 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    public GuiScriptTabBar tabs;
    public GuiToggleElement unique;
    public GuiToggleElement globalLibrary;
+   public GuiToggleElement client;
+   private final Set<String> clientScriptIds = new HashSet();
    private final Map<String, EditorViewState> editorViewStates = new HashMap();
    private final List<String> openScriptTabs = new ArrayList();
    private final Map<String, String> tabInitialCode = new HashMap();
@@ -418,6 +422,7 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
       super(mc, dashboard);
       this.contentType = contentType == null ? ContentType.SCRIPTS : contentType;
       this.namesList.setFileIcon(MMIcons.PROPERTIES);
+      this.namesList.setFileIconResolver(this::getScriptFileIcon);
       this.namesList.setDiagnosticStatusResolver(this::getScriptDiagnosticStatus);
       this.namesList.onMiddleClick(this::openBackgroundScriptTab);
       this.toggleRepl =
@@ -477,18 +482,23 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
               .category(GuiMappetDashboardPanel.KEYS_CATEGORY)
               .held(new int[] {29});
       this.repl = new GuiRepl(mc);
+      this.client =
+               new GuiToggleElement(
+                       mc,
+                       IKey.lang("mappet.gui.scripts.client"),
+                       (b) -> this.setClientToggle(b.isToggled()));
       this.unique =
-              new GuiToggleElement(
-                      mc,
-                      IKey.lang("mappet.gui.npcs.meta.unique"),
-                      (b) -> (this.data).unique = b.isToggled());
+               new GuiToggleElement(
+                       mc,
+                       IKey.lang("mappet.gui.npcs.meta.unique"),
+                       (b) -> (this.data).unique = b.isToggled());
       this.globalLibrary =
-              new GuiToggleElement(
-                      mc,
-                      IKey.lang("mappet.gui.scripts.global_library"),
-                      (b) -> (this.data).globalLibrary = b.isToggled());
+               new GuiToggleElement(
+                       mc,
+                       IKey.lang("mappet.gui.scripts.global_library"),
+                       (b) -> (this.data).globalLibrary = b.isToggled());
       GuiElement sideBarToggles =
-              Elements.column(mc, 2, new GuiElement[] {this.unique, this.globalLibrary});
+               Elements.column(mc, 2, new GuiElement[] {this.client, this.unique, this.globalLibrary});
       sideBarToggles.flex().relative(this.sidebar).x(10).y(1.0F, -10).w(1.0F, -20).anchorY(1.0F);
       this.names.flex().hTo(sideBarToggles.area, -5);
       this.tabs = new GuiScriptTabBar(mc).onSelect(this::selectScriptTab).onClose(this::closeScriptTab).onReorder(this::reorderScriptTab);
@@ -672,13 +682,20 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    }
 
    protected void runScript(GuiIconElement element) {
+      this.runCurrentScript();
+   }
+
+   public void runCurrentScript() {
+      if (this.data == null || this.mc == null || this.mc.field_1724 == null) {
+         return;
+      }
       class_746 player = this.mc.field_1724;
       this.save();
       this.save = false;
-      class_634 var10000 = player.field_3944;
-      String var10001 = String.valueOf(player.method_5667());
-      String command = this.getType() == ContentType.CLIENT_SCRIPTS ? "mp clientscript exec " : "mp script exec " + var10001 + " ";
-      var10000.method_45731(command + ((Script) this.data).getId());
+      class_634 network = player.field_3944;
+      String playerName = String.valueOf(player.method_5667());
+      String command = this.isCurrentScriptClient() ? "mp clientscript exec " : "mp script exec " + playerName + " ";
+      network.method_45731(command + ((Script)this.data).getId());
    }
 
    private void openLibraries(GuiIconElement element) {
@@ -727,6 +744,47 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    
    protected boolean isClientOnlyScripts() {
       return false;
+   }
+
+   private boolean isCurrentScriptClient() {
+      return this.data != null && this.data.client;
+   }
+
+   private Icon getScriptFileIcon(String path) {
+      return this.clientScriptIds.contains(path) ? Icons.CODE : null;
+   }
+
+   private void setClientToggle(boolean value) {
+      if (this.data == null) {
+         return;
+      }
+      this.data.client = value;
+      if (value) {
+         this.clientScriptIds.add(this.data.getId());
+      } else {
+         this.clientScriptIds.remove(this.data.getId());
+      }
+      this.save();
+   }
+
+   public void setClientScriptIds(Collection<String> ids) {
+      this.clientScriptIds.clear();
+      if (ids != null) {
+         this.clientScriptIds.addAll(ids);
+      }
+      if (this.data != null) {
+         if (this.data.client) {
+            this.clientScriptIds.add(this.data.getId());
+         } else {
+            this.clientScriptIds.remove(this.data.getId());
+         }
+      }
+   }
+
+   @Override
+   public void requestDataNames() {
+      super.requestDataNames();
+      Dispatcher.sendToServer(new PacketRequestClientScriptFlags());
    }
 
    public void showSearchResults(List<ScriptSearchResult> results) {
@@ -835,6 +893,7 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
       super.fill(data, allowed);
       this.editor.setVisible(data != null);
       this.beautify.setVisible(data != null && allowed);
+      this.client.setVisible(data != null && allowed);
       this.unique.setVisible(data != null && allowed);
       this.globalLibrary.setVisible(data != null && allowed);
       this.updateButtons();
@@ -865,6 +924,13 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
 
          this.unique.toggled(data.unique);
          this.globalLibrary.toggled(data.globalLibrary);
+         this.client.toggled(data.client);
+         this.code.setClientScriptMode(data.client);
+         if (data.client) {
+            this.clientScriptIds.add(data.getId());
+         } else {
+            this.clientScriptIds.remove(data.getId());
+         }
          this.focusSearchResult();
       } else {
          this.code.setJavaScriptLibraryFunctions((Set)null);

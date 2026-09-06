@@ -418,6 +418,106 @@
           "annotations": []
         },
         {
+          "name": "executeClientScript",
+          "doc": "Выполняет клиентский скрипт на стороне игрока. Используется функция <code>main</code>.\n\n <pre>{@code\n    var player = c.getSubject();\n\n    if (player.executeClientScript(\"client_script\"))\n    {\n        // скрипт отправлен на выполнение\n    }\n }</pre>",
+          "returns": {
+            "type": "boolean",
+            "doc": "true, если клиентский скрипт найден и был отправлен на выполнение."
+          },
+          "arguments": [
+          {
+            "name": "script",
+            "type": "java.lang.String",
+            "doc": "ID/название клиентского скрипта."
+          }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "executeClientScript",
+          "doc": "Выполняет клиентский скрипт на стороне игрока и вызывает указанную функцию. Если функция пустая, используется <code>main</code>.\n\n <pre>{@code\n    var player = c.getSubject();\n\n    if (player.executeClientScript(\"client_script\", \"onTick\"))\n    {\n        // скрипт отправлен на выполнение\n    }\n }</pre>",
+          "returns": {
+            "type": "boolean",
+            "doc": "true, если клиентский скрипт найден и был отправлен на выполнение."
+          },
+          "arguments": [
+          {
+            "name": "script",
+            "type": "java.lang.String",
+            "doc": "ID/название клиентского скрипта."
+          },
+          {
+            "name": "function",
+            "type": "java.lang.String",
+            "doc": "Имя функции для вызова."
+          }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "executeClientScript",
+          "doc": "Выполняет клиентский скрипт на стороне игрока, вызывает указанную функцию и передаёт ей аргументы. Если функция пустая, используется <code>main</code>. Аргументы попадают в функцию скрипта по порядку; значения Boolean/числа/строки сохраняют тип, остальные передаются как строки.\n\n <pre>{@code\n    var player = c.getSubject();\n\n    if (player.executeClientScript(\"client_script\", \"onTick\", 42, \"hello\", true))\n    {\n        // скрипт отправлен на выполнение\n    }\n }</pre>",
+          "returns": {
+            "type": "boolean",
+            "doc": "true, если клиентский скрипт найден и был отправлен на выполнение."
+          },
+          "arguments": [
+          {
+            "name": "script",
+            "type": "java.lang.String",
+            "doc": "ID/название клиентского скрипта."
+          },
+          {
+            "name": "function",
+            "type": "java.lang.String",
+            "doc": "Имя функции для вызова."
+          },
+          {
+            "name": "args",
+            "type": "Object",
+            "doc": "Аргументы, передаваемые в функцию скрипта."
+          }
+          ],
+          "annotations": []
+                  },
+        {
+          "name": "executeClientScript",
+          "doc": "Выполняет переданную функцию прямо на клиенте игрока, без отдельного файла скрипта. Функция описывается в серверном скрипте и отправляется на клиент, где вызывается. Внутри доступны объекты <code>c</code> (событие), <code>mappet</code> и <code>context</code> (клиентский DataContext).\n\n <pre>{@code\n    var player = c.getSubject();\n\n    player.executeClientScript(function()\n    {\n        var client = c.getSubject();\n        client.send(\"Это сообщение показал код, отправленный с сервера\");\n    });\n }</pre>",
+          "returns": {
+            "type": "boolean",
+            "doc": "true, если код отправлен на выполнение."
+          },
+          "arguments": [
+          {
+            "name": "code",
+            "type": "Object",
+            "doc": "JS-функция (или строка кода), выполняемая на клиенте."
+          }
+          ],
+          "annotations": []
+                },
+        {
+          "name": "executeClientScript",
+          "doc": "Выполняет переданную функцию на клиенте игрока и передаёт ей аргументы. Аргументы попадают в функцию по порядку; значения Boolean/числа/строки сохраняют тип, остальные передаются как строки.\n\n <pre>{@code\n    var player = c.getSubject();\n\n    player.executeClientScript(function(message, count)\n    {\n        for (var i = 0; i < count; i++)\n        {\n            var client = c.getSubject();\n            client.send(message);\n        }\n    }, \"Привет!\", 3);\n }</pre>",
+          "returns": {
+            "type": "boolean",
+            "doc": "true, если код отправлен на выполнение."
+          },
+          "arguments": [
+          {
+            "name": "code",
+            "type": "Object",
+            "doc": "JS-функция (или строка кода), выполняемая на клиенте."
+          },
+          {
+            "name": "args",
+            "type": "Object",
+            "doc": "Аргументы, передаваемые в функцию."
+          }
+          ],
+          "annotations": []
+                },
+        {
           "name": "applyShader",
           "signature": "boolean applyShader(String id, boolean ui, boolean hud)",
           "doc": "Применяет сохранённый шейдер к миру игрока и, при необходимости, к интерфейсу Mappet и HUD. ID — имя файла из вкладки «Шейдеры» без расширения. <code>ui</code> включает интерфейс Mappet, <code>hud</code> — весь HUD. Новый шейдер заменяет предыдущий в каждом выбранном слое. Если оба флага не нужны, можно вызвать коротко: <code>applyShader(\"wave\")</code>. Вызов не меняет файл и не включает шейдер другим игрокам. При включённом Iris/Oculus экранный слой накладывается поверх готового цвета shader pack перед отрисовкой руки; внутренние буферы shader pack не изменяются.\n\n <pre>{@code\nfunction main(c)\n{\n    var s = c.getSubject();\n\n    // Мир, интерфейс Mappet и HUD\n    s.applyShader(\"wave\", true, true);\n}\n}</pre>",

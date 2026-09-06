@@ -5,9 +5,9 @@ import java.util.Set;
 import mchorse.mappet.CommonProxy;
 import mchorse.mappet.Mappet;
 import mchorse.mappet.api.misc.hotkeys.TriggerHotkey;
-import mchorse.mappet.api.scripts.Script;
 import mchorse.mappet.client.gui.GuiJournalScreen;
 import mchorse.mappet.client.gui.GuiMappetDashboard;
+import mchorse.mappet.client.gui.panels.GuiScriptPanel;
 import mchorse.mappet.client.gui.scripts.scriptedItem.GuiScriptedItemScreen;
 import mchorse.mappet.mixins.ScreenAccessor;
 import mchorse.mappet.compat.events.legacy.LegacyEvents;
@@ -29,7 +29,6 @@ import net.minecraft.class_4185;
 import net.minecraft.class_437;
 import net.minecraft.class_481;
 import net.minecraft.class_490;
-import net.minecraft.class_634;
 import net.minecraft.class_7919;
 import net.minecraft.class_3675.class_307;
 
@@ -105,11 +104,10 @@ public final class KeyboardHandler {
          }
 
          while(runScript.method_1436()) {
-            Script script = GuiMappetDashboard.get(mc).script.getData();
-            if (script != null) {
-               class_634 var10000 = mc.field_1724.field_3944;
-               String var10001 = mc.field_1724.method_5477().getString();
-               var10000.method_45730("mp script exec " + var10001 + " " + script.getId());
+            GuiMappetDashboard dashboard = GuiMappetDashboard.get(mc);
+            GuiScriptPanel panel = dashboard == null ? null : dashboard.script;
+            if (panel != null) {
+               panel.runCurrentScript();
             }
          }
 

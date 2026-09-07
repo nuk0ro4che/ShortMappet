@@ -672,6 +672,11 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
          return AutoCompleteEngine.findMatchingHuds(hudPrefix);
       }
 
+      String soundPrefix = AutoCompleteEngine.extractSoundPrefix(line, offset);
+      if (soundPrefix != null) {
+         return AutoCompleteEngine.findMatchingSounds(soundPrefix);
+      }
+
       String[] completionContext = AutoCompleteEngine.extractContext(line, offset);
       if (completionContext == null) {
          return new ArrayList();
@@ -747,6 +752,8 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
          replacement = AutoCompleteEngine.applyShaderCompletion(line, offset, suggestion.methodName, newOffset);
       } else if (AutoCompleteEngine.extractHUDPrefix(line, offset) != null) {
          replacement = AutoCompleteEngine.applyHUDCompletion(line, offset, suggestion.methodName, newOffset);
+      } else if (AutoCompleteEngine.extractSoundPrefix(line, offset) != null) {
+         replacement = AutoCompleteEngine.applySoundCompletion(line, offset, suggestion.methodName, newOffset);
       } else if ("kw".equals(suggestion.className)) {
          replacement = AutoCompleteEngine.applyCompletionKeyword(line, offset, suggestion.methodName, suggestion.className, newOffset);
       } else if ("var".equals(suggestion.className) || "[]".equals(suggestion.className) || "{}".equals(suggestion.className) || "alias".equals(suggestion.className) || "value".equals(suggestion.className)) {

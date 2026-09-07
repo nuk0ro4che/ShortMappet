@@ -96,6 +96,16 @@ public class ScriptWorldManagedSound implements IScriptManagedSound {
       }
    }
 
+   public boolean isPlaying() {
+      for(class_3222 player : this.players()) {
+         if (ManagedSoundRegistry.has(player, this.id)) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
    public void stop() {
       for(class_3222 player : this.players()) {
          if (ManagedSoundRegistry.has(player, this.id)) {

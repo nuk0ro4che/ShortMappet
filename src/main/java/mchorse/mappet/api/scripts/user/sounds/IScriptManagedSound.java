@@ -15,6 +15,8 @@ public interface IScriptManagedSound {
 
    float getVolume();
 
+   boolean isPlaying();
+
    double getTimeCode();
 
    void setTimeCode(double seconds);

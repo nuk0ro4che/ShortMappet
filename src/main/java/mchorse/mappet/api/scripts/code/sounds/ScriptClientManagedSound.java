@@ -64,6 +64,10 @@ public class ScriptClientManagedSound implements IScriptManagedSound {
       ClientManagedSoundManager.handle(PacketManagedSound.setTimeCode(this.id, Math.max(0.0D, seconds)));
    }
 
+   public boolean isPlaying() {
+      return ClientManagedSoundManager.has(this.id);
+   }
+
    public void stop() {
       ClientManagedSoundManager.handle(PacketManagedSound.stop(this.id));
    }

@@ -10,6 +10,9 @@ public final class ClientTriggers {
     private ClientTriggers() {
     }
 
+    public static void trigger(String key, DataContext context) {
+        if (MappetClient.clientSettings != null) {
+            MappetClient.clientSettings.trigger(key, context);
         }
     }
 }

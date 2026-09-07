@@ -38,6 +38,7 @@ public class Script extends AbstractData {
    private static final String DEFAULT_IMPORT_REPOSITORY = "nuk0ro4che/myLib";
    private static final String DEFAULT_IMPORT_BRANCH = "main";
    private static final Pattern REMOTE_IMPORT = Pattern.compile("(?m)^\\s*import\\s+(?:([\\\"'])([^\\\"']+)\\1|([^;\\s]+))\\s*;?\\s*$");
+   private static final Pattern FUNCTION_DECLARATION = Pattern.compile("(?m)^\\s*function\\s+([A-Za-z_$][\\w$]*)\\s*\\(([^)]*)\\)");
    private static final int MAX_REMOTE_LIBRARY_SIZE = 1024 * 1024;
    private static final Map<String, RemoteLibraryCacheEntry> REMOTE_LIBRARY_CACHE = new HashMap();
    private static class RemoteLibraryCacheEntry {
@@ -140,7 +141,18 @@ public class Script extends AbstractData {
       try {
          File scriptFile = manager.getScriptFile(library);
          String code = FileUtils.readFileToString(scriptFile, Utils.getCharset());
-         if (isKotlin) {
+         Script libraryScript = manager.load(library);
+         boolean stubClientLibrary = libraryScript != null && libraryScript.client && !this.client && !isKotlin;
+         if (stubClientLibrary) {
+            finalCode.append(this.buildClientLibraryStubs(code));
+            if (this.ranges == null) {
+               this.ranges = new ArrayList();
+            }
+
+            this.ranges.add(new ScriptRange(total, library));
+            total += StringUtils.countMatches(code, "\n") + 1;
+            return total;
+         } else if (isKotlin) {
             code = this.processKotlinCode(code, uniqueImports);
          }
 
@@ -174,6 +186,62 @@ public class Script extends AbstractData {
       }
 
       return currentCode.toString();
+   }
+
+   private String buildClientLibraryStubs(String code) {
+      StringBuilder stubs = new StringBuilder();
+      if (code == null || code.trim().isEmpty()) {
+         return stubs.toString();
+      }
+
+      Matcher matcher = FUNCTION_DECLARATION.matcher(code);
+      while (matcher.find()) {
+         String name = matcher.group(1);
+         List<String> params = this.getFunctionParams(matcher.group(2));
+         if (params.isEmpty()) {
+            continue;
+         }
+
+         stubs.append("function ").append(name).append("(__arg0");
+         for(int i = 1; i < params.size(); i++) {
+            stubs.append(", __arg").append(i);
+         }
+
+         stubs.append(") {\n    __arg0.getPlayer().executeClientScript(function(){ ").append(name).append("(c");
+         for(int i = 1; i < params.size(); i++) {
+            stubs.append(", arguments[").append(i - 1).append("]");
+         }
+
+         stubs.append("); }");
+         for(int i = 1; i < params.size(); i++) {
+            stubs.append(", __arg").append(i);
+         }
+
+         stubs.append(");\n}\n");
+      }
+
+      return stubs.toString();
+   }
+
+   private List<String> getFunctionParams(String raw) {
+      List<String> params = new ArrayList<>();
+      if (raw == null) {
+         return params;
+      }
+
+      for(String param : raw.split(",")) {
+         String name = param.trim();
+         int equal = name.indexOf('=');
+         if (equal >= 0) {
+            name = name.substring(0, equal).trim();
+         }
+
+         if (!name.isEmpty() && name.matches("[A-Za-z_$][\\w$]*")) {
+            params.add(name);
+         }
+      }
+
+      return params;
    }
 
    private int processScriptCode(ScriptManager manager, boolean isKotlin, Set<String> uniqueImports, StringBuilder finalCode, Set<String> alreadyLoaded, int total) throws ScriptException {

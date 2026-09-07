@@ -41,6 +41,25 @@ public final class ClientScriptExecutor {
       }
 
       String entry = function == null || function.trim().isEmpty() ? "main" : function.trim();
+      Map<String, class_2487> payload = buildClientPayload(player, id);
+
+      Dispatcher.sendTo(new PacketClientScriptExecute(id, entry, payload, args), player);
+      return true;
+   }
+
+   public static boolean executeInline(class_3222 player, String source, Object... args) {
+      if (player == null || source == null || source.trim().isEmpty() || Mappet.clientScripts == null) {
+         return false;
+      }
+
+      Map<String, class_2487> payload = buildClientPayload(player, null);
+      PacketClientScriptExecute message = new PacketClientScriptExecute(source, args);
+      message.scripts.putAll(payload);
+      Dispatcher.sendTo(message, player);
+      return true;
+   }
+
+   private static Map<String, class_2487> buildClientPayload(class_3222 player, String targetId) {
       Map<String, class_2487> payload = new LinkedHashMap<>();
 
       for(String currentId : Mappet.clientScripts.getKeys()) {
@@ -49,21 +68,11 @@ public final class ClientScriptExecutor {
          }
 
          Script current = Mappet.clientScripts.load(currentId);
-         if (current != null && (current.client || currentId.equals(id))) {
+         if (current != null && (current.client || currentId.equals(targetId))) {
             payload.put(currentId, current.serializeNBT());
          }
       }
 
-      Dispatcher.sendTo(new PacketClientScriptExecute(id, entry, payload, args), player);
-      return true;
-   }
-
-   public static boolean executeInline(class_3222 player, String source, Object... args) {
-      if (player == null || source == null || source.trim().isEmpty()) {
-         return false;
-      }
-
-      Dispatcher.sendTo(new PacketClientScriptExecute(source, args), player);
-      return true;
+      return payload;
    }
 }

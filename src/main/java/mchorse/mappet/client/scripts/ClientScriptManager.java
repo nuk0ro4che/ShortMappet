@@ -82,8 +82,21 @@ public class ClientScriptManager extends ScriptManager {
       ScriptEngine engine = ScriptUtils.sanitize(new NashornScriptEngineFactory().getScriptEngine(new String[]{"--language=es6", "-scripting"}));
       engine.put("context", context);
 
+      StringBuilder source = new StringBuilder();
+      for (String id : this.getKeys()) {
+         if (id.endsWith("/")) {
+            continue;
+         }
+
+         Script library = this.load(id);
+         if (library != null && library.client && library.code != null && !library.code.trim().isEmpty()) {
+            source.append(library.code).append("\n");
+         }
+      }
+
       if (trimmed.startsWith("function") || trimmed.startsWith("(")) {
-         Object result = this.eval(engine, "(" + trimmed + ")", context);
+         source.append("(").append(trimmed).append(")");
+         Object result = this.eval(engine, source.toString(), context);
          if (result instanceof ScriptObjectMirror) {
             ScriptObjectMirror mirror = (ScriptObjectMirror)result;
             if (mirror.isFunction()) {
@@ -93,7 +106,8 @@ public class ClientScriptManager extends ScriptManager {
          return result;
       }
 
-      return this.eval(engine, trimmed, context);
+      source.append(trimmed);
+      return this.eval(engine, source.toString(), context);
    }
 
    

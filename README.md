@@ -1,3 +1,6 @@
+https://github.com/nuk0ro4che/ShortMappet/tree/main#русская-версия
+https://github.com/nuk0ro4che/ShortMappet/tree/main#english-version
+
 ## Русская версия
 
 ### ShortMappet для Minecraft 1.20.1

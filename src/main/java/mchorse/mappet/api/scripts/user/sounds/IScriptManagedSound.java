@@ -1,5 +1,6 @@
 package mchorse.mappet.api.scripts.user.sounds;
 
+import mchorse.mappet.api.scripts.user.data.ScriptVector;
 
 public interface IScriptManagedSound {
    String getId();
@@ -8,7 +9,11 @@ public interface IScriptManagedSound {
 
    void setPosition(double x, double y, double z);
 
+   ScriptVector getPosition();
+
    void setVolume(float volume);
+
+   float getVolume();
 
    double getTimeCode();
 

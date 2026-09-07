@@ -106,7 +106,7 @@ public class DocMerger {
          if (packageMain == null) {
             docsMain.packages.add(packageAdd);
          } else {
-            packageMain.doc = packageAdd.doc;
+            packageMain.doc = packageAdd.doc.trim().isEmpty() ? packageMain.doc : packageAdd.doc.trim();
             Collections.replaceAll(docsMain.packages, packageMain, packageAdd);
          }
       }
@@ -120,7 +120,7 @@ public class DocMerger {
          if (methodMain == null) {
             classMain.methods.add(methodAdd);
          } else {
-            methodMain.doc = methodAdd.doc;
+            methodMain.doc = methodAdd.doc.trim().isEmpty() ? methodMain.doc : methodAdd.doc.trim();
             Collections.replaceAll(classMain.methods, methodMain, methodAdd);
          }
       }

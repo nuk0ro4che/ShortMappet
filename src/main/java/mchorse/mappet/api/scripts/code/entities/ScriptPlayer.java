@@ -861,7 +861,7 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
       if (this.entity instanceof class_3222) {
          return ManagedSoundRegistry.has((class_3222)this.entity, specialId) ? new ScriptManagedSound((class_3222)this.entity, specialId) : null;
       }
-      return ClientManagedSoundManager.has(specialId) ? new ScriptClientManagedSound(specialId, ClientManagedSoundManager.getName(specialId), 0.0D, 0.0D, 0.0D, 1.0F) : null;
+      return ClientManagedSoundManager.has(specialId) ? new ScriptClientManagedSound(specialId, ClientManagedSoundManager.getName(specialId), ClientManagedSoundManager.getX(specialId), ClientManagedSoundManager.getY(specialId), ClientManagedSoundManager.getZ(specialId), ClientManagedSoundManager.getVolume(specialId)) : null;
    }
 
    private String requireManagedSoundId(String id) {

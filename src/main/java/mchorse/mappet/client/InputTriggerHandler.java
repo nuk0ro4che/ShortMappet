@@ -1,12 +1,14 @@
 package mchorse.mappet.client;
 
 import mchorse.mappet.api.misc.hotkeys.TriggerHotkey;
+import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.events.PacketEventHotkey;
 import mchorse.mclib.utils.KeyCodes;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.class_310;
+import net.minecraft.class_746;
 import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
@@ -23,25 +25,52 @@ public final class InputTriggerHandler {
    }
 
    public static void onKeyboard(int glfwKey, int action) {
-      if (!isGameplayInput() || !keyboardActive || action != GLFW.GLFW_PRESS && action != GLFW.GLFW_RELEASE) {
+      if (!isGameplayInput() || action != GLFW.GLFW_PRESS && action != GLFW.GLFW_RELEASE) {
          return;
       }
 
       int keycode = KeyCodes.glfwToLwjgl2(glfwKey);
       if (keycode != 0) {
-         send(TriggerHotkey.INPUT_KEYBOARD, keycode, action == GLFW.GLFW_PRESS);
+         boolean down = action == GLFW.GLFW_PRESS;
+         class_310 mc = class_310.method_1551();
+
+         if (mc.field_1724 != null) {
+            ClientTriggers.trigger("player_keyboard", DataContext.client(mc.field_1724).set("keyCode", String.valueOf(keycode)).set("keyState", down));
+         }
+
+         if (keyboardActive) {
+            send(TriggerHotkey.INPUT_KEYBOARD, keycode, down);
+         }
       }
    }
 
    public static void onMouse(int button, int action) {
-      if (isGameplayInput() && mouseActive && (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_RELEASE)) {
-         send(TriggerHotkey.INPUT_MOUSE, button, action == GLFW.GLFW_PRESS, 0);
+      if (isGameplayInput() && (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_RELEASE)) {
+         boolean down = action == GLFW.GLFW_PRESS;
+         class_310 mc = class_310.method_1551();
+
+         if (mc.field_1724 != null) {
+            ClientTriggers.trigger("mouse_input", DataContext.client(mc.field_1724).set("button", (double)button).set("buttonState", down).set("DWhell", 0.0D));
+         }
+
+         if (mouseActive) {
+            send(TriggerHotkey.INPUT_MOUSE, button, down, 0);
+         }
       }
    }
 
    public static void onScroll(double vertical) {
-      if (isGameplayInput() && mouseActive && vertical != 0.0D) {
-         send(TriggerHotkey.INPUT_MOUSE, -1, false, (int)Math.round(vertical * 120.0D));
+      if (isGameplayInput() && vertical != 0.0D) {
+         int wheel = (int)Math.round(vertical * 120.0D);
+         class_310 mc = class_310.method_1551();
+
+         if (mc.field_1724 != null) {
+            ClientTriggers.trigger("mouse_input", DataContext.client(mc.field_1724).set("button", -1.0D).set("buttonState", false).set("DWhell", (double)wheel));
+         }
+
+         if (mouseActive) {
+            send(TriggerHotkey.INPUT_MOUSE, -1, false, wheel);
+         }
       }
    }
 

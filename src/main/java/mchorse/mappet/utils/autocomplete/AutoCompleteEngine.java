@@ -379,7 +379,9 @@ public class AutoCompleteEngine {
 
       if (className.contains("IScriptManagedSound")) {
          addApiSuggestion(suggestions, lowerPrefix, "setPosition", "double x, double y, double z", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "getPosition", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "setVolume", "float volume", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "getVolume", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "getTimeCode", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "setTimeCode", "double seconds", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "stop", "", "fn");

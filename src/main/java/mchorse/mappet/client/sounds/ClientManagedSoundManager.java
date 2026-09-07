@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
+import mchorse.mappet.client.ClientTriggers;
+import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketManagedSound;
 import net.fabricmc.api.EnvType;
@@ -69,6 +71,26 @@ public final class ClientManagedSoundManager {
       return sound == null ? 0.0D : sound.getFallbackTimeCode();
    }
 
+   public static float getVolume(String id) {
+      ClientManagedSoundInstance sound = id == null ? null : (ClientManagedSoundInstance)SOUNDS.get(id);
+      return sound == null ? 0.0F : sound.getLiveVolume();
+   }
+
+   public static double getX(String id) {
+      ClientManagedSoundInstance sound = id == null ? null : (ClientManagedSoundInstance)SOUNDS.get(id);
+      return sound == null ? 0.0D : sound.getLiveX();
+   }
+
+   public static double getY(String id) {
+      ClientManagedSoundInstance sound = id == null ? null : (ClientManagedSoundInstance)SOUNDS.get(id);
+      return sound == null ? 0.0D : sound.getLiveY();
+   }
+
+   public static double getZ(String id) {
+      ClientManagedSoundInstance sound = id == null ? null : (ClientManagedSoundInstance)SOUNDS.get(id);
+      return sound == null ? 0.0D : sound.getLiveZ();
+   }
+
    public static void tick() {
       class_310 client = class_310.method_1551();
       if (client == null) {
@@ -94,11 +116,12 @@ public final class ClientManagedSoundManager {
          }
 
          
-         if (sound.getAge() > 2 && !soundManager.method_4877(sound)) {
-            iterator.remove();
-            sound.finish();
-            Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
-         }
+if (sound.getAge() > 2 && !soundManager.method_4877(sound)) {
+             iterator.remove();
+             sound.finish();
+             Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
+             fireSoundEnded(client, sound.id, sound.name);
+          }
       }
    }
 
@@ -125,7 +148,14 @@ public final class ClientManagedSoundManager {
          sound.finish();
          if (notifyServer) {
             Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
+            fireSoundEnded(class_310.method_1551(), sound.id, sound.name);
          }
+      }
+   }
+
+   private static void fireSoundEnded(class_310 client, String id, String name) {
+      if (client != null && client.field_1724 != null) {
+         ClientTriggers.trigger("sound_ended", DataContext.client(client.field_1724).set("id", id).set("name", name));
       }
    }
 
@@ -184,7 +214,7 @@ public final class ClientManagedSoundManager {
    private static void setOpenAlLiveProperties(Object source, ClientManagedSoundInstance sound) {
       try {
          int handle = getOpenAlSourceHandle(source);
-         AL10.alSourcef(handle, AL10.AL_GAIN, sound.getLiveVolume());
+         AL10.alSourcef(handle, AL10.AL_GAIN, sound.getLiveVolume() * class_310.method_1551().field_1690.method_1630(sound.category));
          AL10.alSource3f(handle, AL10.AL_POSITION, (float)sound.getLiveX(), (float)sound.getLiveY(), (float)sound.getLiveZ());
       } catch (Exception ignored) {
       }

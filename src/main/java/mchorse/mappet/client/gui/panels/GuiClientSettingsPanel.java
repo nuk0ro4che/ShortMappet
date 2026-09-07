@@ -21,7 +21,7 @@ import net.minecraft.class_2561;
 import net.minecraft.class_310;
 
 public class GuiClientSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard> {
-   private static final String[] TRIGGERS = new String[]{"block_interact", "block_left_click", "client_tick"};
+   private static final String[] TRIGGERS = ClientSettings.GLOBAL_TRIGGERS;
 
    public GuiLabelListElement<String> triggers;
    public GuiTriggerElement trigger;
@@ -82,7 +82,7 @@ public class GuiClientSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    }
 
    private IKey createTooltip(String key, Trigger trigger) {
-      IKey title = IKey.lang("mappet.gui.client_settings.triggers." + key);
+      IKey title = IKey.lang("mappet.gui.settings.triggers." + key);
 
       if (trigger.blocks.isEmpty()) {
          return title;
@@ -95,9 +95,9 @@ public class GuiClientSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
       String key = (String)label.value;
 
       this.editor.removeAll();
-      this.editor.add((new GuiText(this.mc)).text(IKey.lang("mappet.gui.client_settings.triggers.descriptions." + key)));
+      this.editor.add((new GuiText(this.mc)).text(IKey.lang("mappet.gui.settings.triggers.descriptions." + key)));
       this.editor.add(Elements.label(IKey.lang("mappet.gui.settings.variables")).background().marginTop(16).marginBottom(8));
-      this.editor.add((new GuiText(this.mc)).text(IKey.lang("mappet.gui.client_settings.triggers.variables." + key)));
+      this.editor.add((new GuiText(this.mc)).text(IKey.lang("mappet.gui.settings.triggers.variables." + key)));
 
       this.trigger.set(this.getTrigger(key));
 
@@ -110,14 +110,7 @@ public class GuiClientSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    }
 
    private Trigger getTrigger(String key) {
-      switch (key) {
-         case "block_left_click":
-            return this.settings.blockLeftClick;
-         case "client_tick":
-            return this.settings.playerTick;
-         default:
-            return this.settings.blockInteract;
-      }
+      return this.settings.getTrigger(key);
    }
 
    

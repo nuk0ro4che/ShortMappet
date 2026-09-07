@@ -7,6 +7,7 @@ import java.util.Set;
 import mchorse.mappet.api.misc.ClientSettings;
 import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.client.ClientEventHandler;
+import mchorse.mappet.client.ClientTriggers;
 import mchorse.mappet.client.KeyboardHandler;
 import mchorse.mappet.client.scripts.ClientScriptManager;
 import mchorse.mappet.api.scripts.lights.VanillaWorldLightManager;
@@ -43,6 +44,7 @@ import mchorse.mclib.network.ClientDispatcherHooks;
 import mchorse.mappet.client.DiscordRPC;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.class_1074;
@@ -109,8 +111,18 @@ public class MappetClient implements ClientModInitializer {
 
    public void onInitializeClient() {
       clientScriptRuntime = new ClientScriptManager(new File(CommonProxy.configFolder, "client_script_cache"));
-      clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_settings.json"));
-      clientSettings.load();
+clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_settings.json"));
+       clientSettings.load();
+       ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+          if (client.field_1724 != null) {
+             ClientTriggers.trigger("player_login", DataContext.client(client.field_1724));
+          }
+       });
+       ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+          if (client.field_1724 != null) {
+             ClientTriggers.trigger("player_logout", DataContext.client(client.field_1724));
+          }
+       });
       GuiModelRenderer.dummyEntityFactory = (client) -> {
          if (client == null || client.field_1687 == null) {
             return null;

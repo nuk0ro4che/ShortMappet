@@ -1,5 +1,6 @@
 package mchorse.mappet.api.scripts.code.sounds;
 
+import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.api.scripts.user.sounds.IScriptManagedSound;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketManagedSound;
@@ -29,6 +30,28 @@ public class ScriptWorldManagedSound implements IScriptManagedSound {
       }
 
       return "";
+   }
+
+   public ScriptVector getPosition() {
+      for(class_3222 player : this.players()) {
+         ManagedSoundRegistry.State state = ManagedSoundRegistry.get(player, this.id);
+         if (state != null) {
+            return new ScriptVector(state.x, state.y, state.z);
+         }
+      }
+
+      return new ScriptVector(0.0D, 0.0D, 0.0D);
+   }
+
+   public float getVolume() {
+      for(class_3222 player : this.players()) {
+         ManagedSoundRegistry.State state = ManagedSoundRegistry.get(player, this.id);
+         if (state != null) {
+            return state.volume;
+         }
+      }
+
+      return 0.0F;
    }
 
    public void setPosition(double x, double y, double z) {

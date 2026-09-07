@@ -1,5 +1,6 @@
 package mchorse.mappet.api.scripts.code.sounds;
 
+import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.api.scripts.user.sounds.IScriptManagedSound;
 import mchorse.mappet.client.sounds.ClientManagedSoundManager;
 import mchorse.mappet.network.common.scripts.PacketManagedSound;
@@ -29,6 +30,18 @@ public class ScriptClientManagedSound implements IScriptManagedSound {
    public String getName() {
       String live = ClientManagedSoundManager.getName(this.id);
       return live.isEmpty() ? this.name : live;
+   }
+
+   public ScriptVector getPosition() {
+      if (!ClientManagedSoundManager.has(this.id)) {
+         return new ScriptVector(this.x, this.y, this.z);
+      }
+
+      return new ScriptVector(ClientManagedSoundManager.getX(this.id), ClientManagedSoundManager.getY(this.id), ClientManagedSoundManager.getZ(this.id));
+   }
+
+   public float getVolume() {
+      return ClientManagedSoundManager.has(this.id) ? ClientManagedSoundManager.getVolume(this.id) : this.volume;
    }
 
    public void setPosition(double x, double y, double z) {

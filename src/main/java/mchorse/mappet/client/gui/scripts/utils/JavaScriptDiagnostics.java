@@ -27,6 +27,7 @@ import mchorse.mappet.api.scripts.user.entities.IScriptPlayer;
 import mchorse.mappet.api.scripts.user.items.IScriptItemStack;
 import mchorse.mappet.api.scripts.user.mappet.IMappetStates;
 import mchorse.mappet.api.scripts.user.IScriptFactory;
+import mchorse.mappet.api.scripts.user.sounds.IScriptManagedSound;
 import mchorse.mappet.client.gui.scripts.GuiTextEditor.SourceDiagnostic;
 import mchorse.mappet.utils.autocomplete.AutoCompleteConfig;
 import mchorse.mappet.utils.autocomplete.AutoCompleteEngine;
@@ -572,7 +573,7 @@ public class JavaScriptDiagnostics {
 
    private static Map<String, Set<String>> createDirectMappetApiMembers() {
       Map<String, Set<String>> members = new HashMap();
-      addDirectMappetApiMembers(members, IScriptFactory.class, IScriptEvent.class, IScriptEntity.class, IScriptPlayer.class, IScriptNpc.class, IScriptServer.class, IScriptWorld.class, IMappetStates.class, IScriptItemStack.class, IScriptRayTrace.class, ISimpleVoiceChat.class, ScriptVector.class);
+      addDirectMappetApiMembers(members, IScriptFactory.class, IScriptEvent.class, IScriptEntity.class, IScriptPlayer.class, IScriptNpc.class, IScriptServer.class, IScriptWorld.class, IMappetStates.class, IScriptItemStack.class, IScriptRayTrace.class, ISimpleVoiceChat.class, IScriptManagedSound.class, ScriptVector.class);
       return members;
    }
 

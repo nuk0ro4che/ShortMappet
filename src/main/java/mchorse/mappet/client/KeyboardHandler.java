@@ -5,6 +5,7 @@ import java.util.Set;
 import mchorse.mappet.CommonProxy;
 import mchorse.mappet.Mappet;
 import mchorse.mappet.api.misc.hotkeys.TriggerHotkey;
+import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.client.gui.GuiJournalScreen;
 import mchorse.mappet.client.gui.GuiMappetDashboard;
 import mchorse.mappet.client.gui.panels.GuiScriptPanel;
@@ -29,6 +30,7 @@ import net.minecraft.class_4185;
 import net.minecraft.class_437;
 import net.minecraft.class_481;
 import net.minecraft.class_490;
+import net.minecraft.class_491;
 import net.minecraft.class_7919;
 import net.minecraft.class_3675.class_307;
 
@@ -52,8 +54,12 @@ public final class KeyboardHandler {
       runScript = key("mappet.keys.runCurrentScript", 64, category);
       scriptedItem = key("mappet.keys.scripted_item", 207, category);
       ClientTickEvents.END_CLIENT_TICK.register(KeyboardHandler::tick);
-      ScreenEvents.AFTER_INIT.register((ScreenEvents.AfterInit)(client, screen, width, height) -> {
-         if (screen instanceof class_490 || screen instanceof class_481) {
+ScreenEvents.AFTER_INIT.register((ScreenEvents.AfterInit)(client, screen, width, height) -> {
+          if (isContainer(screen) && client.field_1724 != null) {
+             ClientTriggers.trigger("player_open_container", DataContext.client(client.field_1724));
+          }
+
+          if (screen instanceof class_490 || screen instanceof class_481) {
             int x = (Integer)Mappet.journalButtonX.get();
             int y = height - 20 - (Integer)Mappet.journalButtonY.get();
             class_4185 button = class_4185.method_46430(class_2561.method_43470("§6✎"), (ignored) -> openPlayerJournal()).method_46434(x, y, 20, 20).method_46436(class_7919.method_47407(class_2561.method_43471("mappet.gui.player_journal"))).method_46431();
@@ -76,6 +82,10 @@ public final class KeyboardHandler {
 
    public static void openPlayerJournal() {
       class_310 mc = class_310.method_1551();
+      if (mc.field_1724 != null) {
+         ClientTriggers.trigger("player_journal", DataContext.client(mc.field_1724));
+      }
+
       if (clientPlayerJournal) {
          mc.method_1507(new GuiJournalScreen(mc));
       } else {
@@ -121,4 +131,16 @@ public final class KeyboardHandler {
       }
    }
 
+   public static void onScreenClose(class_437 screen) {
+      if (isContainer(screen)) {
+         class_310 mc = class_310.method_1551();
+         if (mc.field_1724 != null) {
+            ClientTriggers.trigger("player_close_container", DataContext.client(mc.field_1724));
+         }
+      }
+   }
+
+   private static boolean isContainer(class_437 screen) {
+      return screen instanceof class_491 && !(screen instanceof class_490) && !(screen instanceof class_481);
+   }
 }

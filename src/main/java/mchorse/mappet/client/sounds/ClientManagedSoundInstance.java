@@ -19,6 +19,7 @@ public class ClientManagedSoundInstance extends class_1101 {
    public final String name;
    public final boolean entityBound;
    public final int entityId;
+   public final class_3419 category;
    private boolean finished;
    private double fallbackTimeCode;
    private long fallbackTimeAnchor;
@@ -31,6 +32,7 @@ public class ClientManagedSoundInstance extends class_1101 {
       this.name = packet.name;
       this.entityBound = packet.entityBound;
       this.entityId = packet.entityId;
+      this.category = resolveCategory(packet.category);
       this.field_5442 = Math.max(0.0F, packet.volume);
       this.field_5441 = Math.max(0.01F, packet.pitch);
       this.field_5439 = packet.x;

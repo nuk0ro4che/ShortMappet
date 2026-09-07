@@ -1,5 +1,4 @@
-https://github.com/nuk0ro4che/ShortMappet/tree/main#русская-версия
-https://github.com/nuk0ro4che/ShortMappet/tree/main#english-version
+(eng)[https://github.com/nuk0ro4che/ShortMappet/tree/main#english-version]
 
 ## Русская версия
 
@@ -36,6 +35,8 @@ https://github.com/nuk0ro4che/ShortMappet/tree/main#english-version
 ShortMappet по-прежнему работает на Minecraft 1.20.1 и Java 17.
 
 ---
+
+(rus)[https://github.com/nuk0ro4che/ShortMappet/tree/main#русская-версия]
 
 ## English version
 

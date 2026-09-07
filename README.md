@@ -1,4 +1,4 @@
-(eng)[https://github.com/nuk0ro4che/ShortMappet/tree/main#english-version]
+[English version](https://github.com/nuk0ro4che/ShortMappet/tree/main#english-version )
 
 ## Русская версия
 
@@ -9,23 +9,14 @@
 В этой версии появилось много новых инструментов для работы со скриптами и клиентом:
 
 - клиентский API для управления настройками, клавишами, мышью, HUD и движением игрока;
-
 - управление рукой и анимациями от первого лица;
-
 - тряска камеры, улучшенная работа с морфами и дополнительные возможности рендера;
-
 - поиск по скриптам, автодополнение, диагностика JavaScript и шаблоны сценариев;
-
 - новые инструменты для UI и шейдеров;
-
 - система управляемых звуков;
-
 - виртуальное освещение;
-
 - интеграция с Simple Voice Chat;
-
 - обновлённая библиотека Blockbuster `2.7.3-1.20.1`;
-
 - встроенные библиотеки Rhino, Nashorn, Javassist и Reflections.
 
 ### Важно при обновлении
@@ -36,7 +27,7 @@ ShortMappet по-прежнему работает на Minecraft 1.20.1 и Java
 
 ---
 
-(rus)[https://github.com/nuk0ro4che/ShortMappet/tree/main#русская-версия]
+[Русская версия](https://github.com/nuk0ro4che/ShortMappet/tree/main#русская-версия )
 
 ## English version
 
@@ -47,23 +38,14 @@ We are releasing an updated version of ShortMappet — an expanded Mappet Reforg
 This update adds a large set of new tools for scripting and client-side features:
 
 - a client-side API for settings, key bindings, mouse input, HUD, and movement control;
-
 - first-person hand control and hand animations;
-
 - camera shake, improved morph handling, and additional rendering features;
-
 - script search, autocomplete, JavaScript diagnostics, and script templates;
-
 - new UI and shader tools;
-
 - managed sounds;
-
 - virtual lighting;
-
 - Simple Voice Chat integration;
-
 - updated Blockbuster dependency `2.7.3-1.20.1`;
-
 - bundled Rhino, Nashorn, Javassist, and Reflections libraries.
 
 ### Important upgrade note

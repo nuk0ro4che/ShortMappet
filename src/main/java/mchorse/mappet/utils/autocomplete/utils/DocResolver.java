@@ -1056,6 +1056,9 @@ public class DocResolver {
       KNOWN_RETURN_TYPES.put("rayTrace", "IScriptRayTrace");
       KNOWN_RETURN_TYPES.put("getAllPlayers", "List");
       KNOWN_RETURN_TYPES.put("layout", "IMappetUIBuilder");
+      KNOWN_RETURN_TYPES.put("getManagedSound", "IScriptManagedSound");
+      KNOWN_RETURN_TYPES.put("playManagedSound", "IScriptManagedSound");
+      KNOWN_RETURN_TYPES.put("playManagedStaticSound", "IScriptManagedSound");
       KNOWN_RETURN_TYPES.put("getCurrent", "UIComponent");
    }
 }

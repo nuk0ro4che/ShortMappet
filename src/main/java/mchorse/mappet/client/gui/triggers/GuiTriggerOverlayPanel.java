@@ -125,6 +125,7 @@ public class GuiTriggerOverlayPanel extends GuiEditorOverlayPanel<AbstractTrigge
 
    public void onClose() {
       super.onClose();
+      this.trigger.recalculateEmpty();
       if (this.onClose != null) {
          this.onClose.run();
       }

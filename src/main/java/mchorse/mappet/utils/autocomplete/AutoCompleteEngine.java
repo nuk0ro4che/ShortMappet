@@ -18,6 +18,7 @@ import mchorse.mappet.utils.autocomplete.utils.DocResolver;
 import mchorse.mappet.utils.autocomplete.utils.JavaResolver;
 import mchorse.mappet.utils.autocomplete.utils.ScopeAnalyzer;
 import mchorse.mclib.client.gui.framework.elements.GuiScrollElement;
+import net.minecraft.class_2960;
 import net.minecraft.class_310;
 
 public class AutoCompleteEngine {
@@ -1218,6 +1219,168 @@ public class AutoCompleteEngine {
 
          return newLine;
       }
+   }
+
+   private static final String[] SOUND_EVENT_METHODS = new String[]{"playSound", "playStaticSound", "playManagedSound", "playManagedStaticSound", "stopSound"};
+
+   private static int findSoundCallStart(String before) {
+      int best = -1;
+      for(String method : SOUND_EVENT_METHODS) {
+         int index = before.lastIndexOf(method + "(");
+         if (index > best) {
+            best = index;
+         }
+      }
+      return best;
+   }
+
+   private static int getSoundCallLength(String before, int start) {
+      for(String method : SOUND_EVENT_METHODS) {
+         if (before.startsWith(method + "(", start)) {
+            return method.length() + 1;
+         }
+      }
+      return 0;
+   }
+
+   private static String soundMethodAt(String before, int start) {
+      for(String method : SOUND_EVENT_METHODS) {
+         if (before.startsWith(method + "(", start)) {
+            return method;
+         }
+      }
+      return "";
+   }
+
+   private static int soundEventArgIndex(String method) {
+      return method.equals("playManagedSound") || method.equals("playManagedStaticSound") ? 1 : 0;
+   }
+
+   private static int[] soundCursorContext(String before, int openParen, int pos) {
+      int arg = 0;
+      int depth = 0;
+      char quote = 0;
+      int quoteStart = -1;
+
+      for(int i = openParen; i < pos; ++i) {
+         char c = before.charAt(i);
+         if (quote != 0) {
+            if (c == quote) {
+               quote = 0;
+            }
+            continue;
+         }
+
+         if (c == '"' || c == '\'') {
+            quote = c;
+            quoteStart = i;
+         } else if (c == '(' || c == '[' || c == '{') {
+            ++depth;
+         } else if (c == ')' || c == ']' || c == '}') {
+            if (depth == 0) {
+               return null;
+            }
+            --depth;
+         } else if (c == ',' && depth == 0) {
+            ++arg;
+            quoteStart = -1;
+         }
+      }
+
+      return quote == 0 ? null : new int[]{arg, quoteStart};
+   }
+
+   public static String extractSoundPrefix(String line, int cursorOffset) {
+      if (line == null || cursorOffset <= 0) {
+         return null;
+      }
+
+      int safeOffset = Math.min(cursorOffset, line.length());
+      String before = line.substring(0, safeOffset);
+      int callStart = findSoundCallStart(before);
+      if (callStart < 0) {
+         return null;
+      }
+
+      int[] ctx = soundCursorContext(before, callStart + getSoundCallLength(before, callStart), safeOffset);
+      if (ctx == null || ctx[0] != soundEventArgIndex(soundMethodAt(before, callStart))) {
+         return null;
+      }
+
+      return before.substring(ctx[1] + 1);
+   }
+
+   public static List<AutoCompleteConfig.Suggestion> findMatchingSounds(String prefix) {
+      List<AutoCompleteConfig.Suggestion> result = new ArrayList();
+
+      try {
+         class_310 client = class_310.method_1551();
+         if (client == null || client.method_1483() == null) {
+            return result;
+         }
+
+         String lower = prefix == null ? "" : prefix.toLowerCase();
+
+         for(class_2960 id : client.method_1483().method_4864()) {
+            String sound = id.method_12832();
+            if (lower.isEmpty() || sound.toLowerCase().startsWith(lower)) {
+               result.add(new AutoCompleteConfig.Suggestion(sound, "Sound event", "sound"));
+               if (result.size() >= AutoCompleteConfig.MAX_SUGGESTIONS) {
+                  break;
+               }
+            }
+         }
+      } catch (Exception var6) {
+      }
+
+      result.sort(Comparator.comparing((a) -> a.methodName));
+      return result;
+   }
+
+   public static String applySoundCompletion(String line, int cursorOffset, String sound, int[] newCursorOffset) {
+      int safe = Math.max(0, Math.min(cursorOffset, line == null ? 0 : line.length()));
+      if (line == null) {
+         line = "";
+      }
+
+      String before = line.substring(0, safe);
+      String tail = line.substring(safe);
+      int callStart = findSoundCallStart(before);
+      if (callStart < 0) {
+         if (newCursorOffset != null) {
+            newCursorOffset[0] = safe;
+         }
+         return line;
+      }
+
+      int[] ctx = soundCursorContext(before, callStart + getSoundCallLength(before, callStart), safe);
+      if (ctx == null) {
+         if (newCursorOffset != null) {
+            newCursorOffset[0] = safe;
+         }
+         return line;
+      }
+
+      String left = line.substring(0, ctx[1] + 1);
+      String rest = line.substring(ctx[1] + 1);
+      char quoteChar = line.charAt(ctx[1]);
+      int end = rest.length();
+
+      for(int i = 0; i < rest.length(); ++i) {
+         char c = rest.charAt(i);
+         if (c == quoteChar || Character.isWhitespace(c) || c == ')' || c == ',') {
+            end = i;
+            break;
+         }
+      }
+
+      String newLine = left + sound + rest.substring(end);
+      int newOffset = left.length() + sound.length();
+      if (newCursorOffset != null) {
+         newCursorOffset[0] = Math.max(0, Math.min(newOffset, newLine.length()));
+      }
+
+      return newLine;
    }
 
    public static String extractInterpolationPrefix(String line, int cursorOffset) {

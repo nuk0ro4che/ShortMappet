@@ -32,6 +32,13 @@ public class GuiMappetDashboardPanels extends GuiDashboardPanels
             return;
         }
 
+        if (!this.continuing && current == this.dashboard.clientSettings && panel != current
+            && this.dashboard.clientSettings.hasUnsavedChanges())
+        {
+            this.dashboard.clientSettings.requireChangeResolution(() -> this.continueSetPanel(panel));
+            return;
+        }
+
         super.setPanel(panel);
     }
 
@@ -53,6 +60,12 @@ public class GuiMappetDashboardPanels extends GuiDashboardPanels
         if (this.dashboard.settings != null && this.dashboard.settings.hasUnsavedChanges())
         {
             this.dashboard.settings.requireChangeResolution(continuation);
+            return true;
+        }
+
+        if (this.dashboard.clientSettings != null && this.dashboard.clientSettings.hasUnsavedChanges())
+        {
+            this.dashboard.clientSettings.requireChangeResolution(continuation);
             return true;
         }
 

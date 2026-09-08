@@ -70,6 +70,10 @@ public class ScriptManagedSound implements IScriptManagedSound {
       }
    }
 
+   public boolean isPlaying() {
+      return this.state() != null;
+   }
+
    public void stop() {
       ManagedSoundRegistry.stop(this.player, this.id);
       Dispatcher.sendTo(PacketManagedSound.stop(this.id), this.player);

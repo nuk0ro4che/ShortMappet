@@ -9,6 +9,7 @@ import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.client.ClientEventHandler;
 import mchorse.mappet.client.ClientTriggers;
 import mchorse.mappet.client.KeyboardHandler;
+import mchorse.mappet.client.UpdateChecker;
 import mchorse.mappet.client.scripts.ClientScriptManager;
 import mchorse.mappet.api.scripts.lights.VanillaWorldLightManager;
 import mchorse.mappet.client.RenderingHandler;
@@ -113,11 +114,12 @@ public class MappetClient implements ClientModInitializer {
       clientScriptRuntime = new ClientScriptManager(new File(CommonProxy.configFolder, "client_script_cache"));
 clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_settings.json"));
        clientSettings.load();
-       ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+      ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
           if (client.field_1724 != null) {
              ClientTriggers.trigger("player_login", DataContext.client(client.field_1724));
+             UpdateChecker.check();
           }
-       });
+      });
        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
           if (client.field_1724 != null) {
              ClientTriggers.trigger("player_logout", DataContext.client(client.field_1724));

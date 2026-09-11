@@ -2,10 +2,11 @@ package mchorse.mappet.client.sounds;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import mchorse.mappet.Mappet;
 import mchorse.mappet.client.ClientTriggers;
 import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.network.Dispatcher;
@@ -22,11 +23,20 @@ import org.lwjgl.openal.AL11;
 
 @Environment(EnvType.CLIENT)
 public final class ClientManagedSoundManager {
-   private static final Map<String, ClientManagedSoundInstance> SOUNDS = new HashMap();
+   private static final Map<String, ClientManagedSoundInstance> SOUNDS = new ConcurrentHashMap();
    private static Field soundSystemField;
    private static Field sourceMapField;
    private static Method sourceManagerRun;
    private static Field sourceHandleField;
+   private static Field sourceChannelField;
+
+   private static final boolean DEBUG_SOUND = System.getProperty("mappet.sound.debug") != null;
+
+   private static void debugSound(String message, Object... args) {
+      if (DEBUG_SOUND) {
+         Mappet.LOGGER.warn(message, args);
+      }
+   }
 
    private ClientManagedSoundManager() {
    }
@@ -54,11 +64,20 @@ public final class ClientManagedSoundManager {
       } else if (packet.action == PacketManagedSound.REQUEST_TIME_CODE) {
          ClientManagedSoundInstance sound = (ClientManagedSoundInstance)SOUNDS.get(packet.id);
          Dispatcher.sendToServer(PacketManagedSound.timeCode(packet.id, sound == null ? 0.0D : sound.getFallbackTimeCode()));
+      } else if (packet.action == PacketManagedSound.PAUSE) {
+         ClientManagedSoundManager.applyPause(packet.id, true);
+      } else if (packet.action == PacketManagedSound.RESUME) {
+         ClientManagedSoundManager.applyPause(packet.id, false);
       }
    }
 
    public static boolean has(String id) {
       return id != null && SOUNDS.containsKey(id);
+   }
+
+   public static boolean isPaused(String id) {
+      ClientManagedSoundInstance sound = id == null ? null : (ClientManagedSoundInstance)SOUNDS.get(id);
+      return sound != null && sound.isPaused();
    }
 
    public static String getName(String id) {
@@ -98,30 +117,85 @@ public final class ClientManagedSoundManager {
       }
 
       class_1144 soundManager = client.method_1483();
+      boolean gamePaused = client.method_1493();
       Iterator<Map.Entry<String, ClientManagedSoundInstance>> iterator = SOUNDS.entrySet().iterator();
 
       while(iterator.hasNext()) {
          Map.Entry<String, ClientManagedSoundInstance> entry = (Map.Entry)iterator.next();
          ClientManagedSoundInstance sound = (ClientManagedSoundInstance)entry.getValue();
          if (sound.entityBound && sound.entityId >= 0 && client.field_1724 != null && client.field_1724.method_37908() != null) {
-            net.minecraft.class_1297 entity = client.field_1724.method_37908().method_8469(sound.entityId);
-            if (entity != null) {
-               sound.update(entity.method_23317(), entity.method_23318(), entity.method_23321(), sound.getLiveVolume());
-               applyLiveProperties(soundManager, sound);
+             net.minecraft.class_1297 entity = client.field_1724.method_37908().method_8469(sound.entityId);
+             if (entity != null) {
+                sound.update(entity.method_23317(), entity.method_23318(), entity.method_23321(), sound.getLiveVolume());
+             }
+          }
+
+          applyLiveProperties(soundManager, sound);
+
+          float categoryVolume = class_310.method_1551().field_1690.method_1630(sound.category);
+          boolean muted = categoryVolume <= 0.0F || sound.getLiveVolume() <= 0.0F;
+          if (muted && !sound.isVolumeMuted()) {
+             sound.setFallbackTimeCode(sound.getFallbackTimeCode());
+             sound.setVolumeMuted(true);
+             withSource(soundManager, sound, (source) -> {
+                try {
+                   AL10.alSourceStop(getOpenAlSourceHandle(source));
+                } catch (Exception ignored) {
+                }
+             });
+             debugSound("[mute] id={} volume={} category={}", sound.id, sound.getLiveVolume(), categoryVolume);
+          } else if (!muted && sound.isVolumeMuted()) {
+             sound.setVolumeMuted(false);
+             debugSound("[unmute] id={} volume={} category={}", sound.id, sound.getLiveVolume(), categoryVolume);
+             if (!sound.isPaused() && !sound.isGamePaused()) {
+                resumeManagedSound(soundManager, sound);
+             }
+          }
+
+         if (!sound.isPaused() && !sound.isVolumeMuted()) {
+            if (gamePaused && !sound.isGamePaused()) {
+               Integer alState = getOpenAlSourceState(soundManager, sound);
+               Double alOffset = readOpenAlOffset(soundManager, sound);
+               double captured = sound.getFallbackTimeCode();
+               sound.setFallbackTimeCode(captured);
+               sound.setGamePaused(true);
+               withSource(soundManager, sound, (source) -> {
+                  try {
+                     AL10.alSourceStop(getOpenAlSourceHandle(source));
+                  } catch (Exception ignored) {
+                  }
+               });
+               debugSound("[game-pause] id={} alState={} alOffset={} captured={}", sound.id, alState, alOffset, captured);
+            } else if (!gamePaused && sound.isGamePaused()) {
+               resumeManagedSound(soundManager, sound);
             }
          }
+
          Double timeCode = sound.consumePendingTimeCode();
          if (timeCode != null) {
-            applyTimeCode(soundManager, sound, (Double)timeCode);
+            applyTimeCode(soundManager, sound, timeCode);
+         } else if (!sound.isPaused() && !sound.isGamePaused() && !sound.isVolumeMuted()) {
+            syncFallbackToOpenAl(soundManager, sound);
          }
 
-         
-if (sound.getAge() > 2 && !soundManager.method_4877(sound)) {
-             iterator.remove();
-             sound.finish();
-             Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
-             fireSoundEnded(client, sound.id, sound.name);
-          }
+         boolean finished;
+          if (!sound.isPaused() && !sound.isVolumeMuted() && !sound.isGamePaused()) {
+            Integer alState = getOpenAlSourceState(soundManager, sound);
+            if (alState != null) {
+               finished = (alState == AL10.AL_STOPPED);
+            } else {
+               finished = (sound.getAge() > 2 && !soundManager.method_4877(sound));
+            }
+         } else {
+            finished = false;
+         }
+
+         if (finished) {
+            iterator.remove();
+            sound.finish();
+            Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
+            fireSoundEnded(client, sound.id, sound.name);
+         }
       }
    }
 
@@ -153,6 +227,32 @@ if (sound.getAge() > 2 && !soundManager.method_4877(sound)) {
       }
    }
 
+   private static void applyPause(String id, boolean paused) {
+      ClientManagedSoundInstance sound = (ClientManagedSoundInstance)SOUNDS.get(id);
+      if (sound == null) {
+         return;
+      }
+
+      class_310 client = class_310.method_1551();
+      if (client == null) {
+         return;
+      }
+
+      if (paused) {
+         double captured = sound.getFallbackTimeCode();
+         sound.setFallbackTimeCode(captured);
+         sound.setPaused(true);
+         withSource(client.method_1483(), sound, (source) -> {
+            try {
+               AL10.alSourceStop(getOpenAlSourceHandle(source));
+            } catch (Exception ignored) {
+            }
+         });
+      } else {
+         resumeManagedSound(client.method_1483(), sound);
+      }
+   }
+
    private static void fireSoundEnded(class_310 client, String id, String name) {
       if (client != null && client.field_1724 != null) {
          ClientTriggers.trigger("sound_ended", DataContext.client(client.field_1724).set("id", id).set("name", name));
@@ -172,6 +272,20 @@ if (sound.getAge() > 2 && !soundManager.method_4877(sound)) {
 
    private static void applyLiveProperties(class_1144 soundManager, ClientManagedSoundInstance sound) {
       withSource(soundManager, sound, (source) -> setOpenAlLiveProperties(source, sound));
+   }
+
+   private static void resumeManagedSound(class_1144 soundManager, ClientManagedSoundInstance sound) {
+      try {
+         double timeCode = sound.getFallbackTimeCode();
+         sound.setPaused(false);
+         sound.setGamePaused(false);
+         sound.setFallbackTimeCode(timeCode);
+         sound.setTimeCode(timeCode);
+         soundManager.method_4873(sound);
+         applyTimeCode(soundManager, sound, timeCode);
+         debugSound("[resume] id={} branch=replay timeCode={}", sound.id, timeCode);
+      } catch (Exception ignored) {
+      }
    }
 
    private static boolean withSource(class_1144 soundManager, ClientManagedSoundInstance sound, Consumer<Object> action) {
@@ -227,5 +341,80 @@ if (sound.getAge() > 2 && !soundManager.method_4877(sound)) {
       }
 
       return sourceHandleField.getInt(source);
+   }
+
+   private static Integer getOpenAlSourceState(class_1144 soundManager, ClientManagedSoundInstance sound) {
+      try {
+         if (soundSystemField == null) {
+            soundSystemField = class_1144.class.getDeclaredField("field_5590");
+            soundSystemField.setAccessible(true);
+         }
+         Object soundSystem = soundSystemField.get(soundManager);
+         if (soundSystem == null) {
+            return null;
+         }
+
+         if (sourceMapField == null) {
+            sourceMapField = soundSystem.getClass().getDeclaredField("field_18950");
+            sourceMapField.setAccessible(true);
+         }
+         Map<?, ?> sources = (Map<?, ?>)sourceMapField.get(soundSystem);
+         Object sourceManager = sources.get(sound);
+         if (sourceManager == null) {
+            return null;
+         }
+
+         return AL10.alGetSourcei(getOpenAlSourceHandleFromManager(sourceManager), AL10.AL_SOURCE_STATE);
+      } catch (Exception e) {
+         return null;
+      }
+   }
+
+   private static Double readOpenAlOffset(class_1144 soundManager, ClientManagedSoundInstance sound) {
+      try {
+         if (soundSystemField == null) {
+            soundSystemField = class_1144.class.getDeclaredField("field_5590");
+            soundSystemField.setAccessible(true);
+         }
+         Object soundSystem = soundSystemField.get(soundManager);
+         if (soundSystem == null) {
+            return null;
+         }
+
+         if (sourceMapField == null) {
+            sourceMapField = soundSystem.getClass().getDeclaredField("field_18950");
+            sourceMapField.setAccessible(true);
+         }
+         Map<?, ?> sources = (Map<?, ?>)sourceMapField.get(soundSystem);
+         Object sourceManager = sources.get(sound);
+         if (sourceManager == null) {
+            return null;
+         }
+
+         return (double)AL10.alGetSourcef(getOpenAlSourceHandleFromManager(sourceManager), AL11.AL_SEC_OFFSET);
+      } catch (Exception e) {
+         return null;
+      }
+   }
+
+   private static int getOpenAlSourceHandleFromManager(Object sourceManager) throws IllegalAccessException, NoSuchFieldException {
+      if (sourceChannelField == null) {
+         sourceChannelField = sourceManager.getClass().getDeclaredField("field_18941");
+         sourceChannelField.setAccessible(true);
+      }
+
+      return getOpenAlSourceHandle(sourceChannelField.get(sourceManager));
+   }
+
+   private static void syncFallbackToOpenAl(class_1144 soundManager, ClientManagedSoundInstance sound) {
+      withSource(soundManager, sound, (source) -> {
+         try {
+            int handle = getOpenAlSourceHandle(source);
+            if (AL10.alGetSourcei(handle, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING) {
+               sound.setFallbackTimeCode((double)AL10.alGetSourcef(handle, AL11.AL_SEC_OFFSET));
+            }
+         } catch (Exception ignored) {
+         }
+      });
    }
 }

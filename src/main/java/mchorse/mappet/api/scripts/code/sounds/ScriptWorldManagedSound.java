@@ -106,6 +106,37 @@ public class ScriptWorldManagedSound implements IScriptManagedSound {
       return false;
    }
 
+   public boolean isPaused() {
+      for(class_3222 player : this.players()) {
+         ManagedSoundRegistry.State state = ManagedSoundRegistry.get(player, this.id);
+         if (state != null && state.paused) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   public void pause() {
+      for(class_3222 player : this.players()) {
+         ManagedSoundRegistry.State state = ManagedSoundRegistry.get(player, this.id);
+         if (state != null) {
+            ManagedSoundRegistry.pause(player, this.id, true);
+            Dispatcher.sendTo(PacketManagedSound.pause(this.id), player);
+         }
+      }
+   }
+
+   public void resume() {
+      for(class_3222 player : this.players()) {
+         ManagedSoundRegistry.State state = ManagedSoundRegistry.get(player, this.id);
+         if (state != null) {
+            ManagedSoundRegistry.pause(player, this.id, false);
+            Dispatcher.sendTo(PacketManagedSound.resume(this.id), player);
+         }
+      }
+   }
+
    public void stop() {
       for(class_3222 player : this.players()) {
          if (ManagedSoundRegistry.has(player, this.id)) {

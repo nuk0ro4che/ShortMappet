@@ -17,6 +17,12 @@ public interface IScriptManagedSound {
 
    boolean isPlaying();
 
+   boolean isPaused();
+
+   void pause();
+
+   void resume();
+
    double getTimeCode();
 
    void setTimeCode(double seconds);

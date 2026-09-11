@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import mchorse.mappet.Mappet;
 import mchorse.mappet.api.ui.UIContext;
 import mchorse.mappet.client.gui.utils.AnimatedUIComponentElement;
 import mchorse.mappet.client.gui.utils.GuiMorphRenderer;
@@ -48,6 +49,7 @@ import net.minecraft.class_4587;
 
 
 public class GuiUIEditorCanvas extends GuiCanvas {
+   private static final boolean UI_DEBUG = Boolean.getBoolean("mappet.ui.debug");
    private static final int DESIGN_WIDTH = 1280;
    private static final int DESIGN_HEIGHT = 720;
    private static final int TOOLBAR_HEIGHT = 25;
@@ -269,7 +271,9 @@ public class GuiUIEditorCanvas extends GuiCanvas {
    }
 
    private int snapToGrid(int value) {
-      return Math.round((float)value / (float)this.gridSize) * this.gridSize;
+      Area sandbox = this.getSandboxArea();
+      int step = Math.max(1, (int)Math.round((double)this.gridSize * (double)this.getRuntimeWidth() / (double)Math.max(1, sandbox.w)));
+      return Math.round((float)value / (float)step) * step;
    }
 
    private boolean isShiftDown(GuiContext context) {
@@ -321,8 +325,15 @@ public class GuiUIEditorCanvas extends GuiCanvas {
             this.dragStartMouseY = context.mouseY;
             this.dragStartComponentX = this.getRuntimeComponentPosition(component, true);
             this.dragStartComponentY = this.getRuntimeComponentPosition(component, false);
-            this.dragStartWidth = Math.max(1, (int)Math.round(this.resolve(component.w, this.getRuntimeWidth())));
-            this.dragStartHeight = Math.max(1, (int)Math.round(this.resolve(component.h, this.getRuntimeHeight())));
+            GuiElement dragElement = this.runtimeContext != null && this.runtimeHost != null ? this.findRuntimeElement(component) : null;
+            if (dragElement != null) {
+               Area dragArea = this.getParentRelativeArea(dragElement);
+               this.dragStartWidth = Math.max(1, dragArea.w);
+               this.dragStartHeight = Math.max(1, dragArea.h);
+            } else {
+               this.dragStartWidth = Math.max(1, (int)Math.round(this.resolve(component.w, this.getRuntimeWidth())));
+               this.dragStartHeight = Math.max(1, (int)Math.round(this.resolve(component.h, this.getRuntimeHeight())));
+            }
             this.dragTool = this.tool;
             this.resizeHandle = this.dragTool == Tool.RESIZE ? this.getResizeHandle(this.getDataArea(component), context.mouseX, context.mouseY) : ResizeHandle.NONE;
             this.draggingComponent = this.dragTool != Tool.SELECT && (this.dragTool != Tool.RESIZE || this.resizeHandle != ResizeHandle.NONE);
@@ -358,9 +369,9 @@ public class GuiUIEditorCanvas extends GuiCanvas {
                int px = this.dragStartComponentX + uiDx;
                int py = this.dragStartComponentY + uiDy;
                if (snap) {
-                  int target = this.snapToAlignment(this.selected, px, py, this.dragStartWidth, this.dragStartHeight);
-                  px = target >> 16;
-                  py = target & 0xffff;
+                  long target = this.snapToAlignment(this.selected, px, py, this.dragStartWidth, this.dragStartHeight);
+                  px = (int)(target >> 32);
+                  py = (int)(target & 0xffffffffL);
                }
                this.setComponentBounds(this.selected, px, py, this.dragStartWidth, this.dragStartHeight);
             } else if (this.dragTool == Tool.RESIZE) {
@@ -441,6 +452,9 @@ public class GuiUIEditorCanvas extends GuiCanvas {
       super.draw(context);
       this.drawToolbar(context);
       if (this.selected != null) {
+         if (UI_DEBUG) {
+            this.logSelectedElementState();
+         }
          Area sandbox = this.getSandboxArea();
          Area area = this.getArea(this.selected);
          int primary = -16777216 | (Integer)McLib.primaryColor.get() & 16777215;
@@ -779,12 +793,18 @@ public class GuiUIEditorCanvas extends GuiCanvas {
       this.syncRuntimeBounds(this.selected);
    }
 
-   private int snapToAlignment(UIComponent target, int x, int y, int w, int h) {
+   private long snapToAlignment(UIComponent target, int x, int y, int w, int h) {
       int tolerance = 5;
-      int bestX = this.snapToGrid(x);
-      int bestY = this.snapToGrid(y);
+      int[] offset = this.getRuntimeParentOffset(target);
+      int absX = x + offset[0];
+      int absY = y + offset[1];
+      int bestX = this.snapToGrid(absX);
+      int bestY = this.snapToGrid(absY);
       for (UIComponent sibling : this.getSiblings(target)) {
-         Area area = this.getDataArea(sibling);
+         Area area = this.getRuntimeDataArea(sibling);
+         if (area == null) {
+            continue;
+         }
          if (Math.abs(area.x - bestX) <= tolerance) {
             bestX = this.snapToGrid(area.x);
          }
@@ -798,7 +818,7 @@ public class GuiUIEditorCanvas extends GuiCanvas {
             bestY = this.snapToGrid(area.ey() - h);
          }
       }
-      return (bestX << 16) | (bestY & 0xffff);
+      return (long)bestX << 32 | (long)bestY & 0xffffffffL;
    }
 
    private List<UIComponent> getSiblings(UIComponent target) {
@@ -1021,11 +1041,40 @@ public class GuiUIEditorCanvas extends GuiCanvas {
       return this.getDataArea(component);
    }
 
+   private void logSelectedElementState() {
+      try {
+         UIComponent component = this.selected;
+         Area area = this.getDataArea(component);
+         GuiElement element = this.runtimeContext == null || this.runtimeHost == null ? null : this.findRuntimeElement(component);
+         Area runtimeArea = this.getRuntimeDataArea(component);
+         StringBuilder trace = new StringBuilder();
+         if (element != null) {
+            GuiElement node = element;
+            while (node != null) {
+               trace.append(node.getClass().getSimpleName()).append("(").append(node.area.x).append(",").append(node.area.y).append(",").append(node.area.w).append(",").append(node.area.h).append(") <- ");
+               node = node.getParent();
+            }
+         } else {
+            trace.append("ELEMENT_NOT_FOUND");
+         }
+         Mappet.LOGGER.warn("[ui-area] id={} type={} runtimeWindow={}x{} sandboxArea=({},{},{},{}) runtimeArea=({},{},{},{}) src={}", component.id, component.getClass().getSimpleName(), this.getRuntimeWidth(), this.getRuntimeHeight(), area.x, area.y, area.w, area.h, runtimeArea.x, runtimeArea.y, runtimeArea.w, runtimeArea.h, trace);
+      } catch (Exception e) {
+         Mappet.LOGGER.warn("[ui-area] debug error: " + e);
+      }
+   }
+
    private Area getDataArea(UIComponent component) {
       return this.projectRuntimeArea(this.getRuntimeDataArea(component));
    }
 
    private Area getRuntimeDataArea(UIComponent component) {
+      if (this.runtimeContext != null && this.runtimeHost != null) {
+         GuiElement element = this.findRuntimeElement(component);
+         if (element != null) {
+            return this.getAbsoluteRuntimeArea(element);
+         }
+      }
+
       int runtimeWidth = this.getRuntimeWidth();
       int runtimeHeight = this.getRuntimeHeight();
       double width = Math.max(1.0D, this.resolve(component.w, runtimeWidth));
@@ -1035,6 +1084,98 @@ public class GuiUIEditorCanvas extends GuiCanvas {
       Area runtimeArea = new Area();
       runtimeArea.setPoints((int)Math.round(x), (int)Math.round(y), (int)Math.round(x + width), (int)Math.round(y + height));
       return runtimeArea;
+   }
+
+   private GuiElement findRuntimeElement(UIComponent component) {
+      if (component.id != null && !component.id.isEmpty()) {
+         GuiElement element = this.runtimeContext.getElement(component.id);
+         if (element != null) {
+            return element;
+         }
+      }
+
+      UIComponent parent = this.getParent(component);
+      if (parent != null) {
+         GuiElement parentElement = parent == this.data.root ? this.getRootRuntimeElement() : this.findRuntimeElement(parent);
+         parentElement = this.unwrapAnimated(parentElement);
+         if (parentElement != null) {
+            int childIndex = this.getChildComponentIndex(component, parent);
+            if (childIndex >= 0) {
+               List<GuiElement> children = parentElement.getChildren(GuiElement.class, new ArrayList<>(), false);
+               if (childIndex < children.size()) {
+                  return children.get(childIndex);
+               }
+            }
+         }
+      }
+
+      return null;
+   }
+
+   private GuiElement unwrapAnimated(GuiElement element) {
+      if (element instanceof AnimatedUIComponentElement) {
+         List<GuiElement> children = element.getChildren(GuiElement.class, new ArrayList<>(), false);
+         return children.isEmpty() ? element : children.get(0);
+      }
+      return element;
+   }
+
+   private GuiElement getRootRuntimeElement() {
+      if (this.runtimeHost == null) {
+         return null;
+      }
+      List<GuiElement> children = this.runtimeHost.getChildren(GuiElement.class, new ArrayList<>(), false);
+      return children.isEmpty() ? null : children.get(0);
+   }
+
+   private int getChildComponentIndex(UIComponent component, UIComponent parent) {
+      if (parent instanceof UIParentComponent) {
+         return ((UIParentComponent) parent).children.indexOf(component);
+      }
+      return -1;
+   }
+
+   private Area getParentRelativeArea(GuiElement element) {
+      GuiElement direct = element;
+      if (direct.getParent() instanceof AnimatedUIComponentElement) {
+         direct = direct.getParent();
+      }
+
+      return new Area(direct.area.x, direct.area.y, direct.area.w, direct.area.h);
+   }
+
+   private int[] getRuntimeParentOffset(UIComponent component) {
+      if (this.runtimeContext != null && this.runtimeHost != null) {
+         GuiElement element = this.findRuntimeElement(component);
+         if (element != null) {
+            Area absolute = this.getAbsoluteRuntimeArea(element);
+            Area relative = this.getParentRelativeArea(element);
+            return new int[]{absolute.x - relative.x, absolute.y - relative.y};
+         }
+      }
+
+      return new int[]{0, 0};
+   }
+
+   private Area getAbsoluteRuntimeArea(GuiElement element) {
+      GuiElement parent = element.getParent();
+      if (parent instanceof AnimatedUIComponentElement) {
+         element = parent;
+         parent = parent.getParent();
+      }
+
+      int x = element.area.x;
+      int y = element.area.y;
+      int w = element.area.w;
+      int h = element.area.h;
+      while (parent != null && parent != this.runtimeHost) {
+         x += parent.area.x;
+         y += parent.area.y;
+         parent = parent.getParent();
+      }
+      Area area = new Area();
+      area.setPoints(x, y, x + w, y + h);
+      return area;
    }
 
    private ResizeHandle getResizeHandle(Area area, int x, int y) {
@@ -1205,6 +1346,14 @@ public class GuiUIEditorCanvas extends GuiCanvas {
    }
 
    private int getRuntimeComponentPosition(UIComponent component, boolean x) {
+      if (this.runtimeContext != null && this.runtimeHost != null) {
+         GuiElement element = this.findRuntimeElement(component);
+         if (element != null) {
+            Area area = this.getParentRelativeArea(element);
+            return x ? area.x : area.y;
+         }
+      }
+
       int extent = x ? this.getRuntimeWidth() : this.getRuntimeHeight();
       UIUnit position = x ? component.x : component.y;
       UIUnit size = x ? component.w : component.h;

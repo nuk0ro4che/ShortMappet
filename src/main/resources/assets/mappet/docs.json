@@ -1158,6 +1158,93 @@
           "annotations": []
         },
         {
+          "name": "disconnect",
+          "doc": "Отключает игрока от сервера и показывает указанную причину. Работает для игрока, подключённого к серверу.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "reason",
+              "type": "java.lang.String",
+              "doc": "Причина отключения, отображаемая игроку."
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "quitMinecraft",
+          "doc": "Полностью закрывает клиент Minecraft игрока.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "quitWorld",
+          "doc": "Выходит из текущего мира и возвращает игрока в главное меню.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "openSettings",
+          "doc": "Открывает экран настроек Minecraft.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "playLoopSound",
+          "doc": "Запускает зацикленное звуковое событие для игрока с громкостью и тоном по умолчанию.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "event",
+              "type": "java.lang.String",
+              "doc": "Идентификатор звукового события."
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "playLoopSound",
+          "doc": "Запускает зацикленное звуковое событие для игрока с указанной категорией, громкостью и тоном.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "event",
+              "type": "java.lang.String",
+              "doc": "Идентификатор звукового события."
+            },
+            {
+              "name": "category",
+              "type": "java.lang.String",
+              "doc": "Категория звука, например <code>master</code>."
+            },
+            {
+              "name": "volume",
+              "type": "float",
+              "doc": "Громкость звука."
+            },
+            {
+              "name": "pitch",
+              "type": "float",
+              "doc": "Тон звука."
+            }
+          ],
+          "annotations": []
+        },
+        {
           "name": "playSound",
           "doc": "Проиграть звуковое событие только этому игроку — с заданной громкостью и тоном.\n\n <pre>{@code\n    var player = c.getSubject();\n    var pos = player.getPosition();\n\n    player.playSound(\"minecraft:entity.pig.ambient\", pos.x, pos.y, pos.z, 1.0, 0.8);\n }</pre>",
           "returns": {
@@ -5039,6 +5126,141 @@
             {
               "name": "radius",
               "type": "double"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "playLoopSound",
+          "doc": "Запускает зацикленное пространственное звуковое событие в указанной позиции для всех игроков.",
+          "returns": {
+            "type": "mchorse.mappet.api.scripts.user.IScriptManagedSound"
+          },
+          "arguments": [
+            {
+              "name": "id",
+              "type": "java.lang.String",
+              "doc": "Уникальный ID управляемого звука."
+            },
+            {
+              "name": "event",
+              "type": "java.lang.String",
+              "doc": "Идентификатор звукового события."
+            },
+            {
+              "name": "category",
+              "type": "java.lang.String",
+              "doc": "Категория звука, например <code>master</code>."
+            },
+            {
+              "name": "x",
+              "type": "double",
+              "doc": "X-координата."
+            },
+            {
+              "name": "y",
+              "type": "double",
+              "doc": "Y-координата."
+            },
+            {
+              "name": "z",
+              "type": "double",
+              "doc": "Z-координата."
+            },
+            {
+              "name": "volume",
+              "type": "float",
+              "doc": "Громкость звука."
+            },
+            {
+              "name": "pitch",
+              "type": "float",
+              "doc": "Тон звука."
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "playLoopSound",
+          "doc": "Запускает зацикленное пространственное звуковое событие в указанной позиции с громкостью и тоном по умолчанию.",
+          "returns": {
+            "type": "mchorse.mappet.api.scripts.user.IScriptManagedSound"
+          },
+          "arguments": [
+            {
+              "name": "id",
+              "type": "java.lang.String",
+              "doc": "Уникальный ID управляемого звука."
+            },
+            {
+              "name": "event",
+              "type": "java.lang.String",
+              "doc": "Идентификатор звукового события."
+            },
+            {
+              "name": "x",
+              "type": "double",
+              "doc": "X-координата."
+            },
+            {
+              "name": "y",
+              "type": "double",
+              "doc": "Y-координата."
+            },
+            {
+              "name": "z",
+              "type": "double",
+              "doc": "Z-координата."
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "playLoopSound",
+          "doc": "Запускает зацикленное пространственное звуковое событие в указанной позиции с категорией, громкостью и тоном.",
+          "returns": {
+            "type": "mchorse.mappet.api.scripts.user.IScriptManagedSound"
+          },
+          "arguments": [
+            {
+              "name": "id",
+              "type": "java.lang.String",
+              "doc": "Уникальный ID управляемого звука."
+            },
+            {
+              "name": "event",
+              "type": "java.lang.String",
+              "doc": "Идентификатор звукового события."
+            },
+            {
+              "name": "category",
+              "type": "java.lang.String",
+              "doc": "Категория звука, например <code>master</code>."
+            },
+            {
+              "name": "x",
+              "type": "double",
+              "doc": "X-координата."
+            },
+            {
+              "name": "y",
+              "type": "double",
+              "doc": "Y-координата."
+            },
+            {
+              "name": "z",
+              "type": "double",
+              "doc": "Z-координата."
+            },
+            {
+              "name": "volume",
+              "type": "float",
+              "doc": "Громкость звука."
+            },
+            {
+              "name": "pitch",
+              "type": "float",
+              "doc": "Тон звука."
             }
           ],
           "annotations": []
@@ -15707,42 +15929,6 @@
           "doc": "Получить текущую громкость воспроизводимого специального звука.",
           "returns": {
             "type": "float"
-          },
-          "arguments": [],
-          "annotations": []
-        },
-        {
-           "name": "isPlaying",
-           "doc": "Проверить, существует ли сейчас специальный звук с указанным ID. Возвращает <code>true</code>, если звук зарегистрирован (воспроизводится или стоит на паузе). Возвращает <code>false</code>, если звук был остановлен или завершился.",
-           "returns": {
-             "type": "boolean"
-           },
-           "arguments": [],
-           "annotations": []
-         },
-        {
-          "name": "isPaused",
-          "doc": "Проверить, стоит ли специальный звук на паузе. Пауза замирает звук и его таймкод на месте; при возобновлении звук продолжает ровно с того же момента.",
-          "returns": {
-            "type": "boolean"
-          },
-          "arguments": [],
-          "annotations": []
-        },
-        {
-          "name": "pause",
-          "doc": "Поставить управляемый звук на паузу. Звук не удаляется и может быть продолжен через <code>resume</code>.",
-          "returns": {
-            "type": "void"
-          },
-          "arguments": [],
-          "annotations": []
-        },
-        {
-          "name": "resume",
-          "doc": "Возобновить воспроизведение управляемого звука с того момента, на котором он был поставлен на паузу.",
-          "returns": {
-            "type": "void"
           },
           "arguments": [],
           "annotations": []

@@ -1013,43 +1013,43 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
    }
 
    @Override
-public void disconnect(String reason) {
+   public void disconnect(String reason) {
     if (this.entity instanceof class_3222) {
-        ((class_3222) this.entity).field_13987.method_14367(
+         ((class_3222) this.entity).field_13987.method_14367(
             class_2561.method_43470(reason == null ? "" : reason)
-        );
-    }
-}
+         );
+      }
+   }
 
-@Override
-public void quitMinecraft() {
-    this.sendClientAction(PacketPlayerAction.QUIT_MINECRAFT);
-}
+   @Override
+   public void quitMinecraft() {
+       this.sendClientAction(PacketPlayerAction.QUIT_MINECRAFT);
+   }
 
-@Override
-public void quitWorld() {
-    this.sendClientAction(PacketPlayerAction.QUIT_WORLD);
-}
+   @Override
+   public void quitWorld() {
+       this.sendClientAction(PacketPlayerAction.QUIT_WORLD);
+   }
 
-@Override
-public void openSettings() {
-    this.sendClientAction(PacketPlayerAction.OPEN_SETTINGS);
-}
+   @Override
+   public void openSettings() {
+       this.sendClientAction(PacketPlayerAction.OPEN_SETTINGS);
+   }
 
-private void sendClientAction(int action) {
-    if (this.entity instanceof class_3222) {
-        Dispatcher.sendTo(
-            new PacketPlayerAction(action),
-            (class_3222) this.entity
-        );
-    } else if (this.entity instanceof class_746) {
-        class_310 client = class_310.method_1551();
+   private void sendClientAction(int action) {
+      if (this.entity instanceof class_3222) {
+         Dispatcher.sendTo(
+               new PacketPlayerAction(action),
+               (class_3222) this.entity
+         );
+      } else if (this.entity instanceof class_746) {
+         class_310 client = class_310.method_1551();
 
-        if (action == PacketPlayerAction.QUIT_MINECRAFT) {
-            client.method_1574();
-        } else if (action == PacketPlayerAction.QUIT_WORLD) {
+         if (action == PacketPlayerAction.QUIT_MINECRAFT) {
+           client.method_1574();
+         } else if (action == PacketPlayerAction.QUIT_WORLD) {
             client.method_1490();
-        } else if (action == PacketPlayerAction.OPEN_SETTINGS) {
+         } else if (action == PacketPlayerAction.OPEN_SETTINGS) {
             client.method_1507(
                 new class_429(client.field_1755, client.field_1690)
             );

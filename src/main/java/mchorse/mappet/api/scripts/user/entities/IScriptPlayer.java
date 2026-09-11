@@ -103,6 +103,14 @@ boolean executeClientScript(String script, String function, Object... args);
 
    void openWeb(String url);
 
+   void disconnect(String reason);
+
+   void quitMinecraft();
+
+   void quitWorld();
+
+   void openSettings();
+
    int getGameMode();
 
    void setGameMode(int gameMode);

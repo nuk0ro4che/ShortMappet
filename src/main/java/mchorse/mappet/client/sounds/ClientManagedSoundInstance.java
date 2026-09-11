@@ -20,11 +20,14 @@ public class ClientManagedSoundInstance extends class_1101 {
    public final boolean entityBound;
    public final int entityId;
    public final class_3419 category;
-   private boolean finished;
-   private double fallbackTimeCode;
-   private long fallbackTimeAnchor;
-   private Double pendingTimeCode;
-   private int age;
+    private boolean finished;
+    private boolean paused;
+    private boolean gamePaused;
+    private boolean volumeMuted;
+    private double fallbackTimeCode;
+    private long fallbackTimeAnchor;
+    private Double pendingTimeCode;
+    private int age;
 
    public ClientManagedSoundInstance(PacketManagedSound packet) {
       super(class_3414.method_47908(new class_2960(packet.name)), resolveCategory(packet.category), class_5819.method_43047());
@@ -87,9 +90,21 @@ public class ClientManagedSoundInstance extends class_1101 {
       return value;
    }
 
-   public double getFallbackTimeCode() {
-      return this.fallbackTimeCode + (double)(System.nanoTime() - this.fallbackTimeAnchor) / 1.0E9D * (double)this.field_5441;
-   }
+    public void setVolumeMuted(boolean volumeMuted) {
+        this.volumeMuted = volumeMuted;
+    }
+
+    public boolean isVolumeMuted() {
+        return this.volumeMuted;
+    }
+
+    public double getFallbackTimeCode() {
+        if (this.paused || this.gamePaused || this.volumeMuted) {
+            return this.fallbackTimeCode;
+        }
+
+        return this.fallbackTimeCode + (double)(System.nanoTime() - this.fallbackTimeAnchor) / 1.0E9D * (double)this.field_5441;
+    }
 
    public void setFallbackTimeCode(double seconds) {
       this.fallbackTimeCode = Math.max(0.0D, seconds);
@@ -106,6 +121,22 @@ public class ClientManagedSoundInstance extends class_1101 {
          this.method_24876();
       }
    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
+
+    public boolean isPaused() {
+        return this.paused;
+    }
+
+    public void setGamePaused(boolean gamePaused) {
+        this.gamePaused = gamePaused;
+    }
+
+    public boolean isGamePaused() {
+        return this.gamePaused;
+    }
 
    public boolean method_4793() {
       return this.finished;

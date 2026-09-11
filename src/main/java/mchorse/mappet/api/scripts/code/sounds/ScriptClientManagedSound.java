@@ -68,6 +68,18 @@ public class ScriptClientManagedSound implements IScriptManagedSound {
       return ClientManagedSoundManager.has(this.id);
    }
 
+   public boolean isPaused() {
+      return ClientManagedSoundManager.has(this.id) && ClientManagedSoundManager.isPaused(this.id);
+   }
+
+   public void pause() {
+      ClientManagedSoundManager.handle(PacketManagedSound.pause(this.id));
+   }
+
+   public void resume() {
+      ClientManagedSoundManager.handle(PacketManagedSound.resume(this.id));
+   }
+
    public void stop() {
       ClientManagedSoundManager.handle(PacketManagedSound.stop(this.id));
    }

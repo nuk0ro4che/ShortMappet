@@ -13,6 +13,8 @@ public class PacketManagedSound implements IMessage {
    public static final byte REQUEST_TIME_CODE = 4;
    public static final byte TIME_CODE = 5;
    public static final byte FINISHED = 6;
+   public static final byte PAUSE = 7;
+   public static final byte RESUME = 8;
    public byte action;
    public String id = "";
    public String name = "";
@@ -98,6 +100,20 @@ public class PacketManagedSound implements IMessage {
       packet.action = FINISHED;
       packet.id = id;
       packet.name = name;
+      return packet;
+   }
+
+   public static PacketManagedSound pause(String id) {
+      PacketManagedSound packet = new PacketManagedSound();
+      packet.action = PAUSE;
+      packet.id = id;
+      return packet;
+   }
+
+   public static PacketManagedSound resume(String id) {
+      PacketManagedSound packet = new PacketManagedSound();
+      packet.action = RESUME;
+      packet.id = id;
       return packet;
    }
 

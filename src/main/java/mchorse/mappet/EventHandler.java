@@ -23,6 +23,7 @@ import mchorse.mappet.api.scripts.code.entities.ai.repeatingCommand.RepeatingCom
 import mchorse.mappet.api.scripts.code.entities.ai.rotations.EntityAIRotations;
 import mchorse.mappet.api.scripts.code.entities.ai.rotations.RotationDataStorage;
 import mchorse.mappet.api.scripts.code.items.ScriptInventory;
+import mchorse.mappet.api.scripts.code.sounds.ManagedSoundRegistry;
 import mchorse.mappet.api.scripts.code.items.ScriptItemStack;
 import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.api.scripts.user.entities.IScriptEntity;
@@ -391,6 +392,10 @@ public class EventHandler {
       if (!Mappet.settings.playerLogOut.isEmpty()) {
          DataContext context = new DataContext(event.player);
          Mappet.settings.playerLogOut.trigger(context);
+      }
+
+      if (event.player instanceof class_3222) {
+         ManagedSoundRegistry.forget((class_3222)event.player);
       }
 
       this.loggedInPlayers.remove(event.player.method_5667());

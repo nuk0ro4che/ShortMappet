@@ -124,6 +124,7 @@ clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_s
           if (client.field_1724 != null) {
              ClientTriggers.trigger("player_logout", DataContext.client(client.field_1724));
           }
+          RenderingHandler.reset();
        });
       GuiModelRenderer.dummyEntityFactory = (client) -> {
          if (client == null || client.field_1687 == null) {

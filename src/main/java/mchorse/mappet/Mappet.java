@@ -11,6 +11,7 @@ import mchorse.mappet.api.factions.FactionManager;
 import mchorse.mappet.api.huds.HUDManager;
 import mchorse.mappet.api.shaders.ShaderManager;
 import mchorse.mappet.api.ui.UIManager;
+import mchorse.mappet.api.misc.ClientSettings;
 import mchorse.mappet.api.misc.ServerSettings;
 import mchorse.mappet.api.npcs.NpcManager;
 import mchorse.mappet.api.quests.QuestManager;
@@ -78,6 +79,7 @@ public final class Mappet implements ModInitializer {
    public static class_2591<TileRegion> regionTile;
    public static class_2591<TileConditionModel> conditionModelTile;
    public static ServerSettings settings;
+    public static ClientSettings clientSettings;
    public static States states;
    public static QuestManager quests;
    public static SchematicManager schematics;
@@ -209,6 +211,8 @@ public final class Mappet implements ModInitializer {
       logger = new MappetLogger("mappet", root);
       settings = new ServerSettings(new File(root, "settings.json"));
       settings.load();
+      clientSettings = new ClientSettings(new File(root, "client_settings.json"));
+      clientSettings.load();
       states = new States(new File(root, "states.json"));
       states.load();
       quests = new QuestManager(new File(root, "quests"));
@@ -245,7 +249,12 @@ public final class Mappet implements ModInitializer {
          states.save();
       }
 
+      if (clientSettings != null) {
+         clientSettings.save();
+      }
+
       settings = null;
+      clientSettings = null;
       states = null;
       quests = null;
       schematics = null;

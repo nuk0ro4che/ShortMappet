@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import mchorse.mappet.Mappet;
 import mchorse.mappet.client.ClientTriggers;
 import mchorse.mappet.api.utils.DataContext;
+import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketManagedSound;
 import net.fabricmc.api.EnvType;
@@ -68,6 +69,17 @@ public final class ClientManagedSoundManager {
          ClientManagedSoundManager.applyPause(packet.id, true);
       } else if (packet.action == PacketManagedSound.RESUME) {
          ClientManagedSoundManager.applyPause(packet.id, false);
+      } else if (packet.action == PacketManagedSound.LOOP) {
+         ClientManagedSoundInstance sound = (ClientManagedSoundInstance)SOUNDS.get(packet.id);
+         if (sound != null) {
+            sound.setLooping(packet.loop);
+            withSource(class_310.method_1551().method_1483(), sound, (source) -> {
+               try {
+                  AL10.alSourcei(getOpenAlSourceHandle(source), 4103, packet.loop ? 1 : 0);
+               } catch (Exception ignored) {
+               }
+            });
+         }
       }
    }
 
@@ -78,6 +90,11 @@ public final class ClientManagedSoundManager {
    public static boolean isPaused(String id) {
       ClientManagedSoundInstance sound = id == null ? null : (ClientManagedSoundInstance)SOUNDS.get(id);
       return sound != null && sound.isPaused();
+   }
+
+   public static boolean isLooping(String id) {
+      ClientManagedSoundInstance sound = id == null ? null : (ClientManagedSoundInstance)SOUNDS.get(id);
+      return sound != null && sound.isLooping();
    }
 
    public static String getName(String id) {
@@ -171,33 +188,57 @@ public final class ClientManagedSoundManager {
             }
          }
 
-         Double timeCode = sound.consumePendingTimeCode();
-         if (timeCode != null) {
-            applyTimeCode(soundManager, sound, timeCode);
-         } else if (!sound.isPaused() && !sound.isGamePaused() && !sound.isVolumeMuted()) {
-            syncFallbackToOpenAl(soundManager, sound);
-         }
+Double timeCode = sound.consumePendingTimeCode();
+          if (timeCode != null) {
+             applyTimeCode(soundManager, sound, timeCode);
+          } else if (!sound.isPaused() && !sound.isGamePaused() && !sound.isVolumeMuted()) {
+             syncFallbackToOpenAl(soundManager, sound);
+          }
+       }
 
-         boolean finished;
+       pollFinished();
+    }
+
+    public static void pollFinished() {
+       class_310 client = class_310.method_1551();
+       if (client == null) {
+          return;
+       }
+
+       class_1144 soundManager = client.method_1483();
+       Iterator<Map.Entry<String, ClientManagedSoundInstance>> iterator = SOUNDS.entrySet().iterator();
+
+       while (iterator.hasNext()) {
+          Map.Entry<String, ClientManagedSoundInstance> entry = (Map.Entry)iterator.next();
+          ClientManagedSoundInstance sound = (ClientManagedSoundInstance)entry.getValue();
+          boolean finished;
           if (!sound.isPaused() && !sound.isVolumeMuted() && !sound.isGamePaused()) {
-            Integer alState = getOpenAlSourceState(soundManager, sound);
-            if (alState != null) {
-               finished = (alState == AL10.AL_STOPPED);
-            } else {
-               finished = (sound.getAge() > 2 && !soundManager.method_4877(sound));
-            }
-         } else {
-            finished = false;
-         }
+             Integer alState = getOpenAlSourceState(soundManager, sound);
+             if (alState != null) {
+                if (alState != AL10.AL_INITIAL) {
+                   sound.markStarted();
+                }
 
-         if (finished) {
-            iterator.remove();
-            sound.finish();
-            Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
-            fireSoundEnded(client, sound.id, sound.name);
-         }
-      }
-   }
+                finished = (alState == AL10.AL_STOPPED);
+             } else {
+                if (soundManager.method_4877(sound)) {
+                   sound.markStarted();
+                }
+
+                finished = (sound.isStarted() && !soundManager.method_4877(sound));
+             }
+          } else {
+             finished = false;
+          }
+
+          if (finished) {
+             iterator.remove();
+             sound.finish();
+Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
+              fireSoundEnded(client, sound);
+          }
+       }
+    }
 
    public static void clear() {
       for(ClientManagedSoundInstance sound : SOUNDS.values()) {
@@ -221,8 +262,8 @@ public final class ClientManagedSoundManager {
          class_310.method_1551().method_1483().method_4870(sound);
          sound.finish();
          if (notifyServer) {
-            Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
-            fireSoundEnded(class_310.method_1551(), sound.id, sound.name);
+Dispatcher.sendToServer(PacketManagedSound.finished(sound.id, sound.name));
+             fireSoundEnded(class_310.method_1551(), sound);
          }
       }
    }
@@ -253,9 +294,13 @@ public final class ClientManagedSoundManager {
       }
    }
 
-   private static void fireSoundEnded(class_310 client, String id, String name) {
+   private static void fireSoundEnded(class_310 client, ClientManagedSoundInstance sound) {
       if (client != null && client.field_1724 != null) {
-         ClientTriggers.trigger("sound_ended", DataContext.client(client.field_1724).set("id", id).set("name", name));
+         DataContext context = DataContext.client(client.field_1724);
+         context.getValues().put("volume", (double) sound.getLiveVolume());
+         context.getValues().put("pitch", (double) sound.getLivePitch());
+         context.getValues().put("position", new ScriptVector(sound.getLiveX(), sound.getLiveY(), sound.getLiveZ()));
+         ClientTriggers.trigger("sound_ended", context);
       }
    }
 

@@ -7,6 +7,8 @@ import mchorse.mappet.api.triggers.Trigger;
 import mchorse.mappet.client.gui.GuiMappetDashboard;
 import mchorse.mappet.client.gui.triggers.GuiTriggerElement;
 import mchorse.mappet.client.gui.utils.text.GuiText;
+import mchorse.mappet.network.Dispatcher;
+import mchorse.mappet.network.common.content.PacketClientSettings;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.GuiScrollElement;
 import mchorse.mclib.client.gui.framework.elements.IGuiElement;
@@ -209,6 +211,7 @@ public class GuiClientSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
          class_2487 tag = this.settings.serializeNBT();
          this.settings.save();
          this.snapshot = this.copyTag(tag);
+         Dispatcher.sendToServer(new PacketClientSettings(tag));
       }
 
       if (this.mc.field_1724 != null) {
@@ -296,6 +299,12 @@ public class GuiClientSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    public void appear() {
       super.appear();
       this.settings.load();
+      this.snapshot = this.copyTag(this.settings.serializeNBT());
+      this.fillGlobalTriggerList(this.lastTrigger);
+   }
+
+   public void fill(class_2487 tag) {
+      this.settings.fill(tag);
       this.snapshot = this.copyTag(this.settings.serializeNBT());
       this.fillGlobalTriggerList(this.lastTrigger);
    }

@@ -17,6 +17,10 @@ public interface IScriptManagedSound {
 
    boolean isPlaying();
 
+   boolean isLooping();
+
+   void loop(boolean loop);
+
    boolean isPaused();
 
    void pause();

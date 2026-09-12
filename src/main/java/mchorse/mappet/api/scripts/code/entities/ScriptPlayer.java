@@ -81,6 +81,8 @@ import net.minecraft.class_1657;
 import net.minecraft.class_1934;
 import net.minecraft.class_2338;
 import net.minecraft.class_2487;
+import net.minecraft.class_634;
+import net.minecraft.class_640;
 import net.minecraft.class_2522;
 import net.minecraft.class_2527;
 import net.minecraft.class_2561;
@@ -289,13 +291,25 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
       }
    }
 
-   public int getGameMode() {
-      return this.entity instanceof class_3222 ? ((class_3222)this.entity).field_13974.method_14257().method_8379() : 0;
-   }
+public String getGameMode() {
+       if (this.entity instanceof class_3222) {
+          return ((class_3222)this.entity).field_13974.method_14257().method_8381();
+       }
+       if (this.entity instanceof class_746) {
+          class_310 client = class_310.method_1551();
+          if (client != null && client.method_1562() != null) {
+             class_640 entry = client.method_1562().method_2871(this.entity.method_5667());
+             if (entry != null && entry.method_2958() != null) {
+                return entry.method_2958().method_8381();
+             }
+          }
+       }
+       return "survival";
+    }
 
-   public void setGameMode(int gameMode) {
-      if (this.entity instanceof class_3222 && gameMode >= 0 && gameMode <= 3) {
-         ((class_3222)this.entity).method_7336(class_1934.method_8384(gameMode));
+   public void setGameMode(String gameMode) {
+      if (this.entity instanceof class_3222 && gameMode != null) {
+         ((class_3222)this.entity).method_7336(class_1934.method_8385(gameMode));
       }
    }
 
@@ -899,24 +913,6 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
 
    public void playStaticSound(String event, String soundCategory, float volume, float pitch) {
       PacketSound packet = new PacketSound(event, soundCategory, volume, pitch);
-      if (this.entity instanceof class_3222) {
-         Dispatcher.sendTo(packet, (class_3222)this.entity);
-      } else {
-         ClientHandlerSound.handle(packet);
-      }
-   }
-
-   public void playLoopSound(String event, String category, float volume, float pitch) {
-      PacketSound packet = PacketSound.loop(event, category, volume, pitch);
-      if (this.entity instanceof class_3222) {
-         Dispatcher.sendTo(packet, (class_3222)this.entity);
-      } else {
-         ClientHandlerSound.handle(packet);
-      }
-   }
-
-   public void stopLoopSound(String event, String category) {
-      PacketSound packet = PacketSound.stopLoop(event, category);
       if (this.entity instanceof class_3222) {
          Dispatcher.sendTo(packet, (class_3222)this.entity);
       } else {

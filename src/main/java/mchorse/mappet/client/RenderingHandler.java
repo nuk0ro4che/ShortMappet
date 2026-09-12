@@ -30,7 +30,10 @@ public final class RenderingHandler {
 
    public static void register() {
       ClientTickEvents.END_CLIENT_TICK.register((ClientTickEvents.EndTick)(client) -> update());
-      WorldRenderEvents.BEFORE_ENTITIES.register((WorldRenderEvents.BeforeEntities)(context) -> ClientEntityTransitions.render(context.tickDelta()));
+      WorldRenderEvents.BEFORE_ENTITIES.register((WorldRenderEvents.BeforeEntities)(context) -> {
+         ClientManagedSoundManager.pollFinished();
+         ClientEntityTransitions.render(context.tickDelta());
+      });
       WorldRenderEvents.AFTER_ENTITIES.register((WorldRenderEvents.AfterEntities)(context) -> {
          if (context.consumers() != null) {
             

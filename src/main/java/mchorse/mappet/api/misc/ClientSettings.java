@@ -70,6 +70,17 @@ public class ClientSettings implements INBTSerializable<class_2487> {
         this.load();
     }
 
+    public void fill(class_2487 tag) {
+        for (Trigger trigger : this.triggers.values()) {
+            trigger.blocks.clear();
+            trigger.recalculateEmpty();
+        }
+
+        if (tag != null) {
+            this.deserializeNBT(tag);
+        }
+    }
+
     public void save() {
         try {
             NBTToJsonLike.write(this.file, this.serializeNBT());

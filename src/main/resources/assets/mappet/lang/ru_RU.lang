@@ -917,9 +917,9 @@ mappet.translation.wiki_url=https://github.com/Andruxioid/mappet_ru/wiki
 mappet.translation.community=Дискорд
 mappet.translation.community_url=https://discord.gg/QhvbgSWpYn
 mappet.translation.sounds=Открыть папку со звуками
-mappet.gui.settings.triggers.sound_ended=Звук: закончился
+mappet.gui.settings.triggers.sound_ended=Управляемый звук: закончился
 mappet.gui.settings.triggers.descriptions.sound_ended=Срабатывает, когда специальный звук, запущенный через playManagedSound или playManagedStaticSound, естественно заканчивается у игрока.
-mappet.gui.settings.triggers.variables.sound_ended=§6id§r, специальный ID экземпляра звука.
+mappet.gui.settings.triggers.variables.sound_ended=§6id§r, специальный ID экземпляра звука.\n§6name§r, название sound event завершившегося звука.\n§6volume§r, громкость звука.\n§6pitch§r, высота тона звука.\n§6position§r, ScriptVector с координатами (x, y, z) звука.
 §6name§r, название sound event завершившегося звука.
 mappet.gui.settings.triggers.client_tick=Клиент: каждый тик
 mappet.gui.settings.triggers.descriptions.client_tick=Срабатывает каждый клиентский тик (т.е. §720§r раз в секунду). Работает только на стороне клиента.\n\nИспользуйте настройку частоты триггера чтобы ограничить количество срабатываний.

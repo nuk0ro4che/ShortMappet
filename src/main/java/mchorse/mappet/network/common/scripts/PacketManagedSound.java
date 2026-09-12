@@ -12,15 +12,17 @@ public class PacketManagedSound implements IMessage {
    public static final byte SET_TIME_CODE = 3;
    public static final byte REQUEST_TIME_CODE = 4;
    public static final byte TIME_CODE = 5;
-   public static final byte FINISHED = 6;
-   public static final byte PAUSE = 7;
-   public static final byte RESUME = 8;
-   public byte action;
-   public String id = "";
-   public String name = "";
-   public String category = "master";
-   public boolean staticSound;
-   public double x;
+public static final byte FINISHED = 6;
+    public static final byte PAUSE = 7;
+    public static final byte RESUME = 8;
+    public static final byte LOOP = 9;
+    public byte action;
+    public String id = "";
+    public String name = "";
+    public String category = "master";
+    public boolean staticSound;
+    public boolean loop;
+    public double x;
    public double y;
    public double z;
    public float volume = 1.0F;
@@ -110,12 +112,20 @@ public class PacketManagedSound implements IMessage {
       return packet;
    }
 
-   public static PacketManagedSound resume(String id) {
+public static PacketManagedSound resume(String id) {
       PacketManagedSound packet = new PacketManagedSound();
       packet.action = RESUME;
       packet.id = id;
       return packet;
-   }
+    }
+
+   public static PacketManagedSound loop(String id, boolean loop) {
+      PacketManagedSound packet = new PacketManagedSound();
+      packet.action = LOOP;
+      packet.id = id;
+      packet.loop = loop;
+      return packet;
+    }
 
    public void fromBytes(ByteBuf buf) {
       this.action = buf.readByte();
@@ -131,6 +141,7 @@ public class PacketManagedSound implements IMessage {
       this.timeCode = buf.readDouble();
       this.entityBound = buf.readBoolean();
       this.entityId = buf.readInt();
+      this.loop = buf.readBoolean();
    }
 
    public void toBytes(ByteBuf buf) {
@@ -147,5 +158,6 @@ public class PacketManagedSound implements IMessage {
       buf.writeDouble(this.timeCode);
       buf.writeBoolean(this.entityBound);
       buf.writeInt(this.entityId);
+      buf.writeBoolean(this.loop);
    }
 }

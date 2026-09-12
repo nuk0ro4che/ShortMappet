@@ -13,6 +13,7 @@ public final class ManagedSoundRegistry {
       public final float pitch;
       public final int entityId;
       public boolean paused;
+      public boolean loop;
       public double x;
       public double y;
       public double z;
@@ -66,12 +67,19 @@ public final class ManagedSoundRegistry {
       return state;
    }
 
-   public static void pause(class_3222 player, String id, boolean paused) {
+public static void pause(class_3222 player, String id, boolean paused) {
       State state = get(player, id);
       if (state != null) {
          state.paused = paused;
       }
-   }
+    }
+
+   public static void loop(class_3222 player, String id, boolean loop) {
+      State state = get(player, id);
+      if (state != null) {
+         state.loop = loop;
+      }
+    }
 
    public static void stop(class_3222 player, String id) {
       remove(ACTIVE, player.method_5667(), id);

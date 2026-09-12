@@ -103,7 +103,7 @@ boolean executeClientScript(String script, String function, Object... args);
 
    void openWeb(String url);
 
-   void disconnect(String reason);
+void disconnect(String reason);
 
    void quitMinecraft();
 
@@ -111,9 +111,9 @@ boolean executeClientScript(String script, String function, Object... args);
 
    void openSettings();
 
-   int getGameMode();
+   String getGameMode();
 
-   void setGameMode(int gameMode);
+   void setGameMode(String gameMode);
 
    void setLay(boolean lay);
 
@@ -232,26 +232,6 @@ boolean executeClientScript(String script, String function, Object... args);
    void playStaticSound(String var1, float var2, float var3);
 
    void playStaticSound(String var1, String var2, float var3, float var4);
-
-   default void playLoopSound(String event) {
-      this.playLoopSound(event, "master", 1.0F, 1.0F);
-   }
-
-   default void playLoopSound(String event, float volume, float pitch) {
-      this.playLoopSound(event, "master", volume, pitch);
-   }
-
-   void playLoopSound(String event, String category, float volume, float pitch);
-
-   default void stopLoopSound() {
-      this.stopLoopSound("", "");
-   }
-
-   default void stopLoopSound(String event) {
-      this.stopLoopSound(event, "");
-   }
-
-   void stopLoopSound(String event, String category);
 
    IMappetQuests getQuests();
 

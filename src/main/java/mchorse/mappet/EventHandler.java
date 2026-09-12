@@ -56,6 +56,7 @@ import mchorse.mappet.network.common.quests.PacketQuest;
 import mchorse.mappet.network.common.quests.PacketQuests;
 import mchorse.mappet.network.common.scripts.PacketClick;
 import mchorse.mappet.network.common.scripts.PacketCancelDeath;
+import mchorse.mappet.network.common.content.PacketClientSettings;
 import mchorse.mappet.utils.RunnableExecutionFork;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -350,6 +351,10 @@ public class EventHandler {
          }
 
          this.syncData(player, character);
+      }
+
+      if (Mappet.clientSettings != null) {
+         Dispatcher.sendTo(new PacketClientSettings(Mappet.clientSettings.serializeNBT()), player);
       }
 
       Map<String, List<HUDScene>> displayedHUDs = character.getDisplayedHUDs();
@@ -845,9 +850,15 @@ public class EventHandler {
    }
 
    
-   public void onManagedSoundFinished(class_3222 player, String id, String name) {
+   public void onManagedSoundFinished(class_3222 player, String id, String name, ManagedSoundRegistry.State state) {
       if (!Mappet.settings.soundEnded.isEmpty()) {
-         Mappet.settings.soundEnded.trigger((new DataContext(player)).set("id", id).set("name", name));
+         DataContext context = new DataContext(player);
+         context.getValues().put("id", id);
+         context.getValues().put("name", name);
+         context.getValues().put("volume", (double) state.volume);
+         context.getValues().put("pitch", (double) state.pitch);
+         context.getValues().put("position", new ScriptVector(state.x, state.y, state.z));
+         Mappet.settings.soundEnded.trigger(context);
       }
    }
 

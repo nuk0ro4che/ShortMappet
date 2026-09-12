@@ -928,9 +928,9 @@ mappet.translation.wiki_url=https://github.com/mchorse/mappet/wiki
 mappet.translation.community=Discord
 mappet.translation.community_url=https://discord.gg/QhvbgSWpYn
 mappet.translation.sounds=Open sounds folder
-mappet.gui.settings.triggers.sound_ended=Sound: ended
+mappet.gui.settings.triggers.sound_ended=Managed sound: ended
 mappet.gui.settings.triggers.descriptions.sound_ended=Triggers when a special sound started with playManagedSound or playManagedStaticSound finishes naturally for a player.
-mappet.gui.settings.triggers.variables.sound_ended=§6id§r, special ID of the sound instance.
+mappet.gui.settings.triggers.variables.sound_ended=§6id§r, special ID of the sound instance.\n§6name§r, sound event name that finished.\n§6volume§r, volume of the sound.\n§6pitch§r, pitch of the sound.\n§6position§r, ScriptVector with the sound coordinates (x, y, z).
 §6name§r, sound event name that finished.
 mappet.gui.settings.triggers.client_tick=Client: on tick
 mappet.gui.settings.triggers.descriptions.client_tick=This gets triggered every client game tick (i.e. §720§r times a second). Runs only on the client side.\n\nUse frequency option to limit how many times a script or event gets triggered.

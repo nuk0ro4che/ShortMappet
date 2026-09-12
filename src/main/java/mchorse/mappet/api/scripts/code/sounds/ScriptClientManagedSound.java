@@ -68,6 +68,14 @@ public class ScriptClientManagedSound implements IScriptManagedSound {
       return ClientManagedSoundManager.has(this.id);
    }
 
+   public boolean isLooping() {
+      return ClientManagedSoundManager.has(this.id) && ClientManagedSoundManager.isLooping(this.id);
+   }
+
+   public void loop(boolean loop) {
+      ClientManagedSoundManager.handle(PacketManagedSound.loop(this.id, loop));
+   }
+
    public boolean isPaused() {
       return ClientManagedSoundManager.has(this.id) && ClientManagedSoundManager.isPaused(this.id);
    }

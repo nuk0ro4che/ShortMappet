@@ -96,17 +96,6 @@ public interface IScriptWorld {
 
    void playSound(String var1, double var2, double var4, double var6, float var8, float var9);
 
-   default IScriptManagedSound playLoopSound(String id, String event, double x, double y, double z) {
-      return this.playLoopSound(id, event, "master", x, y, z, 1.0F, 1.0F);
-   }
-
-   default IScriptManagedSound playLoopSound(String id, String event, double x, double y, double z, float volume, float pitch) {
-      return this.playLoopSound(id, event, "master", x, y, z, volume, pitch);
-   }
-
-   IScriptManagedSound playLoopSound(String id, String event, String category, double x, double y, double z, float volume, float pitch);
-
-   
    IScriptManagedSound playManagedStaticSound(String id, String event, String category, float volume, float pitch);
 
    

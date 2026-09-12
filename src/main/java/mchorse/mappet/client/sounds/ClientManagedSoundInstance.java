@@ -27,7 +27,9 @@ public class ClientManagedSoundInstance extends class_1101 {
     private double fallbackTimeCode;
     private long fallbackTimeAnchor;
     private Double pendingTimeCode;
-    private int age;
+private int age;
+   private boolean started;
+   private boolean looping;
 
    public ClientManagedSoundInstance(PacketManagedSound packet) {
       super(class_3414.method_47908(new class_2960(packet.name)), resolveCategory(packet.category), class_5819.method_43047());
@@ -65,6 +67,10 @@ public class ClientManagedSoundInstance extends class_1101 {
 
    public float getLiveVolume() {
       return this.field_5442;
+   }
+
+   public float getLivePitch() {
+      return this.field_5441;
    }
 
    public double getLiveX() {
@@ -113,6 +119,23 @@ public class ClientManagedSoundInstance extends class_1101 {
 
    public int getAge() {
       return this.age;
+   }
+
+   public boolean isStarted() {
+      return this.started;
+   }
+
+   public void markStarted() {
+      this.started = true;
+   }
+
+   public boolean isLooping() {
+      return this.looping;
+   }
+
+   public void setLooping(boolean looping) {
+      this.looping = looping;
+      this.field_5446 = looping;
    }
 
    public void finish() {

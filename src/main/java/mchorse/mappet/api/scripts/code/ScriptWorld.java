@@ -451,20 +451,6 @@ public class ScriptWorld implements IScriptWorld {
       }
    }
 
-   public IScriptManagedSound playLoopSound(String id, String event, String category, double x, double y, double z, float volume, float pitch) {
-      String specialId = this.requireManagedSoundId(id);
-      String soundName = this.requireManagedSoundName(event);
-      String soundCategory = category == null || category.isEmpty() ? "master" : category;
-      float soundVolume = Math.max(0.0F, volume);
-
-      for(class_3222 player : this.world.method_8503().method_3760().method_14571()) {
-         ManagedSoundRegistry.play(player, specialId, soundName, false, x, y, z, soundVolume, pitch);
-         Dispatcher.sendTo(PacketManagedSound.play(specialId, soundName, soundCategory, false, x, y, z, soundVolume, pitch), player);
-      }
-
-      return new ScriptWorldManagedSound(this.world, specialId);
-   }
-
    public IScriptManagedSound playManagedStaticSound(String id, String event, String category, float volume, float pitch) {
       String specialId = this.requireManagedSoundId(id);
       String soundName = this.requireManagedSoundName(event);

@@ -74,6 +74,19 @@ public class ScriptManagedSound implements IScriptManagedSound {
       return this.state() != null;
    }
 
+   public boolean isLooping() {
+      ManagedSoundRegistry.State state = this.state();
+      return state != null && state.loop;
+   }
+
+   public void loop(boolean loop) {
+      ManagedSoundRegistry.State state = this.state();
+      if (state != null) {
+         ManagedSoundRegistry.loop(this.player, this.id, loop);
+         Dispatcher.sendTo(PacketManagedSound.loop(this.id, loop), this.player);
+      }
+   }
+
    public boolean isPaused() {
       ManagedSoundRegistry.State state = this.state();
       return state != null && state.paused;

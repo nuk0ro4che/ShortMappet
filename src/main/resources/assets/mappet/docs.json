@@ -621,25 +621,25 @@
         },
         {
           "name": "getGameMode",
-          "doc": "Получает режим игры игрока.\n\n <pre>{@code\n    // Assuming that c.getSubject() is a player\n    var player = c.getSubject();\n    var gamemode = player.getGameMode();\n\n    if (gamemode === 0)\n    {\n        player.send(\"You're in survival mode!\");\n    }\n }</pre>",
+          "doc": "Получает режим игры игрока.\n\n <pre>{@code\n    // Assuming that c.getSubject() is a player\n    var player = c.getSubject();\n    var gamemode = player.getGameMode();\n\n    if (gamemode === \"survival\")\n    {\n        player.send(\"You're in survival mode!\");\n    }\n }</pre>",
           "returns": {
-            "type": "int",
-            "doc": "Режим игры игрока в виде целого числа: <code>0</code> — выживание, <code>1</code> — творческий, <code>2</code> — приключение, <code>3</code> — наблюдатель."
+            "type": "string",
+            "doc": "Режим игры игрока в виде строки: <code>survival</code> — выживание, <code>creative</code> — творческий, <code>adventure</code> — приключение, <code>spectator</code> — наблюдатель."
           },
           "arguments": [],
           "annotations": []
         },
         {
           "name": "setGameMode",
-          "doc": "Устанавливает режим игры игрока.\n\n <pre>{@code\n    // Assuming that c.getSubject() is a player\n    var player = c.getSubject();\n    var gamemode = c.getSubject().getGameMode();\n\n    // When player exits the mining region, set their game mode back to adventure\n    if (gamemode === 0 && !player.getStates().has(\"region.mining_factory\"))\n    {\n        player.setGameMode(2);\n    }\n }\n }</pre>",
+          "doc": "Устанавливает режим игры игрока.\n\n <pre>{@code\n    // Assuming that c.getSubject() is a player\n    var player = c.getSubject();\n    var gamemode = c.getSubject().getGameMode();\n\n    // When player exits the mining region, set their game mode back to adventure\n    if (gamemode === \"survival\" && !player.getStates().has(\"region.mining_factory\"))\n    {\n        player.setGameMode(\"adventure\");\n    }\n }\n }</pre>",
           "returns": {
             "type": "void"
           },
           "arguments": [
             {
               "name": "gameMode",
-              "type": "int",
-              "doc": "Режимы игры игрока: <code>0</code> — выживание, <code>1</code> — творческий, <code>2</code> — приключение, <code>3</code> — наблюдатель."
+              "type": "string",
+              "doc": "Режимы игры игрока: <code>survival</code> — выживание, <code>creative</code> — творческий, <code>adventure</code> — приключение, <code>spectator</code> — наблюдатель."
             }
           ],
           "annotations": []
@@ -1588,46 +1588,6 @@
               "name": "animation",
               "type": "java.lang.String",
               "doc": "Имя анимации из модели."
-            }
-          ],
-          "annotations": []
-        },
-        {
-          "name": "playLoopSound",
-          "doc": "Воспроизвести зацикленное звуковое событие с указанной громкостью и тоном.",
-          "returns": {
-            "type": "void"
-          },
-          "arguments": [
-            {
-              "name": "event",
-              "type": "java.lang.String"
-            },
-            {
-              "name": "volume",
-              "type": "float"
-            },
-            {
-              "name": "pitch",
-              "type": "float"
-            }
-          ],
-          "annotations": []
-        },
-        {
-          "name": "stopLoopSound",
-          "doc": "Остановить зацикленный звук в указанной категории. Если событие не задано, остановятся все зацикленные звуки.",
-          "returns": {
-            "type": "void"
-          },
-          "arguments": [
-            {
-              "name": "event",
-              "type": "java.lang.String"
-            },
-            {
-              "name": "category",
-              "type": "java.lang.String"
             }
           ],
           "annotations": []
@@ -15933,6 +15893,65 @@
           "arguments": [],
           "annotations": []
         },
+{
+            "name": "isPlaying",
+            "doc": "Проверить, существует ли сейчас специальный звук с указанным ID. Возвращает <code>true</code>, если звук зарегистрирован (воспроизводится или стоит на паузе). Возвращает <code>false</code>, если звук был остановлен или завершился.",
+            "returns": {
+              "type": "boolean"
+            },
+            "arguments": [],
+            "annotations": []
+          },
+{
+           "name": "isLooping",
+           "doc": "Проверить, зациклен ли специальный звук. Зацикленный звук воспроизводится бесконечно, пока не будет остановлен через <code>stop</code>.",
+           "returns": {
+             "type": "boolean"
+           },
+           "arguments": [],
+           "annotations": []
+         },
+        {
+           "name": "loop",
+           "doc": "Включить или выключить бесконечное зацикливание специального звука. Зацикленный звук играет без пауз и задержек, пока его не остановят через <code>stop</code>.\n\n<pre>{@code\nvar pos = c.getSubject().getPosition();\nvar sound = c.getSubject().playManagedSound(\"id\", \"record.cat\", \"master\", pos.x, pos.y, pos.z, 1, 1);\nsound.loop(true);\nsound.stop();\n}</pre>",
+           "returns": {
+             "type": "void"
+           },
+           "arguments": [
+             {
+               "name": "loop",
+               "type": "boolean"
+             }
+           ],
+           "annotations": []
+         },
+        {
+           "name": "isPaused",
+           "doc": "Проверить, стоит ли специальный звук на паузе. Пауза замирает звук и его таймкод на месте; при возобновлении звук продолжает ровно с того же момента.",
+           "returns": {
+             "type": "boolean"
+           },
+           "arguments": [],
+           "annotations": []
+         },
+        {
+           "name": "pause",
+           "doc": "Поставить управляемый звук на паузу. Звук не удаляется и может быть продолжен через <code>resume</code>.",
+           "returns": {
+             "type": "void"
+           },
+           "arguments": [],
+           "annotations": []
+         },
+        {
+           "name": "resume",
+           "doc": "Возобновить воспроизведение управляемого звука с того момента, на котором он был поставлен на паузу.",
+           "returns": {
+             "type": "void"
+           },
+           "arguments": [],
+           "annotations": []
+         },
         {
           "name": "getTimeCode",
           "doc": "Возвращает последний таймкод в секундах и запрашивает его обновление у клиента. Для world-объекта возвращается таймкод первого активного получателя.",

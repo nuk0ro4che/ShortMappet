@@ -56,6 +56,7 @@ import mchorse.mappet.network.common.quests.PacketQuest;
 import mchorse.mappet.network.common.quests.PacketQuests;
 import mchorse.mappet.network.common.scripts.PacketClick;
 import mchorse.mappet.network.common.scripts.PacketCancelDeath;
+import mchorse.mappet.api.scripts.client.ClientScriptExecutor;
 import mchorse.mappet.network.common.content.PacketClientSettings;
 import mchorse.mappet.utils.RunnableExecutionFork;
 import net.fabricmc.api.EnvType;
@@ -356,6 +357,8 @@ public class EventHandler {
       if (Mappet.clientSettings != null) {
          Dispatcher.sendTo(new PacketClientSettings(Mappet.clientSettings.serializeNBT()), player);
       }
+
+      ClientScriptExecutor.syncClientScripts(player);
 
       Map<String, List<HUDScene>> displayedHUDs = character.getDisplayedHUDs();
 

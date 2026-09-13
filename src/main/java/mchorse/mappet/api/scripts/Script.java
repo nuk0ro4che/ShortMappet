@@ -2,7 +2,6 @@ package mchorse.mappet.api.scripts;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -25,11 +24,9 @@ import mchorse.mappet.api.utils.AbstractData;
 import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.events.RegisterScriptVariablesEvent;
 import mchorse.mappet.utils.ScriptUtils;
-import mchorse.mappet.utils.Utils;
 import net.minecraft.class_2487;
 import net.minecraft.class_2499;
 import net.minecraft.class_2519;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
@@ -139,10 +136,13 @@ public class Script extends AbstractData {
 
    private int processLibrary(ScriptManager manager, String library, boolean isKotlin, Set<String> uniqueImports, StringBuilder finalCode, int total) {
       try {
-         File scriptFile = manager.getScriptFile(library);
-         String code = FileUtils.readFileToString(scriptFile, Utils.getCharset());
          Script libraryScript = manager.load(library);
-         boolean stubClientLibrary = libraryScript != null && libraryScript.client && !this.client && !isKotlin;
+         if (libraryScript == null) {
+            System.err.println("[Mappet] Script library " + library + ".js failed to load...");
+            return total;
+         }
+         String code = libraryScript.code != null ? libraryScript.code : "";
+         boolean stubClientLibrary = libraryScript.client && !this.client && !isKotlin;
          if (stubClientLibrary) {
             finalCode.append(this.buildClientLibraryStubs(code));
             if (this.ranges == null) {

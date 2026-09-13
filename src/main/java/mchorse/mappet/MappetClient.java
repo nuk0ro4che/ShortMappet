@@ -111,7 +111,7 @@ public class MappetClient implements ClientModInitializer {
    }
 
    public void onInitializeClient() {
-      clientScriptRuntime = new ClientScriptManager(new File(CommonProxy.configFolder, "client_script_cache"));
+      clientScriptRuntime = new ClientScriptManager();
 clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_settings.json"));
        clientSettings.load();
       ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {

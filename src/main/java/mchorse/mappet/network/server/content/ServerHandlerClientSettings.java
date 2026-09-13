@@ -1,6 +1,7 @@
 package mchorse.mappet.network.server.content;
 
 import mchorse.mappet.Mappet;
+import mchorse.mappet.api.scripts.client.ClientScriptExecutor;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.content.PacketClientSettings;
 import mchorse.mclib.network.ServerMessageHandler;
@@ -15,6 +16,7 @@ public class ServerHandlerClientSettings extends ServerMessageHandler<PacketClie
 
          for (class_3222 p : player.method_5682().method_3760().method_14571()) {
             Dispatcher.sendTo(new PacketClientSettings(Mappet.clientSettings.serializeNBT()), p);
+            ClientScriptExecutor.syncClientScripts(p);
          }
       }
    }

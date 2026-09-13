@@ -59,6 +59,19 @@ public final class ClientScriptExecutor {
       return true;
    }
 
+   public static void syncClientScripts(class_3222 player) {
+      if (player == null || Mappet.clientScripts == null) {
+         return;
+      }
+
+      Map<String, class_2487> payload = buildClientPayload(player, null);
+      if (payload.isEmpty()) {
+         return;
+      }
+
+      Dispatcher.sendTo(new PacketClientScriptExecute("", "", payload), player);
+   }
+
    private static Map<String, class_2487> buildClientPayload(class_3222 player, String targetId) {
       Map<String, class_2487> payload = new LinkedHashMap<>();
 

@@ -12,12 +12,16 @@ import java.util.Base64;
 import java.util.HashSet;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import mchorse.aperture.network.common.PacketCameraState;
 import mchorse.mappet.Mappet;
+import mchorse.mappet.api.huds.HUDMorph;
+import mchorse.mappet.api.huds.HUDScene;
 import mchorse.mappet.api.shaders.ShaderFile;
 import mchorse.mappet.api.scripts.code.client.ClientClipboardCache;
 import mchorse.mappet.client.ClientMovementLockState;
+import mchorse.mappet.client.RenderingHandler;
 import mchorse.mappet.network.client.scripts.ClientHandlerSound;
 import mchorse.mappet.network.client.scripts.ClientHandlerMousePosition;
 import mchorse.mappet.network.client.scripts.ClientHandlerClipboard;
@@ -81,6 +85,7 @@ import net.minecraft.class_1657;
 import net.minecraft.class_1934;
 import net.minecraft.class_2338;
 import net.minecraft.class_2487;
+import net.minecraft.class_2499;
 import net.minecraft.class_634;
 import net.minecraft.class_640;
 import net.minecraft.class_2522;
@@ -1137,18 +1142,42 @@ public String getGameMode() {
    }
 
    public boolean setupHUD(String id) {
-      return Character.get((class_1657)this.entity).setupHUD(id, true);
+      if (this.entity instanceof class_3222) {
+         return Character.get((class_1657)this.entity).setupHUD(id, true);
+      } else if (this.entity instanceof class_746) {
+         HUDScene scene = (HUDScene)RenderingHandler.stage.scenes.get(id);
+         if (scene == null && Mappet.huds != null) {
+            scene = (HUDScene)Mappet.huds.load(id);
+            if (scene != null) {
+               RenderingHandler.stage.scenes.put(id, scene);
+            }
+         }
+         return scene != null;
+      }
+      return false;
    }
 
    public void changeHUDMorph(String id, int index, AbstractMorph morph) {
       if (morph != null) {
-         Character.get((class_1657)this.entity).changeHUDMorph(id, index, MorphUtils.toNBT(morph));
+         this.changeHUDMorph(id, index, MorphUtils.toNBT(morph));
       }
    }
 
    public void changeHUDMorph(String id, int index, INBTCompound morph) {
       if (morph != null) {
-         Character.get((class_1657)this.entity).changeHUDMorph(id, index, morph.getNbtCompound());
+         this.changeHUDMorph(id, index, morph.getNbtCompound());
+      }
+   }
+
+   private void changeHUDMorph(String id, int index, class_2487 tag) {
+      if (this.entity instanceof class_3222) {
+         Character.get((class_1657)this.entity).changeHUDMorph(id, index, tag);
+      } else if (this.entity instanceof class_746) {
+         HUDScene scene = (HUDScene)RenderingHandler.stage.scenes.get(id);
+         if (scene != null && index >= 0 && index < scene.morphs.size()) {
+            HUDMorph hudMorph = (HUDMorph)scene.morphs.get(index);
+            hudMorph.morph.set(MorphManager.INSTANCE.morphFromNBT(tag));
+         }
       }
    }
 
@@ -1169,28 +1198,78 @@ public String getGameMode() {
    }
 
    public boolean setHUDWorldLighting(String id, boolean enabled) {
-      return Character.get((class_1657)this.entity).setHUDWorldLighting(id, enabled);
+      return this.setHUDWorldLighting(id, enabled, 1.0F);
    }
 
    public boolean setHUDWorldLighting(String id, boolean enabled, float intensity) {
-      return Character.get((class_1657)this.entity).setHUDWorldLighting(id, enabled, intensity);
+      if (this.entity instanceof class_3222) {
+         return Character.get((class_1657)this.entity).setHUDWorldLighting(id, enabled, intensity);
+      } else if (this.entity instanceof class_746) {
+         HUDScene scene = (HUDScene)RenderingHandler.stage.scenes.get(id);
+         if (scene == null) {
+            return false;
+         }
+
+         scene.worldLighting = enabled;
+         scene.worldLightingIntensity = Math.max(0.0F, Math.min(4.0F, intensity));
+         return true;
+      }
+      return false;
    }
 
    public void closeHUD(String id) {
-      Character.get((class_1657)this.entity).closeHUD(id);
+      if (this.entity instanceof class_3222) {
+         Character.get((class_1657)this.entity).closeHUD(id);
+      } else if (this.entity instanceof class_746) {
+         if (id == null || id.isEmpty()) {
+            RenderingHandler.stage.scenes.clear();
+         } else {
+            RenderingHandler.stage.scenes.remove(id);
+         }
+      }
    }
 
    public void closeAllHUD() {
-      Character.get((class_1657)this.entity).closeAllHUD();
+      if (this.entity instanceof class_3222) {
+         Character.get((class_1657)this.entity).closeAllHUD();
+      } else if (this.entity instanceof class_746) {
+         RenderingHandler.stage.scenes.clear();
+      }
    }
 
    public INBTCompound getDisplayedHUDs() {
+      if (this.entity instanceof class_746) {
+         class_2487 tag = new class_2487();
+
+         for(Map.Entry<String, HUDScene> entry : RenderingHandler.stage.scenes.entrySet()) {
+            class_2499 sceneList = new class_2499();
+            sceneList.add(((HUDScene)entry.getValue()).serializeNBT());
+            tag.method_10566((String)entry.getKey(), sceneList);
+         }
+
+         return new ScriptNBTCompound(tag);
+      }
+
       ICharacter character = Character.get((class_1657)this.entity);
       class_2487 tag = ((Character)character).getDisplayedHUDsTag();
       return new ScriptNBTCompound(tag);
    }
 
    public INBTCompound getGlobalDisplayedHUDs() {
+      if (this.entity instanceof class_746) {
+         class_2487 tag = new class_2487();
+
+         for(Map.Entry<String, HUDScene> entry : RenderingHandler.stage.scenes.entrySet()) {
+            if (((HUDScene)entry.getValue()).global) {
+               class_2499 sceneList = new class_2499();
+               sceneList.add(((HUDScene)entry.getValue()).serializeNBT());
+               tag.method_10566((String)entry.getKey(), sceneList);
+            }
+         }
+
+         return new ScriptNBTCompound(tag);
+      }
+
       ICharacter character = Character.get((class_1657)this.entity);
       class_2487 tag = ((Character)character).getGlobalDisplayedHUDsTag();
       return new ScriptNBTCompound(tag);

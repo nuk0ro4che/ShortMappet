@@ -54,7 +54,7 @@ public class ScriptTriggerBlock extends DataTriggerBlock {
    }
 
    public void trigger(DataContext context) {
-      if (this.isClientScript()) {
+      if (this.isClientScript() || Mappet.scripts == null) {
          this.triggerClient(context);
          return;
       }

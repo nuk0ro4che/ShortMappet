@@ -40,7 +40,7 @@ public class ClientScriptManager extends ScriptManager {
         if (tag == null) {
             return null;
         }
-        Script script = this.createData(id, tag);
+        Script script = this.create(id, tag);
         return script;
     }
 

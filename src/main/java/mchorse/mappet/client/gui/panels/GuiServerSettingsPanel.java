@@ -199,6 +199,10 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
 
    public IKey createTooltip(String key, Trigger trigger) {
       IKey title = IKey.lang("mappet.gui.settings.triggers." + key);
+      if (!ServerSettings.isTriggerAvailable(key)) {
+         title = IKey.comp(new IKey[]{IKey.str("§7§o"), title});
+      }
+
       if (trigger.blocks.isEmpty()) {
          return title;
       } else {
@@ -292,8 +296,9 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    private void styleTriggerCategoryButton(GuiButtonElement button, TriggerCategory category) {
       boolean selected = category == this.triggerCategory;
       button.custom = selected;
+      int primary = Mappet.scriptEditorSyntaxStyle.get().primary;
       if (selected) {
-         button.color((Integer)Mappet.globalTriggerCategoryColor.get()).textColor(-1, true);
+         button.color(Mappet.darken(primary, 0.5F)).textColor(-1, true);
       } else {
          button.textColor(-4144960, true);
       }

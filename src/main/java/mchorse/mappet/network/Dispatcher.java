@@ -68,6 +68,7 @@ import mchorse.mappet.network.common.content.PacketContentRequestData;
 import mchorse.mappet.network.common.content.PacketContentRequestNames;
 import mchorse.mappet.network.common.content.PacketRequestServerSettings;
 import mchorse.mappet.network.common.content.PacketRequestStates;
+import mchorse.mappet.network.common.content.PacketGlobalMigrate;
 import mchorse.mappet.network.common.content.PacketServerSettings;
 import mchorse.mappet.network.common.content.PacketClientSettings;
 import mchorse.mappet.network.common.content.PacketStates;
@@ -143,6 +144,7 @@ import mchorse.mappet.network.server.content.ServerHandlerContentRequestData;
 import mchorse.mappet.network.server.content.ServerHandlerContentRequestNames;
 import mchorse.mappet.network.server.content.ServerHandlerRequestServerSettings;
 import mchorse.mappet.network.server.content.ServerHandlerRequestStates;
+import mchorse.mappet.network.server.content.ServerHandlerGlobalMigrate;
 import mchorse.mappet.network.server.content.ServerHandlerServerSettings;
 import mchorse.mappet.network.server.content.ServerHandlerClientSettings;
 import mchorse.mappet.network.server.content.ServerHandlerStates;
@@ -244,6 +246,7 @@ public class Dispatcher {
          }
 
          this.register(PacketServerSettings.class, ServerHandlerServerSettings.class, Side.SERVER);
+         this.register(PacketGlobalMigrate.class, ServerHandlerGlobalMigrate.class, Side.SERVER);
          if (client) {
             this.register(PacketClientSettings.class, ClientHandlerClientSettings.class, Side.CLIENT);
          }

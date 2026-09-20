@@ -10,6 +10,7 @@ import mchorse.mappet.api.triggers.Trigger;
 import mchorse.mappet.compat.INBTSerializable;
 import mchorse.mappet.events.RegisterServerTriggerEvent;
 import mchorse.mappet.utils.NBTToJsonLike;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.class_2487;
 
 public class ServerSettings implements INBTSerializable<class_2487> {
@@ -68,6 +69,23 @@ public final Trigger playerRespawn;
       }
    }
 
+   public static boolean isTriggerAvailable(String key) {
+      if (key == null || !key.startsWith("voicechat_")) {
+         return true;
+      }
+
+      if (FabricLoader.getInstance().isModLoaded("simple_voice_chat")) {
+         return true;
+      }
+
+      try {
+         Class.forName("de.maxhenkel.voicechat.api.VoicechatApi");
+         return true;
+      } catch (Throwable ignored) {
+         return false;
+      }
+   }
+
    public ServerSettings(File file) {
       this.file = file;
       this.blockBreak = this.register("block_break", "break_block", new Trigger());
@@ -102,7 +120,10 @@ this.playerRespawn = this.register("player_respawn", new Trigger());
       this.playerKeyboard = this.register("player_keyboard", "player_keyboard", new Trigger());
       this.stateChanged = this.register("state_changed", new Trigger());
       this.soundEnded = this.register("sound_ended", new Trigger());
-      
+      this.register("voicechat_talking", new Trigger());
+      this.register("voicechat_started", new Trigger());
+      this.register("voicechat_stopped", new Trigger());
+
       Mappet.EVENT_BUS.post(new RegisterServerTriggerEvent(this));
    }
 

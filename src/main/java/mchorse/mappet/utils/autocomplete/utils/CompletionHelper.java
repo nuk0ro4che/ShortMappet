@@ -20,7 +20,7 @@ public class CompletionHelper {
          } else {
             if (sub.length() > 0) {
                char last = sub.charAt(sub.length() - 1);
-               if (last == '(' || last == ',') {
+               if (last == '(') {
                   return new String[]{"", "", ""};
                }
             }

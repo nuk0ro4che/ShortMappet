@@ -744,8 +744,9 @@ public class GuiUIFilePanel extends GuiMappetDashboardPanel<UIFile> {
    private void styleInspectorTab(GuiButtonElement button, InspectorTab tab) {
       boolean selected = this.inspectorTab == tab;
       button.custom = selected;
+      int primary = Mappet.scriptEditorSyntaxStyle.get().primary;
       if (selected) {
-         button.color((Integer)Mappet.globalTriggerCategoryColor.get()).textColor(-1, true);
+         button.color(Mappet.darken(primary, 0.5F)).textColor(-1, true);
       } else {
          button.textColor(-4144960, true);
       }

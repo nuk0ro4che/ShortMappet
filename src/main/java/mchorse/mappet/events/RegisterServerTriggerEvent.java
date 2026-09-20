@@ -12,6 +12,8 @@ public class RegisterServerTriggerEvent extends Event {
    }
 
    public void register(String key, Trigger trigger) {
-      this.settings.register(key, trigger);
+      if (!this.settings.registered.containsKey(key)) {
+         this.settings.register(key, trigger);
+      }
    }
 }

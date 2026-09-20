@@ -18,6 +18,7 @@ import mchorse.mappet.client.gui.scripts.GuiScriptTemplateEditorOverlayPanel;
 import mchorse.mappet.client.gui.scripts.highlights.Highlighters;
 import mchorse.mappet.client.gui.scripts.themes.GuiThemeEditorOverlayPanel;
 import mchorse.mappet.client.gui.scripts.themes.Themes;
+import mchorse.mappet.client.gui.utils.GuiGlobalMigrateConfirmModal;
 import mchorse.mappet.client.gui.utils.overlays.GuiOverlay;
 import mchorse.mappet.client.gui.utils.text.GuiText;
 import mchorse.mappet.client.renders.entity.RenderNpc;
@@ -25,8 +26,10 @@ import mchorse.mappet.client.renders.tile.TileConditionModelRenderer;
 import mchorse.mappet.client.renders.tile.TileRegionRenderer;
 import mchorse.mappet.client.renders.tile.TileTriggerRenderer;
 import mchorse.mappet.network.Dispatcher;
+import mchorse.mappet.network.common.content.PacketGlobalMigrate;
 import mchorse.mappet.utils.MPIcons;
 import mchorse.mappet.utils.ValueButtons;
+import mchorse.mappet.utils.ValueGlobalMigrate;
 import mchorse.mappet.utils.ValueSyntaxStyle;
 import mchorse.mappet.utils.autocomplete.ValueScriptTemplate;
 import mchorse.mclib.McLib;
@@ -34,6 +37,7 @@ import mchorse.mclib.client.gui.framework.GuiBase;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.GuiModelRenderer;
 import mchorse.mclib.client.gui.framework.elements.buttons.GuiButtonElement;
+import mchorse.mclib.client.gui.framework.elements.modals.GuiModal;
 import mchorse.mclib.client.gui.utils.Elements;
 import mchorse.mclib.utils.DummyEntity;
 import mchorse.mclib.client.gui.utils.GuiUtils;
@@ -151,6 +155,19 @@ clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_s
       }
 
       ConfigGuiProviders.register(ValueButtons.class, (mc, config, value) -> Arrays.asList(Elements.column(mc, 5, new GuiElement[]{(new GuiText(mc)).text(IKey.lang("mappet.translation.credit")), Elements.row(mc, 5, new GuiElement[]{new GuiButtonElement(mc, IKey.lang("mappet.translation.wiki"), (b) -> GuiUtils.openWebLink(class_1074.method_4662("mappet.translation.wiki_url", new Object[0]))), new GuiButtonElement(mc, IKey.lang("mappet.translation.community"), (b) -> GuiUtils.openWebLink(class_1074.method_4662("mappet.translation.community_url", new Object[0])))}), new GuiButtonElement(mc, IKey.lang("mappet.translation.sounds"), (b) -> GuiUtils.openWebLink(ClientProxy.sounds.toURI()))}).marginTop(6)));
+      ConfigGuiProviders.register(ValueGlobalMigrate.class, (mc, config, value) -> {
+         GuiButtonElement copy = new GuiButtonElement(mc, IKey.lang(value.getLabelKey()), (b) -> {
+            if (mc.field_1724 != null) {
+               GuiModal.addFullModal(GuiBase.getCurrent().screen.root, () -> new GuiGlobalMigrateConfirmModal(mc, IKey.lang("mappet.config.migrate.confirm"), (confirmed) -> {
+                  if (confirmed) {
+                     Dispatcher.sendToServer(new PacketGlobalMigrate());
+                  }
+               }));
+            }
+         });
+         copy.tooltip(IKey.lang(value.getCommentKey()));
+         return Arrays.asList(copy);
+      });
       ConfigGuiProviders.register(ValueSyntaxStyle.class, (mc, config, value) -> Arrays.asList((new GuiButtonElement(mc, IKey.lang("mappet.gui.syntax_theme.edit"), (b) -> GuiOverlay.addOverlay(GuiBase.getCurrent(), new GuiThemeEditorOverlayPanel(mc), 0.6F, 0.95F))).tooltip(IKey.lang(value.getCommentKey()))));
       ConfigGuiProviders.register(ValueScriptTemplate.class, (mc, config, value) -> Arrays.asList(new GuiButtonElement(mc, IKey.lang("autocomplete.config.script_template.edit"), (b) -> GuiOverlay.addOverlay(GuiBase.getCurrent(), new GuiScriptTemplateEditorOverlayPanel(mc, value), 0.8F, 0.85F))));
       RenderingHandler.register();

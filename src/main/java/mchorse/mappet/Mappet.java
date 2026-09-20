@@ -1,6 +1,10 @@
 package mchorse.mappet;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.logging.Handler;
 import mchorse.mappet.api.crafting.CraftingManager;
 import mchorse.mappet.api.data.DataManager;
@@ -36,6 +40,7 @@ import mchorse.mappet.tile.TileRegion;
 import mchorse.mappet.tile.TileTrigger;
 import mchorse.mappet.utils.MappetNpcSelector;
 import mchorse.mappet.utils.ScriptUtils;
+import mchorse.mappet.utils.ValueGlobalMigrate;
 import mchorse.mappet.utils.ValueSyntaxStyle;
 import mchorse.mclib.McLib;
 import mchorse.mclib.commands.utils.L10n;
@@ -98,6 +103,8 @@ public final class Mappet implements ModInitializer {
    public static ShaderManager shaders;
    public static UIManager uis;
    public static ValueBoolean generalDataCaching;
+   public static ValueBoolean globalMappet;
+   public static ValueGlobalMigrate globalMigrateButton;
    public static ValueBoolean loadCustomSoundsOnLogin;
    public static ValueBoolean npcsPeacefulDamage;
    public static ValueBoolean npcsToolOnlyOP;
@@ -106,9 +113,8 @@ public final class Mappet implements ModInitializer {
    public static ValueInt eventMaxExecutions;
    public static ValueBoolean eventUseServerForCommands;
    public static ValueInt nodePulseBackgroundColor;
-   public static ValueBoolean nodePulseBackgroundMcLibPrimary;
-   public static ValueInt globalTriggerCategoryColor;
-   public static ValueInt nodeThickness;
+public static ValueBoolean nodePulseBackgroundMcLibPrimary;
+    public static ValueInt nodeThickness;
    public static ValueBoolean questsPreviewRewards;
    public static ValueInt journalButtonX;
    public static ValueInt journalButtonY;
@@ -134,6 +140,10 @@ public final class Mappet implements ModInitializer {
       ConfigBuilder builder = event.createBuilder("mappet");
       builder.category("general");
       generalDataCaching = builder.getBoolean("data_caching", true);
+      globalMappet = new GlobalMappetValue("global_mappet", false);
+      builder.register(globalMappet);
+      globalMigrateButton = new ValueGlobalMigrate("global_migrate_button");
+      builder.register(globalMigrateButton);
       loadCustomSoundsOnLogin = builder.getBoolean("load_custom_sounds_on_login", false);
       npcsPeacefulDamage = builder.category("npc").getBoolean("peaceful_damage", true);
       npcsToolOnlyOP = builder.getBoolean("tool_only_op", true);
@@ -149,7 +159,6 @@ public final class Mappet implements ModInitializer {
       journalButtonY = builder.getInt("journal_button_y", 0, 0, 300);
       builder.getCategory().markClientSide();
       builder.category("script_editor").register(scriptEditorSyntaxStyle = new ValueSyntaxStyle("syntax_style"));
-      globalTriggerCategoryColor = builder.getInt("global_trigger_category_color", 0x6E1408).color();
       scriptEditorSounds = builder.getBoolean("sounds", true);
       scriptUIDebug = builder.getBoolean("ui_debug", false);
       scriptDocsNewStructure = builder.getBoolean("docs_new_structure", true);
@@ -203,9 +212,54 @@ public final class Mappet implements ModInitializer {
       LOGGER.info("Mappet {} initialized", "0.9.0-1.20.1");
    }
 
+   public static File getGlobalMappetFolder() {
+      return FabricLoader.getInstance().getGameDir().resolve("mappet").toFile();
+   }
+
+   public static File getWorldRoot(MinecraftServer server) {
+      if (server == null) {
+         return null;
+      }
+
+      if (globalMappet != null && (Boolean)globalMappet.get()) {
+         return getGlobalMappetFolder();
+      } else {
+         return server.method_27050(class_5218.field_24188).resolve("mappet").toFile();
+      }
+   }
+
+   public static class GlobalMappetValue extends ValueBoolean {
+      public GlobalMappetValue(String id, boolean defaultValue) {
+         super(id, defaultValue);
+      }
+
+      @Override
+      public void set(Boolean value) {
+         super.set(value);
+         this.ensureGlobalFolder(value);
+      }
+
+      @Override
+      public void setValue(Object value) {
+         super.setValue(value);
+         this.ensureGlobalFolder(value instanceof Boolean ? (Boolean)value : null);
+      }
+
+      private void ensureGlobalFolder(Boolean enabled) {
+         if (!Boolean.TRUE.equals(enabled)) {
+            return;
+         }
+
+         File global = getGlobalMappetFolder();
+         if (global != null) {
+            global.mkdirs();
+         }
+      }
+   }
+
    private static void serverStarted(MinecraftServer server) {
       Mappet.server = server;
-      File root = server.method_27050(class_5218.field_24188).resolve("mappet").toFile();
+      File root = getWorldRoot(server);
       root.mkdirs();
       closeLogger();
       logger = new MappetLogger("mappet", root);
@@ -240,6 +294,54 @@ public final class Mappet implements ModInitializer {
       
 
       EventHandler.getRegisteredEvents();
+   }
+
+   public static String migrateConfigToGlobal(MinecraftServer server) {
+      File worldMappet = server.method_27050(class_5218.field_24188).resolve("mappet").toFile();
+      File global = getGlobalMappetFolder();
+
+      if (!worldMappet.isDirectory()) {
+         return "mappet.config.migrate.no_save";
+      }
+
+      try {
+         copyFiles(worldMappet, global);
+         return "mappet.config.migrate.success";
+      }
+      catch (Exception e) {
+         LOGGER.error("Mappet failed to migrate the world content into the global folder", e);
+         return "mappet.config.migrate.failed";
+      }
+   }
+
+   private static void copyFiles(File source, File target) throws IOException {
+      java.nio.file.Path src = source.toPath();
+      java.nio.file.Path dst = target.toPath();
+
+      Files.walk(src).forEach(path -> {
+         java.nio.file.Path rel = src.relativize(path);
+         java.nio.file.Path dest = dst.resolve(rel.toString());
+
+         try {
+            if (Files.isDirectory(path)) {
+               Files.createDirectories(dest);
+            }
+            else {
+               Files.createDirectories(dest.getParent());
+               Files.copy(path, dest, StandardCopyOption.REPLACE_EXISTING);
+            }
+         }
+         catch (IOException e) {
+            throw new UncheckedIOException(e);
+         }
+      });
+   }
+
+   public static int darken(int color, float factor) {
+      int r = (int)((float)((color >> 16) & 0xFF) * factor);
+      int g = (int)((float)((color >> 8) & 0xFF) * factor);
+      int b = (int)((float)(color & 0xFF) * factor);
+      return (r << 16) | (g << 8) | b;
    }
 
    private static void serverStopped(MinecraftServer server) {

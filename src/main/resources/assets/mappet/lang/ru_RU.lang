@@ -126,6 +126,17 @@ mappet.config.general.tooltip=Общие настройки мода
 mappet.config.general.data_caching=Кэширование данных
 mappet.config.comments.general.data_caching=Определяет, должны ли данные кэшироваться вместо того чтобы каждый раз они читались из файла.
 
+mappet.config.general.global_mappet=Глобальная папка маппета
+mappet.config.comments.general.global_mappet=Когда включено, маппет использует одну глобальную папку в игровом каталоге вместо папки внутри сейва, поэтому все миры используют одинаковый контент. Глобальная папка создаётся при включении этой опции.
+mappet.config.general.global_migrate_button=Скопировать из мира в глоб. папку
+mappet.config.comments.general.global_migrate_button=Копирует всю папку 'mappet' текущего сейва мира в глобальную папку. Удобно, чтобы перенести уже настроенный контент (настройки, триггеры, скрипты, стэйты) в общую глобальную папку при запущенном мире.
+mappet.config.general.global_migrate_button.action=Скопировать
+mappet.config.migrate.success=Содержимое маппета успешно скопировано из сейва в глобальную папку!
+mappet.config.migrate.no_save=В текущем сейве не найдена папка 'mappet'.
+mappet.config.migrate.failed=Не удалось скопировать содержимое маппета в глобальную папку.
+mappet.config.migrate.confirm=Скопировать папку 'mappet' текущего сейва в глобальную папку?\n\n§cВнимание!§r Файлы, уже находящиеся в глобальной папке (настройки, триггеры, скрипты, стэйты), будут перезаписаны. Это действие нельзя отменить.
+mappet.gui.cancel=Отмена
+
 mappet.config.general.enable_forge_triggers=Включить forge триггеры
 mappet.config.comments.general.enable_forge_triggers=Определяет, должны ли быть включены forge триггеры. \n\n§c§lВНИМАНИЕ!§r\n\nЭта опция опасна и может §c§lсломать ваш мир§r. Используйте только если знаете что вы делаете, на свой страх и риск.
 mappet.config.general.load_custom_sounds_on_login=Перезагрузка всех пользовательских звуков при входе

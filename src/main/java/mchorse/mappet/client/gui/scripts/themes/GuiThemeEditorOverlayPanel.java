@@ -37,7 +37,6 @@ public class GuiThemeEditorOverlayPanel extends GuiEditorOverlayPanel<GuiThemeEd
    public GuiColorElement error;
    public GuiColorElement lineNumbers;
    public GuiColorElement background;
-   public GuiColorElement globalTriggerCategoryColor;
    public GuiTextEditor preview;
 
    public GuiThemeEditorOverlayPanel(class_310 mc) {
@@ -95,8 +94,6 @@ public class GuiThemeEditorOverlayPanel extends GuiEditorOverlayPanel<GuiThemeEd
       this.lineNumbers.tooltip(IKey.lang("mappet.gui.syntax_theme.background_colors.line_numbers"));
       this.background = new GuiColorElement(mc, (c) -> (this.item).style.background = c);
       this.background.tooltip(IKey.lang("mappet.gui.syntax_theme.background_colors.background"));
-      this.globalTriggerCategoryColor = new GuiColorElement(mc, Mappet.globalTriggerCategoryColor);
-      this.globalTriggerCategoryColor.tooltip(IKey.str("Цвет подсветки выбранной категории в списке глобальных триггеров"));
       this.preview = new GuiTextEditor(mc, (Consumer)null);
       this.editor.add(new IGuiElement[]{Elements.label(IKey.lang("mappet.gui.syntax_theme.title")), this.title, this.shadow});
       this.editor.add(Elements.label(IKey.lang("mappet.gui.syntax_theme.colors.title")).marginTop(12));
@@ -107,8 +104,6 @@ public class GuiThemeEditorOverlayPanel extends GuiEditorOverlayPanel<GuiThemeEd
       this.editor.add(Elements.row(mc, 5, new GuiElement[]{this.error}));
       this.editor.add(Elements.label(IKey.lang("mappet.gui.syntax_theme.background_colors.title")).marginTop(12));
       this.editor.add(Elements.row(mc, 5, new GuiElement[]{this.lineNumbers, this.background}));
-      this.editor.add(Elements.label(IKey.str("Глобальные триггеры")).marginTop(12));
-      this.editor.add(this.globalTriggerCategoryColor);
       this.content.flex().h(0.5F);
       this.preview.flex().relative(this).y(0.5F, 28).w(1.0F).hTo(this.area, 1.0F);
       this.preview.setText(CODE_SAMPLE);

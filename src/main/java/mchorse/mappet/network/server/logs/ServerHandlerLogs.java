@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import mchorse.mappet.Mappet;
 import mchorse.mappet.api.utils.logs.MappetLogger;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.logs.PacketLogs;
@@ -12,13 +13,12 @@ import mchorse.mappet.network.common.logs.PacketRequestLogs;
 import mchorse.mclib.network.ServerMessageHandler;
 import mchorse.mclib.utils.OpHelper;
 import net.minecraft.class_3222;
-import net.minecraft.class_5218;
 
 public class ServerHandlerLogs extends ServerMessageHandler<PacketRequestLogs> {
    public void run(class_3222 player, PacketRequestLogs message) {
       if (OpHelper.isPlayerOp(player)) {
          LocalDateTime lastLogTime = LocalDateTime.parse(message.lastLogTime, MappetLogger.dtf);
-         File mappetWorldFolder = player.method_5682().method_27050(class_5218.field_24188).resolve("mappet").toFile();
+         File mappetWorldFolder = Mappet.getWorldRoot(player.method_5682());
          File logFile = new File(mappetWorldFolder, "logs/latest.log");
 
          try {

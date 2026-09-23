@@ -1346,15 +1346,17 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
          return false;
       }
 
+      double ox = this.entity.method_23317();
+      double oy = this.entity.method_23318();
+      double oz = this.entity.method_23321();
       double yaw = (double)this.entity.method_36454();
       double pitch = (double)this.entity.method_36455();
+      double r = zone.radius;
 
-      for (class_1297 entity : this.entity.method_37908().method_18456()) {
-         if (entity == this.entity) {
-            continue;
-         }
+      List<class_1297> others = this.entity.method_37908().method_8333(this.entity, new class_238(ox - r, oy - r - 6.0, oz - r, ox + r, oy + r + 6.0, oz + r), entity -> true);
 
-         if (zone.contains(this.entity.method_23317(), this.entity.method_23321(), this.entity.method_23318(), yaw, pitch, entity.method_23317(), entity.method_23318(), entity.method_23321())) {
+      for (class_1297 entity : others) {
+         if (zone.contains(ox, oz, oy, yaw, pitch, entity.method_23317(), entity.method_23318(), entity.method_23321())) {
             return true;
          }
       }

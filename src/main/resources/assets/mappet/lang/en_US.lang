@@ -260,6 +260,7 @@ mappet.gui.settings.categories.server=Server
 mappet.gui.settings.categories.player=Player
 mappet.gui.settings.categories.living=Living
 mappet.gui.settings.categories.entity=Entity
+mappet.gui.settings.categories.world=World
 mappet.gui.settings.categories.other=Other
 mappet.gui.settings.categories.mods=Mods
 mappet.gui.settings.categories.mods_only=Mods only
@@ -292,6 +293,18 @@ mappet.gui.settings.triggers.variables.entity_attacked=§6damage§r, how many HP
 mappet.gui.settings.triggers.entity_death=Entity: death
 mappet.gui.settings.triggers.descriptions.entity_death=This gets triggered when a mob dies.
 mappet.gui.settings.triggers.variables.entity_death=§6damageType§r, the type of reacieved damage.
+
+mappet.gui.settings.triggers.entity_spawn=Entity: on spawn
+mappet.gui.settings.triggers.descriptions.entity_spawn=This gets triggered when a new entity spawns in the world.
+mappet.gui.settings.triggers.variables.entity_spawn=§6entity§r, the spawned entity.\n§6type§r, the type of the spawned entity: §7player§r, §7mob§r, §7item§r or §7other§r.
+
+mappet.gui.settings.triggers.world_day_tick=World: day tick
+mappet.gui.settings.triggers.descriptions.world_day_tick=This gets triggered on every world tick (§720§r times a second).\n\nProTip: use frequency option of triggers to limit how many times does a script or event gets triggered.
+mappet.gui.settings.triggers.variables.world_day_tick=§6dayTime§r, the current time of day (0..23999).
+
+mappet.gui.settings.triggers.world_weather_change=World: weather change
+mappet.gui.settings.triggers.descriptions.world_weather_change=This gets triggered when the weather in a world changes (from clear to rain to thunder and back).
+mappet.gui.settings.triggers.variables.world_weather_change=§6weather§r, the new weather: §7clear§r, §7rain§r or §7thunder§r.\n§6previous§r, the previous weather.
 
 mappet.gui.settings.triggers.server_load=Server: loaded
 mappet.gui.settings.triggers.descriptions.server_load=This gets triggered after server gets booted up, but world(s) aren't loaded yet.

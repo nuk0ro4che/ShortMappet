@@ -31,11 +31,14 @@ import mchorse.mappet.api.scripts.user.data.ScriptBox;
 import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.api.scripts.user.entities.IScriptEntity;
 import mchorse.mappet.api.scripts.user.entities.IScriptPlayer;
+import mchorse.mappet.api.scripts.user.entities.IScriptVisionZone;
 import mchorse.mappet.api.scripts.user.items.IScriptItemStack;
 import mchorse.mappet.api.scripts.user.mappet.IMappetStates;
 import mchorse.mappet.api.scripts.user.nbt.INBTCompound;
 import mchorse.mappet.api.states.States;
 import mchorse.mappet.api.utils.DataContext;
+import mchorse.mappet.api.vision.VisionZone;
+import mchorse.mappet.api.vision.VisionZoneManager;
 import mchorse.mappet.client.morphs.WorldMorph;
 import mchorse.mappet.compat.EntityData;
 import mchorse.mappet.compat.EntityGoals;
@@ -68,6 +71,7 @@ import net.minecraft.class_1657;
 import net.minecraft.class_1799;
 import net.minecraft.class_1937;
 import net.minecraft.class_1944;
+import net.minecraft.class_2248;
 import net.minecraft.class_2338;
 import net.minecraft.class_238;
 import net.minecraft.class_2487;
@@ -1253,5 +1257,219 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
          EntityGoals.goals(entityLiving).method_6280(taskToRemove.method_19058());
       }
 
+   }
+
+   private boolean storeVisionZone(VisionZone zone) {
+      if (this.entity.method_37908().field_9236) {
+         VisionZoneManager.setZoneClient(this.entity.method_5667(), zone);
+      } else {
+         VisionZoneManager.setZone(this.entity.method_5667(), zone);
+      }
+
+      return true;
+   }
+
+   @Override
+   public boolean attachVisionSector(double radius, double viewAngle, double minHeight, double maxHeight, double yawOffset, double viewAngleV) {
+      if (this.entity.method_37908() == null) {
+         return false;
+      }
+
+      VisionZone zone = new VisionZone(VisionZone.Shape.SECTOR);
+      zone.radius = Math.max(0, radius);
+      zone.viewAngle = viewAngle;
+      zone.viewAngleV = viewAngleV > 0.0 ? viewAngleV : viewAngle;
+      zone.minHeight = minHeight;
+      zone.maxHeight = maxHeight;
+      zone.yawOffset = yawOffset;
+      zone.eyeOffset = this.getEyeHeight();
+
+      return this.storeVisionZone(zone);
+   }
+
+   @Override
+   public boolean attachVisionPolygon(double[] xz, double minHeight, double maxHeight) {
+      if (this.entity.method_37908() == null || xz == null || xz.length < 6 || xz.length % 2 != 0) {
+         return false;
+      }
+
+      VisionZone zone = new VisionZone(VisionZone.Shape.POLYGON);
+
+      for (int i = 0; i < xz.length; i += 2) {
+         zone.points.add(new ScriptVector(xz[i], 0, xz[i + 1]));
+      }
+
+      zone.minHeight = minHeight;
+      zone.maxHeight = maxHeight;
+      zone.eyeOffset = (minHeight + maxHeight) / 2.0;
+
+      return this.storeVisionZone(zone);
+   }
+
+   @Override
+   public boolean attachVisionScreen(double radius) {
+      if (this.entity.method_37908() == null) {
+         return false;
+      }
+
+      VisionZone zone = new VisionZone(VisionZone.Shape.SECTOR);
+      zone.radius = Math.max(0, radius);
+      double vHalf = Math.toRadians(35.0);
+      double hHalf = Math.atan(Math.tan(vHalf) * 16.0 / 9.0);
+      zone.viewAngle = Math.toDegrees(hHalf) * 2.0;
+      zone.viewAngleV = 70.0;
+      zone.eyeOffset = this.getEyeHeight();
+
+      return this.storeVisionZone(zone);
+   }
+
+   private VisionZone getVisionZoneData() {
+      UUID uuid = this.entity.method_5667();
+      VisionZone zone = VisionZoneManager.getServer(uuid);
+
+      if (zone == null) {
+         zone = VisionZoneManager.getClient(uuid);
+      }
+
+      return zone;
+   }
+
+   @Override
+   public boolean isObservable() {
+      if (this.entity.method_37908() == null) {
+         return false;
+      }
+
+      VisionZone zone = this.getVisionZoneData();
+
+      if (zone == null) {
+         return false;
+      }
+
+      double yaw = (double)this.entity.method_36454();
+      double pitch = (double)this.entity.method_36455();
+
+      for (class_1297 entity : this.entity.method_37908().method_18456()) {
+         if (entity == this.entity) {
+            continue;
+         }
+
+         if (zone.contains(this.entity.method_23317(), this.entity.method_23321(), this.entity.method_23318(), yaw, pitch, entity.method_23317(), entity.method_23318(), entity.method_23321())) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   @Override
+   public boolean isObservable(IScriptEntity target) {
+      if (target == null) {
+         return false;
+      }
+
+      if (target.getMinecraftEntity().method_37908() == null || this.entity.method_37908() == null || !target.getMinecraftEntity().method_37908().method_8597().equals(this.entity.method_37908().method_8597())) {
+         return false;
+      }
+
+      ScriptVector pos = target.getPosition();
+
+      return this.isObservable(pos);
+   }
+
+   @Override
+   public boolean isObservable(ScriptVector position) {
+      if (position == null) {
+         return false;
+      }
+
+      VisionZone zone = this.getVisionZoneData();
+
+      if (zone == null) {
+         return false;
+      }
+
+      return zone.contains(this.entity.method_23317(), this.entity.method_23321(), this.entity.method_23318(), (double)this.entity.method_36454(), (double)this.entity.method_36455(), position.x, position.y, position.z);
+   }
+
+   @Override
+   public boolean isObservableBlock(double x, double y, double z) {
+      VisionZone zone = this.getVisionZoneData();
+
+      if (zone == null) {
+         return false;
+      }
+
+      return zone.contains(this.entity.method_23317(), this.entity.method_23321(), this.entity.method_23318(), (double)this.entity.method_36454(), (double)this.entity.method_36455(), x + 0.5, y + 0.5, z + 0.5);
+   }
+
+   @Override
+   public boolean isObservableBlock(String blockId) {
+      if (blockId == null || this.entity.method_37908() == null) {
+         return false;
+      }
+
+      VisionZone zone = this.getVisionZoneData();
+
+      if (zone == null || zone.radius <= 0.0) {
+         return false;
+      }
+
+      String id = blockId.contains(":") ? blockId : "minecraft:" + blockId;
+      class_2248 block;
+
+      try {
+         block = class_7923.field_41175.method_10223(new class_2960(id));
+      } catch (Exception e) {
+         return false;
+      }
+
+      if (block == null) {
+         return false;
+      }
+
+      class_1937 world = this.entity.method_37908();
+      double ox = this.entity.method_23317();
+      double oy = this.entity.method_23318();
+      double oz = this.entity.method_23321();
+      double yaw = (double)this.entity.method_36454();
+      double pitch = (double)this.entity.method_36455();
+
+      int r = (int)Math.ceil(zone.radius);
+      double vRange = zone.viewAngleV > 0.0 ? zone.radius * Math.tan(Math.toRadians(zone.viewAngleV / 2.0)) : (zone.maxHeight - zone.minHeight) / 2.0;
+      int minX = (int)Math.floor(ox) - r;
+      int maxX = (int)Math.ceil(ox) + r;
+      int minZ = (int)Math.floor(oz) - r;
+      int maxZ = (int)Math.ceil(oz) + r;
+      int minY = (int)Math.floor(oy + zone.eyeOffset - vRange) - 1;
+      int maxY = (int)Math.ceil(oy + zone.eyeOffset + vRange) + 1;
+
+      for (int bx = minX; bx <= maxX; bx++) {
+         for (int bz = minZ; bz <= maxZ; bz++) {
+            for (int by = minY; by <= maxY; by++) {
+               if (zone.contains(ox, oz, oy, yaw, pitch, (double)bx + 0.5, (double)by + 0.5, (double)bz + 0.5) && world.method_8320(new class_2338(bx, by, bz)).method_26204() == block) {
+                  return true;
+               }
+            }
+         }
+      }
+
+      return false;
+   }
+
+   @Override
+   public boolean removeVisionZone() {
+      UUID uuid = this.entity.method_5667();
+      boolean existed = VisionZoneManager.getServer(uuid) != null || VisionZoneManager.getClient(uuid) != null;
+      VisionZoneManager.removeZone(uuid);
+
+      return existed;
+   }
+
+   @Override
+   public IScriptVisionZone getVisionZone() {
+      VisionZone zone = this.getVisionZoneData();
+
+      return zone == null ? null : new ScriptVisionZone(zone);
    }
 }

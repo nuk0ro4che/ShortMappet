@@ -286,6 +286,10 @@ public class DocResolver {
       String bestMatch = null;
 
       while(m.find()) {
+         if (!isApexMethodCall(m, fullText)) {
+            continue;
+         }
+
          String ownerChain = m.group(1);
          String methodName = m.group(2);
          String ownerType = null;
@@ -315,8 +319,16 @@ public class DocResolver {
       } else {
          Pattern p2 = Pattern.compile("(?:var|let|const)\\s+" + Pattern.quote(varName) + "\\s*=(?!=)\\s*([\\w.]+(?:\\([^)]*\\))?)", 8);
          Matcher m2 = p2.matcher(fullText);
-         if (m2.find()) {
+
+         while(m2.find()) {
             String expression = m2.group(1);
+            int end = m2.end();
+            while(end < fullText.length() && Character.isWhitespace(fullText.charAt(end))) {
+               ++end;
+            }
+            if (end < fullText.length() && (fullText.charAt(end) == ')' || fullText.charAt(end) == '.')) {
+               continue;
+            }
             String ownerType = expression.contains(".")
                ? resolveChainTypeInternal(expression, fullText)
                : resolveHeadType(expression, fullText);
@@ -338,6 +350,35 @@ public class DocResolver {
 
          return null;
       }
+   }
+
+   private static boolean isApexMethodCall(Matcher match, String fullText) {
+      int open = match.end(2);
+      while(open < fullText.length() && fullText.charAt(open) != '(') {
+         ++open;
+      }
+      if (open >= fullText.length()) {
+         return false;
+      }
+
+      int depth = 0;
+      for(int i = open; i < fullText.length(); ++i) {
+         char character = fullText.charAt(i);
+         if (character == '(') {
+            ++depth;
+         } else if (character == ')') {
+            --depth;
+            if (depth == 0) {
+               int next = i + 1;
+               while(next < fullText.length() && Character.isWhitespace(fullText.charAt(next))) {
+                  ++next;
+               }
+               return next >= fullText.length() || (fullText.charAt(next) != '.' && fullText.charAt(next) != ')');
+            }
+         }
+      }
+
+      return false;
    }
 
    private static String resolveChainTypeInternal(String chain, String fullText) {

@@ -258,6 +258,7 @@ mappet.gui.settings.categories.server=Сервер
 mappet.gui.settings.categories.player=Игрок
 mappet.gui.settings.categories.living=Живые
 mappet.gui.settings.categories.entity=Сущности
+mappet.gui.settings.categories.world=Мир
 mappet.gui.settings.categories.other=Другое
 mappet.gui.settings.categories.mods=Модовые
 mappet.gui.settings.categories.mods_only=Только модовые
@@ -290,6 +291,18 @@ mappet.gui.settings.triggers.variables.entity_attacked=§6damage§r, сколь�
 mappet.gui.settings.triggers.entity_death=Сущность: при смерти
 mappet.gui.settings.triggers.descriptions.entity_death=Этот триггер срабатывает когда сущность умирает.
 mappet.gui.settings.triggers.variables.entity_death=§6damageType§r, тип урона который получает сущность.
+
+mappet.gui.settings.triggers.entity_spawn=Сущность: при спавне
+mappet.gui.settings.triggers.descriptions.entity_spawn=Этот триггер срабатывает когда в мире появляется новая сущность.
+mappet.gui.settings.triggers.variables.entity_spawn=§6entity§r, появившаяся сущность.\n§6type§r, тип появившейся сущности: §7player§r, §7mob§r, §7item§r или §7other§r.
+
+mappet.gui.settings.triggers.world_day_tick=Мир: каждый тик дня
+mappet.gui.settings.triggers.descriptions.world_day_tick=Этот триггер срабатывает каждый тик мира (§720§r раз в секунду).\n\nСовет от профи: используйте ползунок "частота" чтобы ограничить количество срабатываний триггера.
+mappet.gui.settings.triggers.variables.world_day_tick=§6dayTime§r, текущее время суток (0..23999).
+
+mappet.gui.settings.triggers.world_weather_change=Мир: смена погоды
+mappet.gui.settings.triggers.descriptions.world_weather_change=Этот триггер срабатывает когда в мире меняется погода (ясно, дождь, гроза и обратно).
+mappet.gui.settings.triggers.variables.world_weather_change=§6weather§r, новая погода: §7clear§r, §7rain§r или §7thunder§r.\n§6previous§r, предыдущая погода.
 
 mappet.gui.settings.triggers.server_load=Сервер: при загрузке
 mappet.gui.settings.triggers.descriptions.server_load=Этот триггер срабатывает когда сервер запустился, но миры ещё не загрузились.

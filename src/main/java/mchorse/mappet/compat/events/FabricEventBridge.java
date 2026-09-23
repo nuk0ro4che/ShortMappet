@@ -49,9 +49,11 @@ public final class FabricEventBridge {
          ServerTickEvents.START_WORLD_TICK.register((ServerTickEvents.StartWorldTick)(world) -> CommonProxy.eventHandler.onWorldTick(new LegacyEvents.TickEvent.WorldTickEvent(world, LegacyEvents.TickEvent.Phase.START)));
          ServerTickEvents.END_WORLD_TICK.register((ServerTickEvents.EndWorldTick)(world) -> CommonProxy.eventHandler.onWorldTick(new LegacyEvents.TickEvent.WorldTickEvent(world, LegacyEvents.TickEvent.Phase.END)));
          ServerEntityEvents.ENTITY_LOAD.register((ServerEntityEvents.Load)(entity, world) -> CommonProxy.eventHandler.onEntityJoinWorld(new LegacyEvents.EntityJoinWorldEvent(entity, world)));
+         ServerEntityEvents.ENTITY_UNLOAD.register((ServerEntityEvents.Unload)(entity, world) -> mchorse.mappet.api.vision.VisionZoneManager.removeZone(entity.method_5667()));
          ServerPlayConnectionEvents.JOIN.register((ServerPlayConnectionEvents.Join)(handler, sender, server) -> {
             LegacyEvents.PlayerEvent.PlayerLoggedInEvent event = new LegacyEvents.PlayerEvent.PlayerLoggedInEvent(handler.field_14140);
             CommonProxy.eventHandler.onPlayerLogsIn(event);
+            mchorse.mappet.network.Dispatcher.DISPATCHER.sendTo(new mchorse.mappet.network.common.scripts.PacketVisionZone(), handler.field_14140);
          });
          ServerPlayConnectionEvents.DISCONNECT.register((ServerPlayConnectionEvents.Disconnect)(handler, server) -> CommonProxy.eventHandler.onPlayerLogsOut(new LegacyEvents.PlayerEvent.PlayerLoggedOutEvent(handler.field_14140)));
          ServerPlayerEvents.COPY_FROM.register((ServerPlayerEvents.CopyFrom)(oldPlayer, newPlayer, alive) -> CommonProxy.eventHandler.onPlayerClone(new LegacyEvents.PlayerEvent.Clone(newPlayer, oldPlayer)));

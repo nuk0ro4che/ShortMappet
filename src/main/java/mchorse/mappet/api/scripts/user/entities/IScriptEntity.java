@@ -11,6 +11,7 @@ import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.api.scripts.user.items.IScriptItemStack;
 import mchorse.mappet.api.scripts.user.mappet.IMappetStates;
 import mchorse.mappet.api.scripts.user.nbt.INBTCompound;
+import mchorse.mappet.api.scripts.user.entities.IScriptVisionZone;
 import mchorse.metamorph.api.morphs.AbstractMorph;
 import net.minecraft.class_1291;
 import net.minecraft.class_1297;
@@ -306,4 +307,24 @@ public interface IScriptEntity {
    void removeRepeatingCommand(String var1);
 
    void clearAllRepeatingCommands();
+
+   boolean attachVisionSector(double var1, double var3, double var5, double var7, double var9, double var11);
+
+   boolean attachVisionScreen(double var1);
+
+   boolean attachVisionPolygon(double[] var1, double var3, double var5);
+
+   boolean isObservable();
+
+   boolean isObservable(IScriptEntity var1);
+
+   boolean isObservable(ScriptVector var1);
+
+   boolean isObservableBlock(double var1, double var3, double var5);
+
+   boolean isObservableBlock(String var1);
+
+   boolean removeVisionZone();
+
+   IScriptVisionZone getVisionZone();
 }

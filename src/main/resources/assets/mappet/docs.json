@@ -425,11 +425,11 @@
             "doc": "true, если клиентский скрипт найден и был отправлен на выполнение."
           },
           "arguments": [
-          {
-            "name": "script",
-            "type": "java.lang.String",
-            "doc": "ID/название клиентского скрипта."
-          }
+            {
+              "name": "script",
+              "type": "java.lang.String",
+              "doc": "ID/название клиентского скрипта."
+            }
           ],
           "annotations": []
         },
@@ -441,16 +441,16 @@
             "doc": "true, если клиентский скрипт найден и был отправлен на выполнение."
           },
           "arguments": [
-          {
-            "name": "script",
-            "type": "java.lang.String",
-            "doc": "ID/название клиентского скрипта."
-          },
-          {
-            "name": "function",
-            "type": "java.lang.String",
-            "doc": "Имя функции для вызова."
-          }
+            {
+              "name": "script",
+              "type": "java.lang.String",
+              "doc": "ID/название клиентского скрипта."
+            },
+            {
+              "name": "function",
+              "type": "java.lang.String",
+              "doc": "Имя функции для вызова."
+            }
           ],
           "annotations": []
         },
@@ -462,24 +462,24 @@
             "doc": "true, если клиентский скрипт найден и был отправлен на выполнение."
           },
           "arguments": [
-          {
-            "name": "script",
-            "type": "java.lang.String",
-            "doc": "ID/название клиентского скрипта."
-          },
-          {
-            "name": "function",
-            "type": "java.lang.String",
-            "doc": "Имя функции для вызова."
-          },
-          {
-            "name": "args",
-            "type": "Object",
-            "doc": "Аргументы, передаваемые в функцию скрипта."
-          }
+            {
+              "name": "script",
+              "type": "java.lang.String",
+              "doc": "ID/название клиентского скрипта."
+            },
+            {
+              "name": "function",
+              "type": "java.lang.String",
+              "doc": "Имя функции для вызова."
+            },
+            {
+              "name": "args",
+              "type": "Object",
+              "doc": "Аргументы, передаваемые в функцию скрипта."
+            }
           ],
           "annotations": []
-                  },
+        },
         {
           "name": "executeClientScript",
           "doc": "Выполняет переданную функцию прямо на клиенте игрока, без отдельного файла скрипта. Функция описывается в серверном скрипте и отправляется на клиент, где вызывается. Внутри доступны объекты <code>c</code> (событие), <code>mappet</code> и <code>context</code> (клиентский DataContext).\n\n <pre>{@code\n    var player = c.getSubject();\n\n    player.executeClientScript(function()\n    {\n        var client = c.getSubject();\n        client.send(\"Это сообщение показал код, отправленный с сервера\");\n    });\n }</pre>",
@@ -488,14 +488,14 @@
             "doc": "true, если код отправлен на выполнение."
           },
           "arguments": [
-          {
-            "name": "code",
-            "type": "Object",
-            "doc": "JS-функция (или строка кода), выполняемая на клиенте."
-          }
+            {
+              "name": "code",
+              "type": "Object",
+              "doc": "JS-функция (или строка кода), выполняемая на клиенте."
+            }
           ],
           "annotations": []
-                },
+        },
         {
           "name": "executeClientScript",
           "doc": "Выполняет переданную функцию на клиенте игрока и передаёт ей аргументы. Аргументы попадают в функцию по порядку; значения Boolean/числа/строки сохраняют тип, остальные передаются как строки.\n\n <pre>{@code\n    var player = c.getSubject();\n\n    player.executeClientScript(function(message, count)\n    {\n        for (var i = 0; i < count; i++)\n        {\n            var client = c.getSubject();\n            client.send(message);\n        }\n    }, \"Привет!\", 3);\n }</pre>",
@@ -504,19 +504,19 @@
             "doc": "true, если код отправлен на выполнение."
           },
           "arguments": [
-          {
-            "name": "code",
-            "type": "Object",
-            "doc": "JS-функция (или строка кода), выполняемая на клиенте."
-          },
-          {
-            "name": "args",
-            "type": "Object",
-            "doc": "Аргументы, передаваемые в функцию."
-          }
+            {
+              "name": "code",
+              "type": "Object",
+              "doc": "JS-функция (или строка кода), выполняемая на клиенте."
+            },
+            {
+              "name": "args",
+              "type": "Object",
+              "doc": "Аргументы, передаваемые в функцию."
+            }
           ],
           "annotations": []
-                },
+        },
         {
           "name": "applyShader",
           "signature": "boolean applyShader(String id, boolean ui, boolean hud)",
@@ -3717,8 +3717,15 @@
         {
           "name": "setSolidHitbox",
           "doc": "Делает хитбокс сущности твёрдым для столкновений. При значении true другие сущности не смогут проходить сквозь него.\n\n <pre>{@code\n var s = c.getSubject();\n s.setSolidHitbox(true);\n }</pre>",
-          "returns": {"type": "void"},
-          "arguments": [{"name": "solid", "type": "boolean"}],
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "solid",
+              "type": "boolean"
+            }
+          ],
           "annotations": []
         },
         {
@@ -4622,6 +4629,246 @@
               "type": "boolean"
             }
           ],
+          "annotations": []
+        },
+        {
+          "name": "attachVisionSector",
+          "doc": "Привязать к сущности конус-«фонарик» с круглым (или вытянутым) сечением. Вершина конуса — на уровне глаз/камеры энтити, ось смотрит туда же, куда энтити (yaw+pitch).\n\n<code>radius</code> — длина луча, <code>viewAngle</code> — полная ширина конуса в градусах (30–45° — узкий луч, 120+° — широкий, 360° — сфера вокруг энтити). <code>viewAngleV</code> — полная высота конуса (0 — круглый, ширина = высота). <code>minHeight</code>/<code>maxHeight</code> не используются конусом (оставлены для совместимости). <code>yawOffset</code> — горизонтальный сдвиг в градусах.\n\n Сущность «внутри зоны», если её позиция попала в конус; при F3 конус рисуется (кольца + образующие).\n\n <pre>{@code\n function main(c)\n {\n     var npc = c.getSubject();\n\n     // Узкий круглый луч, длина 10, угол 35°\n     npc.attachVisionSector(10, 35, 0, 0, 0, 0);\n\n     // Широкий, но приплюснутый (трава-скан): ширина 120°, высота 30°\n     npc.attachVisionSector(10, 120, 0, 0, 0, 30);\n }\n }</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "radius",
+              "type": "double"
+            },
+            {
+              "name": "viewAngle",
+              "type": "double"
+            },
+            {
+              "name": "minHeight",
+              "type": "double"
+            },
+            {
+              "name": "maxHeight",
+              "type": "double"
+            },
+            {
+              "name": "yawOffset",
+              "type": "double"
+            },
+            {
+              "name": "viewAngleV",
+              "type": "double"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "attachVisionPolygon",
+          "doc": "Привязать к сущности зону-многоугольник. <code>xz</code> — массив пар координат <code>x1,z1,x2,z2,...</code> <b>относительно позиции сущности</b> (минимум 3 точки, т.е. 6 чисел). Точки задаются в локальных осях сущности и <b>поворачиваются вместе с её yaw</b>: точка с положительной координатой Z всегда «перед» энтити.\n\n <pre>{@code\n function main(c)\n {\n     var npc = c.getSubject();\n\n     // Треугольник перед NPC (ось Z — вперёд, ось X — вправо)\n     npc.attachVisionPolygon([0, 0, 3, -2, 3, 2], -1, 3);\n }\n }</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "xz",
+              "type": "double[]"
+            },
+            {
+              "name": "minHeight",
+              "type": "double"
+            },
+            {
+              "name": "maxHeight",
+              "type": "double"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "removeVisionZone",
+          "doc": "Убрать зону зрения с сущности. Возвращает <code>true</code>, если зона действительно была установлена.\n\n <pre>{@code\n function main(c)\n {\n     c.getSubject().removeVisionZone();\n }\n }</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getVisionZone",
+          "doc": "Получить зону зрения, привязанную к сущности, или <code>null</code>, если её нет. Позволяет прочитать параметры зоны: <code>getShape()</code>, <code>getRadius()</code>, <code>getViewAngle()</code>, <code>getMinHeight()</code>, <code>getMaxHeight()</code>, <code>getYawOffset()</code>, <code>getPoints()</code>.\n\n <pre>{@code\n function main(c)\n {\n     var zone = c.getSubject().getVisionZone();\n\n     if (zone)\n     {\n         c.send(zone.getShape() + \" \" + zone.getRadius());\n     }\n }\n }</pre>",
+          "returns": {
+            "type": "mchorse.mappet.api.scripts.user.entities.IScriptVisionZone"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "attachVisionScreen",
+          "doc": "Привязать к сущности сектор, который охватывает весь экран игрока (FOV 70°, вертикаль) при соотношении сторон 16:9 — горизонтальный угол ≈ 102,4°. Зона следует за yaw и pitch энтити (смотрит туда же, куда энтити). Вертикальное расширение растёт с дистанцией (пирамида-фрустум).\n\n <pre>{@code\n function main(c)\n {\n     var npc = c.getSubject();\n\n     // Конус на 16 блоков, покрывающий «весь экран»\n     npc.attachVisionScreen(16);\n }\n }</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "radius",
+              "type": "double"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isObservable",
+          "doc": "Вернуть <code>true</code>, если в поле зрения энтити (её зоне) находится ЛЮБАЯ другая сущность в том же измерении.",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "isObservable",
+          "doc": "Вернуть <code>true</code>, если указанная энтити находится внутри поля зрения (её позиция видна из энтити, с учётом yaw/pitch/углов зоны). Работает только в одном измерении.",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "target",
+              "type": "IScriptEntity"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isObservable",
+          "doc": "Вернуть <code>true</code>, если точка находится внутри поля зрения энтити.",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "position",
+              "type": "ScriptVector"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isObservableBlock",
+          "doc": "Вернуть <code>true</code>, если блок по координатам (x, y, z) попадает в поле зрения энтити (проверяется центр блока).\n\n <pre>{@code\n if (s.isObservableBlock(x, y, z)) c.send(\"вижу блок\");\n }</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "x",
+              "type": "double"
+            },
+            {
+              "name": "y",
+              "type": "double"
+            },
+            {
+              "name": "z",
+              "type": "double"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isObservableBlock",
+          "doc": "Вернуть <code>true</code>, если в поле зрения энтити есть ЛЮБОЙ блок с указанным id (например \"minecraft:stone\" или \"stone\"). Сканирует блоки внутри зоны.\n\n <pre>{@code\n function main(c)\n {\n     var s = c.getSubject();\n     s.attachVisionSector(16, 60, 0, 0, 0, 0);\n\n     // Впереди есть камень?\n     if (s.isObservableBlock(\"minecraft:stone\")) c.send(\"Камень в зоне!\");\n }\n }</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "blockId",
+              "type": "String"
+            }
+          ],
+          "annotations": []
+        }
+      ]
+    },
+    {
+      "name": "mchorse.mappet.api.scripts.user.entities.IScriptVisionZone",
+      "doc": "Зона зрения, привязанная к сущности через <code>attachVisionSector</code> или <code>attachVisionPolygon</code>. Получается через <code>getVisionZone()</code> у сущности. Сдвигается вместе с сущностью; сектор дополнительно поворачивается вместе с её поворотом.\n\n <pre>{@code\n function main(c)\n {\n     var zone = c.getSubject().getVisionZone();\n\n     if (zone)\n     {\n         c.send(zone.getShape()); // \"SECTOR\" или \"POLYGON\"\n         c.send(zone.getViewAngle()); // угол сектора в градусах\n     }\n }\n }</pre>",
+      "interfaces": [],
+      "methods": [
+        {
+          "name": "getShape",
+          "doc": "Тип зоны: <code>\"SECTOR\"</code> или <code>\"POLYGON\"</code>.\n\n <pre>{@code\n function main(c)\n {\n     c.send(c.getSubject().getVisionZone().getShape());\n }\n }</pre>",
+          "returns": {
+            "type": "java.lang.String"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getRadius",
+          "doc": "Радиус сектора в блоках (только для <code>SECTOR</code>).\n\n <pre>{@code\n function main(c)\n {\n     c.send(c.getSubject().getVisionZone().getRadius());\n }\n }</pre>",
+          "returns": {
+            "type": "double"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getViewAngle",
+          "doc": "Угол сектора в градусах (<code>0</code> или <code>360</code> — полный круг).\n\n <pre>{@code\n function main(c)\n {\n     c.send(c.getSubject().getVisionZone().getViewAngle());\n }\n }</pre>",
+          "returns": {
+            "type": "double"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getViewAngleV",
+          "doc": "Вертикальный угол сектора в градусах (<code>0</code> — вертикальная полоса задаётся <code>minHeight</code>/<code>maxHeight</code>; иначе фрустум растёт с дистанцией, как экран).\n\n <pre>{@code\n function main(c)\n {\n     c.send(c.getSubject().getVisionZone().getViewAngleV());\n }\n }</pre>",
+          "returns": {
+            "type": "double"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getMinHeight",
+          "doc": "Нижняя граница зоны относительно ног сущности.\n\n <pre>{@code\n function main(c)\n {\n     c.send(c.getSubject().getVisionZone().getMinHeight());\n }\n }</pre>",
+          "returns": {
+            "type": "double"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getMaxHeight",
+          "doc": "Верхняя граница зоны относительно ног сущности.\n\n <pre>{@code\n function main(c)\n {\n     c.send(c.getSubject().getVisionZone().getMaxHeight());\n }\n }</pre>",
+          "returns": {
+            "type": "double"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getYawOffset",
+          "doc": "Смещение направления сектора в градусах относительно поворота (yaw) сущности.\n\n <pre>{@code\n function main(c)\n {\n     c.send(c.getSubject().getVisionZone().getYawOffset());\n }\n }</pre>",
+          "returns": {
+            "type": "double"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getPoints",
+          "doc": "Список точек многоугольника (<code>ScriptVector</code>) в локальных осях сущности (только для <code>POLYGON</code>). При повороте энтити зона поворачивается вместе с ней.\n\n <pre>{@code\n function main(c)\n {\n     var pts = c.getSubject().getVisionZone().getPoints();\n     c.send(pts.length);\n }\n }</pre>",
+          "returns": {
+            "type": "java.util.List"
+          },
+          "arguments": [],
           "annotations": []
         }
       ]
@@ -15893,65 +16140,65 @@
           "arguments": [],
           "annotations": []
         },
-{
-            "name": "isPlaying",
-            "doc": "Проверить, существует ли сейчас специальный звук с указанным ID. Возвращает <code>true</code>, если звук зарегистрирован (воспроизводится или стоит на паузе). Возвращает <code>false</code>, если звук был остановлен или завершился.",
-            "returns": {
-              "type": "boolean"
-            },
-            "arguments": [],
-            "annotations": []
+        {
+          "name": "isPlaying",
+          "doc": "Проверить, существует ли сейчас специальный звук с указанным ID. Возвращает <code>true</code>, если звук зарегистрирован (воспроизводится или стоит на паузе). Возвращает <code>false</code>, если звук был остановлен или завершился.",
+          "returns": {
+            "type": "boolean"
           },
-{
-           "name": "isLooping",
-           "doc": "Проверить, зациклен ли специальный звук. Зацикленный звук воспроизводится бесконечно, пока не будет остановлен через <code>stop</code>.",
-           "returns": {
-             "type": "boolean"
-           },
-           "arguments": [],
-           "annotations": []
-         },
+          "arguments": [],
+          "annotations": []
+        },
         {
-           "name": "loop",
-           "doc": "Включить или выключить бесконечное зацикливание специального звука. Зацикленный звук играет без пауз и задержек, пока его не остановят через <code>stop</code>.\n\n<pre>{@code\nvar pos = c.getSubject().getPosition();\nvar sound = c.getSubject().playManagedSound(\"id\", \"record.cat\", \"master\", pos.x, pos.y, pos.z, 1, 1);\nsound.loop(true);\nsound.stop();\n}</pre>",
-           "returns": {
-             "type": "void"
-           },
-           "arguments": [
-             {
-               "name": "loop",
-               "type": "boolean"
-             }
-           ],
-           "annotations": []
-         },
+          "name": "isLooping",
+          "doc": "Проверить, зациклен ли специальный звук. Зацикленный звук воспроизводится бесконечно, пока не будет остановлен через <code>stop</code>.",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
         {
-           "name": "isPaused",
-           "doc": "Проверить, стоит ли специальный звук на паузе. Пауза замирает звук и его таймкод на месте; при возобновлении звук продолжает ровно с того же момента.",
-           "returns": {
-             "type": "boolean"
-           },
-           "arguments": [],
-           "annotations": []
-         },
+          "name": "loop",
+          "doc": "Включить или выключить бесконечное зацикливание специального звука. Зацикленный звук играет без пауз и задержек, пока его не остановят через <code>stop</code>.\n\n<pre>{@code\nvar pos = c.getSubject().getPosition();\nvar sound = c.getSubject().playManagedSound(\"id\", \"record.cat\", \"master\", pos.x, pos.y, pos.z, 1, 1);\nsound.loop(true);\nsound.stop();\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "loop",
+              "type": "boolean"
+            }
+          ],
+          "annotations": []
+        },
         {
-           "name": "pause",
-           "doc": "Поставить управляемый звук на паузу. Звук не удаляется и может быть продолжен через <code>resume</code>.",
-           "returns": {
-             "type": "void"
-           },
-           "arguments": [],
-           "annotations": []
-         },
+          "name": "isPaused",
+          "doc": "Проверить, стоит ли специальный звук на паузе. Пауза замирает звук и его таймкод на месте; при возобновлении звук продолжает ровно с того же момента.",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
         {
-           "name": "resume",
-           "doc": "Возобновить воспроизведение управляемого звука с того момента, на котором он был поставлен на паузу.",
-           "returns": {
-             "type": "void"
-           },
-           "arguments": [],
-           "annotations": []
-         },
+          "name": "pause",
+          "doc": "Поставить управляемый звук на паузу. Звук не удаляется и может быть продолжен через <code>resume</code>.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "resume",
+          "doc": "Возобновить воспроизведение управляемого звука с того момента, на котором он был поставлен на паузу.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
         {
           "name": "getTimeCode",
           "doc": "Возвращает последний таймкод в секундах и запрашивает его обновление у клиента. Для world-объекта возвращается таймкод первого активного получателя.",

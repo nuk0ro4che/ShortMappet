@@ -61,6 +61,7 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    public GuiButtonElement playerTriggerCategory;
    public GuiButtonElement livingTriggerCategory;
    public GuiButtonElement entityTriggerCategory;
+   public GuiButtonElement worldTriggerCategory;
    public GuiButtonElement otherTriggerCategory;
    public GuiToggleElement modTriggerToggle;
    public GuiIconElement hotkeys;
@@ -102,16 +103,18 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
       this.playerTriggerCategory = this.createTriggerCategoryButton(TriggerCategory.PLAYER);
       this.livingTriggerCategory = this.createTriggerCategoryButton(TriggerCategory.LIVING);
       this.entityTriggerCategory = this.createTriggerCategoryButton(TriggerCategory.ENTITY);
+      this.worldTriggerCategory = this.createTriggerCategoryButton(TriggerCategory.WORLD);
       this.otherTriggerCategory = this.createTriggerCategoryButton(TriggerCategory.OTHER);
       this.modTriggerToggle = new GuiToggleElement(mc, IKey.lang("mappet.gui.settings.categories.mods"), false, this::setModTriggersOnly);
       this.triggerCategoryTabs.flex().relative(this).x(0.5F, 10).y(35).w(0.5F, -110).h(20);
-      this.serverTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.0F).w(0.2F).h(20);
-      this.playerTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.2F).w(0.2F).h(20);
-      this.livingTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.4F).w(0.2F).h(20);
-      this.entityTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.6F).w(0.2F).h(20);
-      this.otherTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.8F).w(0.2F).h(20);
+      this.serverTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.0F).w(0.16F).h(20);
+      this.playerTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.16F).w(0.16F).h(20);
+      this.livingTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.32F).w(0.16F).h(20);
+      this.entityTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.48F).w(0.16F).h(20);
+      this.worldTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.64F).w(0.16F).h(20);
+      this.otherTriggerCategory.flex().relative(this.triggerCategoryTabs).x(0.80F).w(0.16F).h(20);
       this.modTriggerToggle.flex().relative(this).x(1.0F, -96).y(35).wh(90, 20);
-      this.triggerCategoryTabs.add(new IGuiElement[]{this.serverTriggerCategory, this.playerTriggerCategory, this.livingTriggerCategory, this.entityTriggerCategory, this.otherTriggerCategory});
+      this.triggerCategoryTabs.add(new IGuiElement[]{this.serverTriggerCategory, this.playerTriggerCategory, this.livingTriggerCategory, this.entityTriggerCategory, this.worldTriggerCategory, this.otherTriggerCategory});
       this.triggers = new GuiLabelSearchListElement<String>(mc, (l) -> this.fillTrigger((Label)l.get(0), false));
       this.triggers.label(IKey.lang("mappet.gui.search"));
       this.triggers.list.background().flex().relative(this.triggers).y(20).w(1.0F).h(1.0F, -20);
@@ -285,6 +288,7 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
       this.styleTriggerCategoryButton(this.playerTriggerCategory, TriggerCategory.PLAYER);
       this.styleTriggerCategoryButton(this.livingTriggerCategory, TriggerCategory.LIVING);
       this.styleTriggerCategoryButton(this.entityTriggerCategory, TriggerCategory.ENTITY);
+      this.styleTriggerCategoryButton(this.worldTriggerCategory, TriggerCategory.WORLD);
       this.styleTriggerCategoryButton(this.otherTriggerCategory, TriggerCategory.OTHER);
       this.modTriggerToggle.toggled(this.modTriggersOnly);
    }

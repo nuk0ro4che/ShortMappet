@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,7 @@ public class EventHandler {
    private Set<String> cancelledExecutableIds = new HashSet();
    private DataContext context;
    private Set<UUID> loggedInPlayers = new HashSet();
+   private Map<class_1937, Integer> worldWeather = new HashMap();
    private static Set<Class<? extends Event>> registeredEvents = new HashSet();
 
    private static boolean isMohist() {
@@ -521,6 +523,28 @@ public class EventHandler {
 
    @SubscribeEvent
    public void onEntityJoinWorld(LegacyEvents.EntityJoinWorldEvent event) {
+      if (!event.getWorld().field_9236) {
+         Trigger spawnTrigger = Mappet.settings.entitySpawn;
+         if (spawnTrigger != null && !spawnTrigger.isEmpty() && event.getEntity().field_6012 == 0) {
+            class_1297 entity = event.getEntity();
+            String type;
+            if (entity instanceof class_1657) {
+               type = "player";
+            } else if (entity instanceof class_1308) {
+               type = "mob";
+            } else if (entity instanceof class_1542) {
+               type = "item";
+            } else {
+               type = "other";
+            }
+
+            DataContext context = new DataContext(entity);
+            context.getValues().put("entity", ScriptEntity.create(entity));
+            context.set("type", type);
+            spawnTrigger.trigger(context);
+         }
+      }
+
       if (event.getEntity() instanceof class_1308) {
          class_1308 entityLiving = (class_1308)event.getEntity();
          RotationDataStorage rotationDataStorage = RotationDataStorage.getRotationDataStorage(event.getWorld());
@@ -764,6 +788,27 @@ public class EventHandler {
    public void onWorldTick(LegacyEvents.TickEvent.WorldTickEvent event) {
       MappetNpcRespawnManager respawnManager = MappetNpcRespawnManager.get(event.world);
       respawnManager.onTick();
+
+      if (event.phase != LegacyEvents.TickEvent.Phase.END || event.world.field_9236) {
+         return;
+      }
+
+      if (Mappet.settings.worldDayTick != null && !Mappet.settings.worldDayTick.isEmpty()) {
+         Mappet.settings.worldDayTick.trigger(new DataContext(event.world).set("dayTime", (double)(event.world.method_8532() % 24000L)));
+      }
+
+      Trigger weatherTrigger = Mappet.settings.worldWeatherChange;
+      if (weatherTrigger != null && !weatherTrigger.isEmpty()) {
+         int state = event.world.method_8546() ? 2 : (event.world.method_8419() ? 1 : 0);
+         Integer previousState = this.worldWeather.get(event.world);
+         if (previousState != null && previousState != state) {
+            String weather = state == 2 ? "thunder" : (state == 1 ? "rain" : "clear");
+            String previous = previousState == 2 ? "thunder" : (previousState == 1 ? "rain" : "clear");
+            weatherTrigger.trigger(new DataContext(event.world).set("weather", weather).set("previous", previous));
+         }
+
+         this.worldWeather.put(event.world, state);
+      }
    }
 
    @SubscribeEvent

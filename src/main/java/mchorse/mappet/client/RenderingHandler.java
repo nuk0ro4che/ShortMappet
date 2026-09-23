@@ -36,6 +36,11 @@ public final class RenderingHandler {
       });
       WorldRenderEvents.AFTER_ENTITIES.register((WorldRenderEvents.AfterEntities)(context) -> {
          if (context.consumers() != null) {
+            VisionZoneRenderer.render(context);
+         }
+      });
+      WorldRenderEvents.AFTER_ENTITIES.register((WorldRenderEvents.AfterEntities)(context) -> {
+         if (context.consumers() != null) {
             
             class_4597.class_4598 buffers = localMorphBuffers;
             for (WorldMorph morph : worldMorphs) {

@@ -33,6 +33,7 @@ import mchorse.mappet.network.client.scripts.ClientHandlerMousePosition;
 import mchorse.mappet.network.client.scripts.ClientHandlerMovementLock;
 import mchorse.mappet.network.client.scripts.ClientHandlerClipboard;
 import mchorse.mappet.network.client.scripts.ClientHandlerEntityRotations;
+import mchorse.mappet.network.client.scripts.ClientHandlerVisionZone;
 import mchorse.mappet.network.client.scripts.ClientHandlerEntityTransition;
 import mchorse.mappet.network.client.scripts.ClientHandlerHudVisibility;
 import mchorse.mappet.network.client.scripts.ClientHandlerHudPosition;
@@ -106,6 +107,7 @@ import mchorse.mappet.network.common.scripts.PacketCancelDeath;
 import mchorse.mappet.network.common.scripts.PacketMovementLock;
 import mchorse.mappet.network.common.scripts.PacketClipboard;
 import mchorse.mappet.network.common.scripts.PacketEntityRotations;
+import mchorse.mappet.network.common.scripts.PacketVisionZone;
 import mchorse.mappet.network.common.scripts.PacketEntityTransition;
 import mchorse.mappet.network.common.scripts.PacketHudVisibility;
 import mchorse.mappet.network.common.scripts.PacketHudPosition;
@@ -303,6 +305,7 @@ public class Dispatcher {
          if (client) {
             this.register(PacketCameraShake.class, ClientHandlerCameraShake.class, Side.CLIENT);
             this.register(PacketEntityRotations.class, ClientHandlerEntityRotations.class, Side.CLIENT);
+            this.register(PacketVisionZone.class, ClientHandlerVisionZone.class, Side.CLIENT);
             this.register(PacketEntityTransition.class, ClientHandlerEntityTransition.class, Side.CLIENT);
             this.register(PacketHudVisibility.class, ClientHandlerHudVisibility.class, Side.CLIENT);
             this.register(PacketHudPosition.class, ClientHandlerHudPosition.class, Side.CLIENT);

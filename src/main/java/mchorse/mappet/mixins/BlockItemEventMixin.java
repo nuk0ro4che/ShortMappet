@@ -53,7 +53,7 @@ public abstract class BlockItemEventMixin {
                } else if (event.hasPlaceOverride()) {
                   class_2338 pos = event.getFinalPos();
                   class_2680 overrideState = event.getFinalPlacedBlock();
-                  Mappet.logger.info("OVERRIDE mixin placing " + class_7923.field_41175.method_10221(overrideState.method_26204()) + " at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260());
+                  Mappet.logInfo("OVERRIDE mixin placing " + class_7923.field_41175.method_10221(overrideState.method_26204()) + " at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260());
                   this.mappet$placeOverride(context, pos, overrideState, event);
                   cir.setReturnValue(class_1269.field_5811);
                }
@@ -66,12 +66,12 @@ public abstract class BlockItemEventMixin {
    private void mappet$placeOverride(class_1750 context, class_2338 pos, class_2680 state, LegacyEvents.BlockEvent.PlaceEvent event) {
       class_1937 world = context.method_8045();
       boolean set = world.method_8652(pos, state, 11);
-      Mappet.logger.info("OVERRIDE mixin placing " + class_7923.field_41175.method_10221(state.method_26204()) + " at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260() + " serverSet=" + set + " now=" + class_7923.field_41175.method_10221(world.method_8320(pos).method_26204()));
+      Mappet.logInfo("OVERRIDE mixin placing " + class_7923.field_41175.method_10221(state.method_26204()) + " at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260() + " serverSet=" + set + " now=" + class_7923.field_41175.method_10221(world.method_8320(pos).method_26204()));
       class_2338 priorPos = event.getPos();
       if (priorPos != null && !priorPos.equals(pos)) {
          class_2680 current = world.method_8320(priorPos);
          world.method_8413(priorPos, current, current, 3);
-         Mappet.logger.info("OVERRIDE mixin resynced prior pos " + priorPos.method_10263() + "," + priorPos.method_10264() + "," + priorPos.method_10260());
+         Mappet.logInfo("OVERRIDE mixin resynced prior pos " + priorPos.method_10263() + "," + priorPos.method_10264() + "," + priorPos.method_10260());
       }
       class_310 client = class_310.method_1551();
       class_638 cworld = client == null ? null : client.field_1687;
@@ -86,7 +86,7 @@ public abstract class BlockItemEventMixin {
                client.field_1769.method_18145(priorPos.method_10263(), priorPos.method_10264(), priorPos.method_10260());
             }
          }
-         Mappet.logger.info("SP-MIRROR client placed " + class_7923.field_41175.method_10221(state.method_26204()) + " at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260());
+         Mappet.logInfo("SP-MIRROR client placed " + class_7923.field_41175.method_10221(state.method_26204()) + " at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260());
       }
       class_1657 player = context.method_8036();
       if (player != null && !player.method_31549().field_7477) {

@@ -33,7 +33,7 @@ public abstract class ClientBlockUpdateRenderMixin {
       class_2338 pos = packet.method_11309();
       if (pos != null) {
          class_2680 current = client.field_1687.method_8320(pos);
-         Mappet.logger.info("CLIENT-BLOCKUPDATE at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260() + " incoming=" + class_7923.field_41175.method_10221(state.method_26204()) + " current=" + class_7923.field_41175.method_10221(current.method_26204()) + " applied=" + (current.method_26204() == state.method_26204()));
+         Mappet.logInfo("CLIENT-BLOCKUPDATE at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260() + " incoming=" + class_7923.field_41175.method_10221(state.method_26204()) + " current=" + class_7923.field_41175.method_10221(current.method_26204()) + " applied=" + (current.method_26204() == state.method_26204()));
          client.field_1769.method_18145(pos.method_10263(), pos.method_10264(), pos.method_10260());
       }
    }

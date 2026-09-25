@@ -40,7 +40,7 @@ public abstract class ServerPlayerBlockBreakMixin {
       CommonProxy.eventHandler.onPlayerBreakBlock(event);
       CommonProxy.scriptedItemEventHandler.onPlayerWithScriptedItemBreakBlock(event);
       if (event.isCanceled()) {
-         mchorse.mappet.Mappet.logger.info("MIXIN-BREAK canceled at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260());
+         mchorse.mappet.Mappet.logInfo("MIXIN-BREAK canceled at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260());
          cir.setReturnValue(false);
          return;
       }
@@ -48,7 +48,7 @@ public abstract class ServerPlayerBlockBreakMixin {
       class_2680 override = event.getBrokenBlockOverride();
       if (override != null) {
          this.field_14007.method_8652(pos, override, 3);
-         mchorse.mappet.Mappet.logger.info("MIXIN-BREAK swapped at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260() + " -> " + class_7923.field_41175.method_10221(override.method_26204()));
+         mchorse.mappet.Mappet.logInfo("MIXIN-BREAK swapped at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260() + " -> " + class_7923.field_41175.method_10221(override.method_26204()));
       }
    }
 }

@@ -73,6 +73,14 @@ public final class Mappet implements ModInitializer {
    public static final EventBus EVENT_BUS = new EventBus();
    public static MappetLogger logger;
    public static MinecraftServer server;
+
+   public static void logInfo(String message) {
+      if (logger != null) {
+         logger.info(message);
+      } else {
+         LOGGER.info(message);
+      }
+   }
    public static class_1792 npcTool;
    public static BlockEmitter emitterBlock;
    public static BlockTrigger triggerBlock;

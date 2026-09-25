@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
@@ -58,12 +57,7 @@ public final class FabricEventBridge {
          ServerPlayConnectionEvents.DISCONNECT.register((ServerPlayConnectionEvents.Disconnect)(handler, server) -> CommonProxy.eventHandler.onPlayerLogsOut(new LegacyEvents.PlayerEvent.PlayerLoggedOutEvent(handler.field_14140)));
          ServerPlayerEvents.COPY_FROM.register((ServerPlayerEvents.CopyFrom)(oldPlayer, newPlayer, alive) -> CommonProxy.eventHandler.onPlayerClone(new LegacyEvents.PlayerEvent.Clone(newPlayer, oldPlayer)));
          ServerPlayerEvents.AFTER_RESPAWN.register((ServerPlayerEvents.AfterRespawn)(oldPlayer, newPlayer, alive) -> CommonProxy.eventHandler.onPlayerSpawn(new LegacyEvents.PlayerEvent.PlayerRespawnEvent(newPlayer)));
-         PlayerBlockBreakEvents.BEFORE.register((PlayerBlockBreakEvents.Before)(world, player, pos, state, blockEntity) -> {
-            LegacyEvents.BlockEvent.BreakEvent event = new LegacyEvents.BlockEvent.BreakEvent(world, pos, state, player);
-            CommonProxy.eventHandler.onPlayerBreakBlock(event);
-            CommonProxy.scriptedItemEventHandler.onPlayerWithScriptedItemBreakBlock(event);
-            return !event.isCanceled();
-         });
+         
          AttackBlockCallback.EVENT.register((AttackBlockCallback)(player, world, hand, pos, direction) -> {
             LegacyEvents.PlayerInteractEvent.LeftClickBlock event = new LegacyEvents.PlayerInteractEvent.LeftClickBlock(player, hand, pos);
             CommonProxy.eventHandler.onPlayerLeftClick(event);

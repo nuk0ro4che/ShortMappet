@@ -74,6 +74,8 @@ import net.minecraft.class_1676;
 import net.minecraft.class_1799;
 import net.minecraft.class_1802;
 import net.minecraft.class_1937;
+import net.minecraft.class_2246;
+import net.minecraft.class_2248;
 import net.minecraft.class_2338;
 import net.minecraft.class_239;
 import net.minecraft.class_2586;
@@ -81,6 +83,8 @@ import net.minecraft.class_2680;
 import net.minecraft.class_2960;
 import net.minecraft.class_310;
 import net.minecraft.class_3218;
+import net.minecraft.class_3414;
+import net.minecraft.class_3419;
 import net.minecraft.class_3222;
 import net.minecraft.class_3966;
 import net.minecraft.class_7923;
@@ -167,6 +171,13 @@ public class EventHandler {
    public void trigger(Event event, Trigger trigger, DataContext context) {
       context.getValues().put("event", event);
       trigger.trigger(context);
+      Object result = context.getResult();
+      if (result instanceof Number && event instanceof LegacyEvents.LivingDamageEvent) {
+         ((LegacyEvents.LivingDamageEvent)event).setAmount(Math.max(0.0F, ((Number)result).floatValue()));
+      }
+      if (result instanceof Boolean && !((Boolean)result).booleanValue()) {
+         context.cancel(true);
+      }
       if (event.isCancelable() && context.isCanceled()) {
          if (event instanceof LegacyEvents.LivingEquipmentChangeEvent || event instanceof LegacyEvents.TickEvent.PlayerTickEvent) {
             return;
@@ -197,11 +208,32 @@ public class EventHandler {
    @SubscribeEvent
    public void onPlayerBreakBlock(LegacyEvents.BlockEvent.BreakEvent event) {
       if (!Mappet.settings.blockBreak.isEmpty()) {
-         class_2680 state = event.getState();
-         DataContext context = (new DataContext(event.getPlayer())).set("block", class_7923.field_41175.method_10221(state.method_26204()).toString()).set("meta", (double)state.method_26204().method_9595().method_11662().indexOf(state)).set("x", (double)event.getPos().method_10263()).set("y", (double)event.getPos().method_10264()).set("z", (double)event.getPos().method_10260());
-         this.trigger(event, Mappet.settings.blockBreak, context);
+class_2680 state = event.getState();
+          class_1799 stack = event.getPlayer().method_6047();
+          String tool = stack == null || stack.method_7960() ? "empty" : class_7923.field_41178.method_10221(stack.method_7909()).toString();
+          DataContext context = (new DataContext(event.getPlayer())).set("block", class_7923.field_41175.method_10221(state.method_26204()).toString()).set("meta", (double)state.method_26204().method_9595().method_11662().indexOf(state)).set("x", (double)event.getPos().method_10263()).set("y", (double)event.getPos().method_10264()).set("z", (double)event.getPos().method_10260()).set("tool", tool);
+          this.trigger(event, Mappet.settings.blockBreak, context);
+          Mappet.logger.info("BREAK-EVENT fired canceled=" + event.isCanceled() + " block=" + context.getValue("block") + " meta=" + context.getValue("meta") + " tool=" + tool + " result=" + context.getResult());
+         if (!event.isCanceled()) {
+            this.setBrokenBlockOverride(event, context);
+         }
       }
 
+   }
+
+   private void setBrokenBlockOverride(LegacyEvents.BlockEvent.BreakEvent event, DataContext context) {
+      Object blockId = context.getValue("block");
+      Object meta = context.getValue("meta");
+      if (blockId instanceof String && meta instanceof Number) {
+         String id = ((String)blockId).contains(":") ? (String)blockId : "minecraft:" + blockId;
+         class_2680 override = resolveBlockStateId(id, ((Number)meta).intValue());
+         if (override != null && override.method_26204() != event.getState().method_26204()) {
+            event.setBrokenBlockOverride(override);
+            Mappet.logger.info("OVERRIDE-break requested " + class_7923.field_41175.method_10221(event.getState().method_26204()) + " -> " + class_7923.field_41175.method_10221(override.method_26204()));
+         } else {
+            Mappet.logger.info("OVERRIDE-break skipped applied=false (override=" + (override == null ? "null" : "same block") + ")");
+         }
+      }
    }
 
    @SubscribeEvent
@@ -210,8 +242,83 @@ public class EventHandler {
          class_2680 state = event.getPlacedBlock();
          DataContext context = (new DataContext(event.getPlayer())).set("block", class_7923.field_41175.method_10221(state.method_26204()).toString()).set("meta", (double)state.method_26204().method_9595().method_11662().indexOf(state)).set("x", (double)event.getPos().method_10263()).set("y", (double)event.getPos().method_10264()).set("z", (double)event.getPos().method_10260());
          this.trigger(event, Mappet.settings.blockPlace, context);
+         this.applyBlockPlaceOverride(event, context);
       }
 
+   }
+
+   private void applyBlockPlaceOverride(LegacyEvents.BlockEvent.PlaceEvent event, DataContext context) {
+      this.setPlacedBlockOverride(event, context);
+      this.setPlacedPosOverride(event, context);
+   }
+
+   private void setPlacedBlockOverride(LegacyEvents.BlockEvent.PlaceEvent event, DataContext context) {
+      Object blockId = context.getValue("block");
+      Object meta = context.getValue("meta");
+      if (blockId instanceof String && meta instanceof Number) {
+         String id = ((String)blockId).contains(":") ? (String)blockId : "minecraft:" + blockId;
+         class_2680 override = resolveBlockStateId(id, ((Number)meta).intValue());
+         if (override != null && override != event.getPlacedBlock()) {
+            event.setPlacedBlock(override);
+            Mappet.logger.info("OVERRIDE applied " + class_7923.field_41175.method_10221(event.getPlacedBlock().method_26204()) + " -> " + class_7923.field_41175.method_10221(override.method_26204()));
+         } else {
+            Mappet.logger.info("OVERRIDE skipped applied=false (placed=" + (override == null ? "null" : "same state") + ")");
+         }
+      }
+   }
+
+   private static final Map<String, String[]> LEGACY_VARIANT_BLOCKS = new HashMap();
+   static {
+      LEGACY_VARIANT_BLOCKS.put("minecraft:log", new String[]{"minecraft:oak_log", "minecraft:spruce_log", "minecraft:birch_log", "minecraft:jungle_log"});
+      LEGACY_VARIANT_BLOCKS.put("minecraft:log2", new String[]{"minecraft:dark_oak_log", "minecraft:acacia_log"});
+      LEGACY_VARIANT_BLOCKS.put("minecraft:leaves", new String[]{"minecraft:oak_leaves", "minecraft:spruce_leaves", "minecraft:birch_leaves", "minecraft:jungle_leaves"});
+      LEGACY_VARIANT_BLOCKS.put("minecraft:leaves2", new String[]{"minecraft:dark_oak_leaves", "minecraft:acacia_leaves"});
+      LEGACY_VARIANT_BLOCKS.put("minecraft:wood", new String[]{"minecraft:oak_wood", "minecraft:spruce_wood", "minecraft:birch_wood", "minecraft:jungle_wood", "minecraft:acacia_wood", "minecraft:dark_oak_wood"});
+      LEGACY_VARIANT_BLOCKS.put("minecraft:planks", new String[]{"minecraft:oak_planks", "minecraft:spruce_planks", "minecraft:birch_planks", "minecraft:jungle_planks", "minecraft:acacia_planks", "minecraft:dark_oak_planks"});
+   }
+
+   public static class_2680 resolveBlockStateId(String blockId, int meta) {
+      try {
+         String[] legacy = LEGACY_VARIANT_BLOCKS.get(blockId);
+         class_2248 block;
+         if (legacy != null) {
+            block = (class_2248)class_7923.field_41175.method_10223(new class_2960(legacy[meta >= 0 && meta < legacy.length ? meta : 0]));
+            class_2680 result = block == null ? null : block.method_9564();
+            Mappet.logger.info("OVERRIDE legacy=" + blockId + " meta=" + meta + " result=" + (result == null ? "null" : class_7923.field_41175.method_10221(result.method_26204())));
+            return result;
+         }
+         block = (class_2248)class_7923.field_41175.method_10223(new class_2960(blockId));
+         if (block == null) {
+            Mappet.logger.info("OVERRIDE block=" + blockId + " meta=" + meta + " result=null (unknown block)");
+            return null;
+         }
+         List<class_2680> states = block.method_9595().method_11662();
+         class_2680 result;
+         if (meta >= 0 && meta < states.size()) {
+            result = (class_2680)states.get(meta);
+         } else {
+            result = block.method_9564();
+         }
+         Mappet.logger.info("OVERRIDE block=" + blockId + " meta=" + meta + " result=" + class_7923.field_41175.method_10221(result.method_26204()) + "[]" + meta + " sized=" + states.size());
+         return result;
+      } catch (Exception e) {
+         return null;
+      }
+   }
+
+   private void setPlacedPosOverride(LegacyEvents.BlockEvent.PlaceEvent event, DataContext context) {
+      Object x = context.getValue("x");
+      Object y = context.getValue("y");
+      Object z = context.getValue("z");
+      if (x instanceof Number && y instanceof Number && z instanceof Number) {
+         class_2338 pos = event.getPos();
+         int nx = ((Number)x).intValue();
+         int ny = ((Number)y).intValue();
+         int nz = ((Number)z).intValue();
+         if (nx != pos.method_10263() || ny != pos.method_10264() || nz != pos.method_10260()) {
+            event.setPlacePos(new class_2338(nx, ny, nz));
+         }
+      }
    }
 
    @SubscribeEvent

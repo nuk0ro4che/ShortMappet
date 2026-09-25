@@ -29,6 +29,7 @@ public class DataContext {
    private boolean client;
    private TriggerSender sender;
    private Map<String, Object> values;
+   private transient Object result;
 
    public DataContext(class_1297 subject, class_1297 object) {
       this(subject.method_37908());
@@ -90,6 +91,24 @@ public class DataContext {
 
    public boolean isCanceled() {
       return this.canceled;
+   }
+
+   public Object getResult() {
+      return this.result;
+   }
+
+   public void setResult(Object result) {
+      this.result = result;
+   }
+
+   public void applyResult() {
+      if (this.result instanceof Map) {
+         for (Object key : ((Map<?, ?>)this.result).keySet()) {
+            if (key instanceof String) {
+               this.values.put((String)key, ((Map<?, ?>)this.result).get(key));
+            }
+         }
+      }
    }
 
    private void setup() {

@@ -12,11 +12,14 @@ import net.minecraft.class_1799;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({class_1309.class})
 public abstract class LivingEntityEventMixin {
+   private LegacyEvents.LivingDamageEvent mappet$lastDamageEvent;
+
    private class_1309 mappet$self() {
       return (class_1309)(Object)this;
    }
@@ -39,7 +42,7 @@ public abstract class LivingEntityEventMixin {
       }
    }
 
-   @Inject(
+@Inject(
       method = {"method_6074"},
       at = {@At("HEAD")},
       cancellable = true
@@ -47,12 +50,27 @@ public abstract class LivingEntityEventMixin {
    private void mappet$damage(class_1282 source, float amount, CallbackInfo ci) {
       if (!this.mappet$self().method_37908().field_9236) {
          LegacyEvents.LivingDamageEvent event = new LegacyEvents.LivingDamageEvent(this.mappet$self(), source, amount);
+         this.mappet$lastDamageEvent = event;
          CommonProxy.eventHandler.onEntityHurt(event);
          if (event.isCanceled()) {
             ci.cancel();
          }
-
       }
+   }
+
+   @ModifyVariable(
+      method = {"method_6074"},
+      at = @At("HEAD"),
+      argsOnly = true
+   )
+   private float mappet$modifiedDamage(float amount) {
+      LegacyEvents.LivingDamageEvent event = this.mappet$lastDamageEvent;
+      if (event != null) {
+         float modifiedAmount = Math.max(0.0F, event.getAmount());
+         this.mappet$lastDamageEvent = null;
+         return modifiedAmount;
+      }
+      return amount;
    }
 
     @Inject(

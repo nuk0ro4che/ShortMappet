@@ -97,6 +97,11 @@ public class DocResolver {
    }
 
    public static List<AutoCompleteConfig.Suggestion> findMethodsOfClass(String classNames, String prefix) {
+      List<AutoCompleteConfig.Suggestion> userMembers = findUserTypeMembers(classNames, prefix);
+      if (userMembers != null) {
+         return userMembers;
+      }
+
       List<AutoCompleteConfig.Suggestion> result = new ArrayList();
       if (classNames != null && !classNames.isEmpty()) {
          String[] classesArray = classNames.split(",");
@@ -281,6 +286,10 @@ public class DocResolver {
    }
 
    public static String resolveVarReturnClass(String varName, String fullText) {
+      if (isBareFunctionCallAssignment(fullText, varName)) {
+         return resolveBareCallReturnType(varName, fullText);
+      }
+
       Pattern p = Pattern.compile("(?:var|let|const)\\s+" + Pattern.quote(varName) + "\\s*=(?!=)\\s*([\\w.()]+)\\.(\\w+)\\s*\\(", 8);
       Matcher m = p.matcher(fullText);
       String bestMatch = null;
@@ -350,6 +359,288 @@ public class DocResolver {
 
          return null;
       }
+   }
+
+   public static boolean isBareFunctionCallAssignment(String fullText, String varName) {
+      if (fullText == null || varName == null || varName.isEmpty()) {
+         return false;
+      }
+
+      Pattern p = Pattern.compile("(?:var|let|const)\\s+" + Pattern.quote(varName) + "\\s*=(?!=)\\s*(?<![.\\w$])[A-Za-z_$][\\w$]*\\s*\\(", 8);
+      return p.matcher(fullText).find();
+   }
+
+   public static final String USER_TYPE_PREFIX = "#user:";
+   private static final Map<String, List<String>> USER_FUNCTION_MEMBERS = new HashMap();
+
+   public static String resolveBareCallReturnType(String varName, String fullText) {
+      if (fullText == null || varName == null || varName.isEmpty()) {
+         return null;
+      }
+
+      Matcher m = Pattern.compile("(?:var|let|const)\\s+" + Pattern.quote(varName) + "\\s*=(?!=)\\s*(?<![.\\w$])([A-Za-z_$][\\w$]*)\\s*\\(", 8).matcher(fullText);
+      if (m.find()) {
+         return resolveUserFunctionReturnType(m.group(1), fullText);
+      }
+
+      return null;
+   }
+
+   public static String resolveUserFunctionReturnType(String functionName, String fullText) {
+      if (functionName == null || functionName.isEmpty() || fullText == null) {
+         return null;
+      }
+
+      List<String> keys = parseUserFunctionReturnKeys(functionName, maskStringsAndComments(fullText));
+      if (keys == null || keys.isEmpty()) {
+         return null;
+      }
+
+      String type = USER_TYPE_PREFIX + functionName;
+      USER_FUNCTION_MEMBERS.put(type, keys);
+      return type;
+   }
+
+   public static boolean isUserDefinedType(String typeName) {
+      return typeName != null && typeName.trim().startsWith(USER_TYPE_PREFIX);
+   }
+
+   private static List<AutoCompleteConfig.Suggestion> findUserTypeMembers(String classNames, String prefix) {
+      if (!isUserDefinedType(classNames) || classNames.indexOf(',') >= 0) {
+         return null;
+      }
+
+      List<String> keys = USER_FUNCTION_MEMBERS.get(classNames.trim());
+      if (keys == null || keys.isEmpty()) {
+         return new ArrayList();
+      }
+
+      String lower = prefix == null ? "" : prefix.toLowerCase();
+      List<AutoCompleteConfig.Suggestion> result = new ArrayList();
+
+      for(String key : keys) {
+         if (key != null && !key.isEmpty() && (lower.isEmpty() || key.toLowerCase().startsWith(lower))) {
+            result.add(new AutoCompleteConfig.Suggestion(key, "", classNames.trim()));
+         }
+      }
+
+      return result;
+   }
+
+   private static List<String> parseUserFunctionReturnKeys(String functionName, String masked) {
+      Matcher header = Pattern.compile("\\bfunction\\s+" + Pattern.quote(functionName) + "\\s*\\([^)]*\\)\\s*\\{", 8).matcher(masked);
+      if (!header.find()) {
+         return null;
+      }
+
+      int bodyStart = header.end() - 1;
+      int bodyEnd = findMatchingBrace(masked, bodyStart);
+      if (bodyEnd < 0) {
+         return null;
+      }
+
+      int returnIndex = findTokenAtDepth(masked, bodyStart + 1, bodyEnd, "return", 0);
+      if (returnIndex < 0) {
+         return null;
+      }
+
+      int objectStart = indexOfBraceAfter(masked, returnIndex + 6, bodyEnd);
+      if (objectStart < 0) {
+         return null;
+      }
+
+      int depth = 0;
+      int elementStart = -1;
+      List<String> keys = new ArrayList();
+
+      for(int i = objectStart; i <= bodyEnd; ++i) {
+         char c = i < masked.length() ? masked.charAt(i) : '}';
+         if (c == '{') {
+            if (depth == 0) {
+               elementStart = i + 1;
+            }
+            ++depth;
+         } else if (c == '}') {
+            --depth;
+            if (depth == 0) {
+               addObjectKey(masked, elementStart, i, keys);
+               break;
+            }
+         } else if (c == ',' && depth == 1) {
+            addObjectKey(masked, elementStart, i, keys);
+            elementStart = i + 1;
+         }
+      }
+
+      return keys;
+   }
+
+   private static void addObjectKey(String masked, int from, int to, List<String> keys) {
+      if (from < 0 || from >= to) {
+         return;
+      }
+
+      String segment = masked.substring(from, to);
+      int colon = segIndexOf(segment, ':');
+      if (colon < 0) {
+         return;
+      }
+
+      String key = segment.substring(0, colon).trim();
+      if (key.isEmpty()) {
+         return;
+      }
+
+      if ((key.startsWith("\"") && key.endsWith("\"")) || (key.startsWith("'") && key.endsWith("'")) || (key.startsWith("`") && key.endsWith("`"))) {
+         key = key.substring(1, key.length() - 1);
+      } else {
+         int end = 0;
+         while(end < key.length() && isWordChar(key.charAt(end))) {
+            ++end;
+         }
+         key = key.substring(0, end);
+      }
+
+      if (!key.isEmpty()) {
+         keys.add(key);
+      }
+   }
+
+   private static int segIndexOf(String segment, char target) {
+      for(int i = 0; i < segment.length(); ++i) {
+         if (segment.charAt(i) == target) {
+            return i;
+         }
+      }
+
+      return -1;
+   }
+
+   private static boolean isWordChar(char c) {
+      return c == '_' || c == '$' || Character.isLetterOrDigit(c);
+   }
+
+   private static int findMatchingBrace(String masked, int openIndex) {
+      int depth = 0;
+
+      for(int i = openIndex; i < masked.length(); ++i) {
+         char c = masked.charAt(i);
+         if (c == '{') {
+            ++depth;
+         } else if (c == '}') {
+            --depth;
+            if (depth == 0) {
+               return i;
+            }
+         }
+      }
+
+      return -1;
+   }
+
+   private static int findTokenAtDepth(String masked, int from, int to, String token, int targetDepth) {
+      int depth = 0;
+      int index = from;
+
+      while(index < to && index < masked.length()) {
+         char c = masked.charAt(index);
+         if (c == '{') {
+            ++depth;
+         } else if (c == '}' && depth > targetDepth) {
+            --depth;
+         } else if (depth == targetDepth) {
+            if (c == '}') {
+               return -1;
+            }
+
+            if (isWordStart(masked, index, token)) {
+               return index;
+            }
+         }
+         ++index;
+      }
+
+      return -1;
+   }
+
+   private static boolean isWordStart(String masked, int index, String token) {
+      if (index + token.length() > masked.length()) {
+         return false;
+      }
+
+      for(int i = 0; i < token.length(); ++i) {
+         if (masked.charAt(index + i) != token.charAt(i)) {
+            return false;
+         }
+      }
+
+      char before = index > 0 ? masked.charAt(index - 1) : ' ';
+      char after = index + token.length() < masked.length() ? masked.charAt(index + token.length()) : ' ';
+      return !isWordChar(before) && !isWordChar(after);
+   }
+
+   private static int indexOfBraceAfter(String masked, int from, int to) {
+      int index = from;
+      int end = Math.min(to, masked.length());
+
+      while(index < end) {
+         char c = masked.charAt(index);
+         if (c == '{') {
+            return index;
+         }
+         if (c == ';') {
+            return -1;
+         }
+         ++index;
+      }
+
+      return -1;
+   }
+
+   private static String maskStringsAndComments(String source) {
+      StringBuilder masked = new StringBuilder(source.length());
+      boolean lineComment = false;
+      boolean blockComment = false;
+      boolean escaped = false;
+      char quote = '\u0000';
+
+      for(int index = 0; index < source.length(); ++index) {
+         char character = source.charAt(index);
+         char next = index + 1 < source.length() ? source.charAt(index + 1) : '\u0000';
+         boolean mask = lineComment || blockComment || quote != '\u0000';
+
+         if (lineComment) {
+            if (character == '\n') {
+               lineComment = false;
+               mask = false;
+            }
+         } else if (blockComment) {
+            if (character == '*' && next == '/') {
+               blockComment = false;
+            }
+         } else if (quote != '\u0000') {
+            if (escaped) {
+               escaped = false;
+            } else if (character == '\\') {
+               escaped = true;
+            } else if (character == quote) {
+               quote = '\u0000';
+            }
+         } else if (character == '/' && next == '/') {
+            lineComment = true;
+            mask = true;
+         } else if (character == '/' && next == '*') {
+            blockComment = true;
+            mask = true;
+         } else if (character == '\'' || character == '\"' || character == '`') {
+            quote = character;
+            mask = true;
+         }
+
+         masked.append(mask && character != '\n' ? ' ' : character);
+      }
+
+      return masked.toString();
    }
 
    private static boolean isApexMethodCall(Matcher match, String fullText) {

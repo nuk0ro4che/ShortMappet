@@ -209,6 +209,7 @@ public final class LegacyEvents {
       protected final class_2338 pos;
       protected final class_2680 state;
       protected final class_1657 player;
+      protected class_2680 brokenBlockOverride;
 
       protected BlockEvent(class_1937 w, class_2338 p, class_2680 s, class_1657 player) {
          this.world = w;
@@ -233,6 +234,14 @@ public final class LegacyEvents {
          return this.player;
       }
 
+      public class_2680 getBrokenBlockOverride() {
+         return this.brokenBlockOverride;
+      }
+
+      public void setBrokenBlockOverride(class_2680 state) {
+         this.brokenBlockOverride = state;
+      }
+
       public static class BreakEvent extends BlockEvent {
          public BreakEvent(class_1937 w, class_2338 p, class_2680 s, class_1657 player) {
             super(w, p, s, player);
@@ -240,12 +249,35 @@ public final class LegacyEvents {
       }
 
       public static class PlaceEvent extends BlockEvent {
+         private class_2680 placeState;
+         private class_2338 placePos;
+
          public PlaceEvent(class_1937 w, class_2338 p, class_2680 s, class_1657 player) {
             super(w, p, s, player);
          }
 
          public class_2680 getPlacedBlock() {
             return this.state;
+         }
+
+         public void setPlacedBlock(class_2680 state) {
+            this.placeState = state;
+         }
+
+         public void setPlacePos(class_2338 pos) {
+            this.placePos = pos;
+         }
+
+         public class_2680 getFinalPlacedBlock() {
+            return this.placeState != null ? this.placeState : this.state;
+         }
+
+         public class_2338 getFinalPos() {
+            return this.placePos != null ? this.placePos : this.pos;
+         }
+
+         public boolean hasPlaceOverride() {
+            return this.placeState != null || this.placePos != null;
          }
       }
    }
@@ -279,8 +311,23 @@ public final class LegacyEvents {
    }
 
    public static class LivingDamageEvent extends LivingAttackEvent {
+      private float modifiedAmount;
+
       public LivingDamageEvent(class_1309 e, class_1282 s, float a) {
          super(e, s, a);
+         this.modifiedAmount = a;
+      }
+
+      public float getAmount() {
+         return this.modifiedAmount;
+      }
+
+      public void setAmount(float amount) {
+         this.modifiedAmount = amount;
+      }
+
+      public void resetAmount() {
+         this.modifiedAmount = super.getAmount();
       }
    }
 

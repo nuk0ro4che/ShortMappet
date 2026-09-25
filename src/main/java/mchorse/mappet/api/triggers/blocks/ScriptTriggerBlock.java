@@ -1,13 +1,21 @@
 package mchorse.mappet.api.triggers.blocks;
 
+import java.util.Map;
 import javax.script.ScriptException;
 import mchorse.mappet.Mappet;
 import mchorse.mappet.MappetClient;
 import mchorse.mappet.api.scripts.Script;
+import mchorse.mappet.api.scripts.client.ClientScriptExecutor;
 import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.utils.ScriptUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.class_124;
+import net.minecraft.class_2338;
 import net.minecraft.class_2487;
+import net.minecraft.class_2680;
+import net.minecraft.class_310;
+import net.minecraft.class_3222;
 
 public class ScriptTriggerBlock extends DataTriggerBlock {
    private static final long MISSING_FUNCTION_LOG_INTERVAL_MS = 5000L;
@@ -70,7 +78,11 @@ public class ScriptTriggerBlock extends DataTriggerBlock {
       if (!this.string.isEmpty()) {
          try {
             DataContext data = this.apply(context);
-            Mappet.scripts.execute(this.string, this.function.trim(), data);
+            Object result = Mappet.scripts.execute(this.string, this.function.trim(), data);
+            if (result instanceof Number || result instanceof Map) {
+               context.setResult(result);
+            }
+            context.applyResult();
             if (!context.isCanceled()) {
                context.cancel(data.isCanceled());
             }
@@ -84,22 +96,44 @@ public class ScriptTriggerBlock extends DataTriggerBlock {
    }
 
    private void triggerClient(DataContext context) {
-      if (MappetClient.clientScriptRuntime == null) {
-         return;
-      }
-
+      boolean overrideRequested = false;
       if (this.inline) {
-         try {
-            MappetClient.clientScriptRuntime.eval(ScriptUtils.sanitize(ScriptUtils.getEngineByExtension("js")), this.code, context);
-         } catch (ScriptException scriptException) {
-            Mappet.logger.error(scriptException.getMessage());
+         if (MappetClient.clientScriptRuntime != null) {
+            try {
+               Object result = MappetClient.clientScriptRuntime.eval(ScriptUtils.sanitize(ScriptUtils.getEngineByExtension("js")), this.code, context);
+               if (result instanceof Number || result instanceof Map) {
+                  context.setResult(result);
+               }
+               if (result instanceof Map && this.hasBlockOverrideKeys((Map<?, ?>)result)) {
+                  overrideRequested = true;
+               }
+               context.applyResult();
+            } catch (ScriptException scriptException) {
+               Mappet.logger.error(scriptException.getMessage());
+            }
          }
       }
 
       if (!this.string.isEmpty()) {
          try {
             DataContext data = this.apply(context);
-            MappetClient.clientScriptRuntime.execute(this.string, this.function.trim(), data);
+            Object result = null;
+            if (MappetClient.clientScriptRuntime != null) {
+               result = MappetClient.clientScriptRuntime.execute(this.string, this.function.trim(), data);
+            } else {
+               class_3222 player = data.getPlayer() instanceof class_3222 ? (class_3222)data.getPlayer() : null;
+               if (player != null) {
+                  ClientScriptExecutor.execute(player, this.string, this.function.trim());
+               }
+            }
+            if (result instanceof Number || result instanceof Map) {
+               context.setResult(result);
+            }
+            if (result instanceof Map && this.hasBlockOverrideKeys((Map<?, ?>)result)) {
+               overrideRequested = true;
+            }
+            context.applyResult();
+            Mappet.logger.info("CLIENT-TRIGGER result=" + (result == null ? "null" : result.getClass().getName()) + " block=" + context.getValue("x") + "," + context.getValue("y") + "," + context.getValue("z") + " -> " + context.getValue("block") + "; canceled=" + data.isCanceled());
             if (!context.isCanceled()) {
                context.cancel(data.isCanceled());
             }
@@ -108,6 +142,37 @@ public class ScriptTriggerBlock extends DataTriggerBlock {
          } catch (Exception e) {
             e.printStackTrace();
          }
+      }
+
+      if (overrideRequested) {
+         this.applyClientVisualBlock(context);
+      }
+   }
+
+   private boolean hasBlockOverrideKeys(Map<?, ?> map) {
+      return map == null ? false : map.containsKey("block") || map.containsKey("meta") || (map.containsKey("x") && map.containsKey("y") && map.containsKey("z"));
+   }
+
+   @Environment(EnvType.CLIENT)
+   private void applyClientVisualBlock(DataContext context) {
+      Object x = context.getValue("x");
+      Object y = context.getValue("y");
+      Object z = context.getValue("z");
+      Object blockId = context.getValue("block");
+      Object meta = context.getValue("meta");
+      if (!(x instanceof Number) || !(y instanceof Number) || !(z instanceof Number) || !(blockId instanceof String) || !(meta instanceof Number)) {
+         return;
+      }
+
+      class_310 client = class_310.method_1551();
+      if (client == null || client.field_1687 == null) {
+         return;
+      }
+
+      String id = ((String)blockId).contains(":") ? (String)blockId : "minecraft:" + blockId;
+      class_2680 state = mchorse.mappet.EventHandler.resolveBlockStateId(id, ((Number)meta).intValue());
+      if (state != null) {
+         client.field_1687.method_8652(new class_2338(((Number)x).intValue(), ((Number)y).intValue(), ((Number)z).intValue()), state, 11);
       }
    }
 

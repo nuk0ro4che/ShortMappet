@@ -12,12 +12,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin({class_1657.class})
 public abstract class PlayerEntityMixin implements CharacterHolder {
    @Unique
    private final Character mappet$character = new Character();
+   @Unique
+   private LegacyEvents.LivingDamageEvent mappet$lastDamageEvent;
 
     public Character mappet$getCharacter() {
        return this.mappet$character;
@@ -32,11 +35,27 @@ public abstract class PlayerEntityMixin implements CharacterHolder {
        class_1657 player = (class_1657)(Object)this;
        if (!player.method_37908().field_9236) {
           LegacyEvents.LivingDamageEvent event = new LegacyEvents.LivingDamageEvent(player, source, amount);
+          this.mappet$lastDamageEvent = event;
           CommonProxy.eventHandler.onEntityHurt(event);
           if (event.isCanceled()) {
              ci.cancel();
           }
        }
+    }
+
+    @ModifyVariable(
+       method = {"method_6074"},
+       at = @At("HEAD"),
+       argsOnly = true
+    )
+    private float mappet$modifiedDamage(float amount) {
+       LegacyEvents.LivingDamageEvent event = this.mappet$lastDamageEvent;
+       if (event != null) {
+          float modifiedAmount = Math.max(0.0F, event.getAmount());
+          this.mappet$lastDamageEvent = null;
+          return modifiedAmount;
+       }
+       return amount;
     }
 
     @Inject(

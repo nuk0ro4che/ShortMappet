@@ -8,6 +8,7 @@ import mchorse.mappet.api.factions.FactionAttitude;
 import mchorse.mappet.api.npcs.Npc;
 import mchorse.mappet.api.npcs.NpcDrop;
 import mchorse.mappet.api.npcs.NpcState;
+import mchorse.mappet.api.scripts.code.entities.ScriptEntity;
 import mchorse.mappet.api.scripts.code.nbt.ScriptNBTCompound;
 import mchorse.mappet.api.scripts.user.nbt.INBTCompound;
 import mchorse.mappet.api.states.States;
@@ -462,11 +463,28 @@ public class EntityNpc extends class_1314 implements IMorphProvider {
 
 
 
+      return applied;
+   }
+
+   @Override
+   public void method_6074(class_1282 source, float amount) {
       if (!this.method_37908().field_9236) {
-         this.state.triggerDamaged.trigger((class_1309)this);
+         class_1309 attacker = source.method_5529() instanceof class_1309 ? (class_1309)source.method_5529() : null;
+         DataContext context = (new DataContext(this, source.method_5529())).set("damage", (double)amount);
+         context.getValues().put("damageType", source.method_5525());
+         context.getValues().put("attacker", ScriptEntity.create(attacker));
+         this.state.triggerDamaged.trigger(context);
+         if (context.isCanceled()) {
+            return;
+         }
+         context.applyResult();
+         Object result = context.getResult();
+         if (result instanceof Number) {
+            amount = Math.max(0.0F, ((Number)result).floatValue());
+         }
       }
 
-      return applied;
+      super.method_6074(source, amount);
    }
 
    public boolean method_5679(class_1282 source) {

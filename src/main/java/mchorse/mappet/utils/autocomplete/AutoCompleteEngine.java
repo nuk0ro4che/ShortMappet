@@ -424,6 +424,10 @@ public class AutoCompleteEngine {
          return direct;
       }
 
+      if (DocResolver.isBareFunctionCallAssignment(fullText, varName)) {
+         return DocResolver.resolveBareCallReturnType(varName, fullText);
+      }
+
       Pattern hudMethod = Pattern.compile("(?:var|let|const)\\s+" + Pattern.quote(varName) + "\\s*=\\s*[\\w.]+\\.getAllHud\\s*\\(", 8);
       if (hudMethod.matcher(fullText).find()) {
          return "IHudElement";

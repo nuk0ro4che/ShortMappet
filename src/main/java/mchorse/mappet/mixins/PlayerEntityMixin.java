@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({class_1657.class})
 public abstract class PlayerEntityMixin implements CharacterHolder {
@@ -27,18 +28,18 @@ public abstract class PlayerEntityMixin implements CharacterHolder {
     }
 
 @Inject(
-       method = {"method_6074"},
-       at = {@At("HEAD")},
-       cancellable = true
-    )
-    private void mappet$damage(class_1282 source, float amount, CallbackInfo ci) {
+        method = {"method_5643"},
+        at = {@At("HEAD")},
+        cancellable = true
+     )
+    private void mappet$fullDamage(class_1282 source, float amount, CallbackInfoReturnable<Boolean> cir) {
        class_1657 player = (class_1657)(Object)this;
        if (!player.method_37908().field_9236) {
           LegacyEvents.LivingDamageEvent event = new LegacyEvents.LivingDamageEvent(player, source, amount);
           this.mappet$lastDamageEvent = event;
           CommonProxy.eventHandler.onEntityHurt(event);
           if (event.isCanceled()) {
-             ci.cancel();
+             cir.setReturnValue(false);
           }
        }
     }

@@ -8,6 +8,7 @@ public class PacketContentFolder extends PacketContentBase {
    public String name = "";
    public String path = "";
    public String rename;
+   public String move;
    public Boolean delete = false;
 
    public PacketContentFolder() {
@@ -24,6 +25,11 @@ public class PacketContentFolder extends PacketContentBase {
       return this;
    }
 
+   public PacketContentFolder move(String move) {
+      this.move = move;
+      return this;
+   }
+
    public PacketContentFolder delete() {
       this.delete = true;
       return this;
@@ -37,6 +43,10 @@ public class PacketContentFolder extends PacketContentBase {
          this.rename = ForgeByteBufUtils.readUTF8String(buf);
       }
 
+      if (buf.readBoolean()) {
+         this.move = ForgeByteBufUtils.readUTF8String(buf);
+      }
+
       this.delete = buf.readBoolean();
    }
 
@@ -47,6 +57,11 @@ public class PacketContentFolder extends PacketContentBase {
       buf.writeBoolean(this.rename != null);
       if (this.rename != null) {
          ForgeByteBufUtils.writeUTF8String(buf, this.rename);
+      }
+
+      buf.writeBoolean(this.move != null);
+      if (this.move != null) {
+         ForgeByteBufUtils.writeUTF8String(buf, this.move);
       }
 
       buf.writeBoolean(this.delete);

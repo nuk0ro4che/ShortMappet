@@ -19,6 +19,7 @@ public class States implements INBTSerializable<class_2487> {
    public static final String QUEST_PREFIX = "quests.";
    public static final String DIALOGUE_PREFIX = "dialogue.";
    public static final String FACTIONS_PREFIX = "factions.";
+   public static final String GLOBAL_TARGET = "~global";
    public Map<String, Object> values = new HashMap();
    private File file;
 

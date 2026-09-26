@@ -27,6 +27,13 @@ public class ServerHandlerContentFolder extends ServerMessageHandler<PacketConte
          }
 
          deleteFolder.delete();
+      } else if (message.move != null && !message.path.isEmpty()) {
+         File moveFolder = folder.resolve(message.path).toFile();
+         File target = folder.resolve(message.move).toFile();
+         if (target.getParentFile() != null) {
+            target.getParentFile().mkdirs();
+         }
+         moveFolder.renameTo(target);
       } else {
          folder.resolve(message.path + message.name).toFile().mkdirs();
       }

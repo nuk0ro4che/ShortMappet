@@ -834,6 +834,9 @@ mappet.gui.scripts.globalsearch=Global search
 
 mappet.gui.states.server=Server states
 mappet.gui.states.player=%s's states
+mappet.gui.states.global=Global
+mappet.gui.states.global_title=Global states
+mappet.gui.states.global_tooltip=Global states (available only with the global Mappet folder enabled)
 mappet.gui.states.pick=Pick states target
 mappet.gui.states.empty=There are no states to edit. Create one by pressing "+" button...
 

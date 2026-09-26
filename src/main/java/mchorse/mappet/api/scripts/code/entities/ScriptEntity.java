@@ -751,7 +751,7 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
       return type == null ? null : entity.method_5996(type);
    }
 
-   public void setModifier(String modifierName, double value) {
+   public void setAttributeModifier(String modifierName, double value) {
       if (this.entity instanceof class_1309) {
          class_1309 entityLivingBase = (class_1309)this.entity;
          UUID uuid = entityLivingBase.method_5667();
@@ -770,7 +770,7 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
 
    }
 
-   public double getModifier(String modifierName) {
+   public double getAttributeModifier(String modifierName) {
       if (this.entity instanceof class_1309) {
          class_1309 entityLivingBase = (class_1309)this.entity;
          class_1324 attribute = getAttribute(entityLivingBase, modifierName);
@@ -783,7 +783,7 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
       return (double)0.0F;
    }
 
-   public void removeModifier(String modifierName) {
+   public void removeAttributeModifier(String modifierName) {
       if (this.entity instanceof class_1309) {
          class_1309 entityLivingBase = (class_1309)this.entity;
          class_1324 attribute = getAttribute(entityLivingBase, modifierName);
@@ -797,7 +797,7 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
 
    }
 
-   public void removeAllModifiers() {
+   public void removeAllAttributeModifiers() {
       if (this.entity instanceof class_1309) {
          class_1309 entityLivingBase = (class_1309)this.entity;
 

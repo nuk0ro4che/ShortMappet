@@ -29,6 +29,8 @@ public interface IScriptServer {
 
    IMappetStates getStates();
 
+   IMappetStates getGlobalStates();
+
    boolean entityExists(String var1);
 
    void executeScript(String var1);

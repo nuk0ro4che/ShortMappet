@@ -226,13 +226,13 @@ public interface IScriptEntity {
 
    boolean clearLeashHolder(boolean var1);
 
-   void setModifier(String var1, double var2);
+   void setAttributeModifier(String var1, double var2);
 
-   double getModifier(String var1);
+   double getAttributeModifier(String var1);
 
-   void removeModifier(String var1);
+   void removeAttributeModifier(String var1);
 
-   void removeAllModifiers();
+   void removeAllAttributeModifiers();
 
    void applyPotion(class_1291 var1, int var2, int var3, boolean var4);
 

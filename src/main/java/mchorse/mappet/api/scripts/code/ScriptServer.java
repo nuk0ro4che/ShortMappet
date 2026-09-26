@@ -104,6 +104,10 @@ public class ScriptServer implements IScriptServer {
       return this.states;
    }
 
+   public IMappetStates getGlobalStates() {
+      return Mappet.globalStates == null ? null : new MappetStates(Mappet.globalStates);
+   }
+
    public boolean entityExists(String uuid) throws IllegalArgumentException {
       try {
          UUID parsedUuid = UUID.fromString(uuid);

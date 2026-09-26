@@ -94,6 +94,7 @@ public final class Mappet implements ModInitializer {
    public static ServerSettings settings;
     public static ClientSettings clientSettings;
    public static States states;
+   public static States globalStates;
    public static QuestManager quests;
    public static SchematicManager schematics;
    public static CraftingManager crafting;
@@ -224,6 +225,14 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
       return FabricLoader.getInstance().getGameDir().resolve("mappet").toFile();
    }
 
+   public static File getWorldMappetFolder(MinecraftServer server) {
+      if (server == null) {
+         return null;
+      }
+
+      return server.method_27050(class_5218.field_24188).resolve("mappet").toFile();
+   }
+
    public static File getWorldRoot(MinecraftServer server) {
       if (server == null) {
          return null;
@@ -232,7 +241,7 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
       if (globalMappet != null && (Boolean)globalMappet.get()) {
          return getGlobalMappetFolder();
       } else {
-         return server.method_27050(class_5218.field_24188).resolve("mappet").toFile();
+         return getWorldMappetFolder(server);
       }
    }
 
@@ -275,8 +284,12 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
       settings.load();
       clientSettings = new ClientSettings(new File(root, "client_settings.json"));
       clientSettings.load();
-      states = new States(new File(root, "states.json"));
+      states = new States(new File(getWorldMappetFolder(server), "states.json"));
       states.load();
+      globalStates = (globalMappet != null && (Boolean)globalMappet.get()) ? new States(new File(getGlobalMappetFolder(), "states.json")) : null;
+      if (globalStates != null) {
+         globalStates.load();
+      }
       quests = new QuestManager(new File(root, "quests"));
       schematics = new SchematicManager(new File(root, "schematics"));
       crafting = new CraftingManager(new File(root, "crafting"));
@@ -359,6 +372,10 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
          states.save();
       }
 
+      if (globalStates != null) {
+         globalStates.save();
+      }
+
       if (clientSettings != null) {
          clientSettings.save();
       }
@@ -366,6 +383,7 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
       settings = null;
       clientSettings = null;
       states = null;
+      globalStates = null;
       quests = null;
       schematics = null;
       crafting = null;

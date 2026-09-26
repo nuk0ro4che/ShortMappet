@@ -824,6 +824,9 @@ mappet.gui.scripts.globalsearch=Глобальный поиск
 
 mappet.gui.states.server=Серверные состояния
 mappet.gui.states.player=Состояния %s
+mappet.gui.states.global=Глобальные
+mappet.gui.states.global_title=Глобальные состояния
+mappet.gui.states.global_tooltip=Глобальные состояния (доступны только при включённой глобальной папке Mappet)
 mappet.gui.states.pick=Выберите цель
 mappet.gui.states.empty=Нет состояний для редактирования. Добавьте одно нажатием кнопки "+"...
 

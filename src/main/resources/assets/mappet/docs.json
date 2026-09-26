@@ -4012,8 +4012,8 @@
           "annotations": []
         },
         {
-          "name": "setModifier",
-          "doc": "Устанавливает значение модификатора сущности.\n\n <pre>{@code\n     c.getSubject().setModifier(\"generic.movementSpeed\", 0.5);\n }</pre>",
+          "name": "setAttributeModifier",
+          "doc": "Устанавливает значение модификатора атрибута сущности.\n\n <pre>{@code\n     c.getSubject().setAttributeModifier(\"minecraft:generic.movement_speed\", 0.5);\n }</pre>",
           "returns": {
             "type": "void"
           },
@@ -4030,8 +4030,8 @@
           "annotations": []
         },
         {
-          "name": "getModifier",
-          "doc": "Возвращает значение модификатора сущности.\n\n <pre>{@code\n     c.send(c.getSubject().getModifier(\"generic.movementSpeed\"));\n }</pre>",
+          "name": "getAttributeModifier",
+          "doc": "Возвращает значение модификатора атрибута сущности.\n\n <pre>{@code\n     c.send(c.getSubject().getAttributeModifier(\"minecraft:generic.movement_speed\"));\n }</pre>",
           "returns": {
             "type": "double"
           },
@@ -4044,8 +4044,8 @@
           "annotations": []
         },
         {
-          "name": "removeModifier",
-          "doc": "Удаляет указанный модификатор у сущности.\n\n <pre>{@code\n     c.getSubject().removeModifier(\"generic.movementSpeed\");\n }</pre>",
+          "name": "removeAttributeModifier",
+          "doc": "Удаляет указанный модификатор атрибута у сущности.\n\n <pre>{@code\n     c.getSubject().removeAttributeModifier(\"minecraft:generic.movement_speed\");\n }</pre>",
           "returns": {
             "type": "void"
           },
@@ -4058,8 +4058,8 @@
           "annotations": []
         },
         {
-          "name": "removeAllModifiers",
-          "doc": "Удаляет все модификаторы сущности.\n\n <pre>{@code\n     c.getSubject().removeAllModifiers();\n }</pre>",
+          "name": "removeAllAttributeModifiers",
+          "doc": "Удаляет все модификаторы атрибутов сущности.\n\n <pre>{@code\n     c.getSubject().removeAllAttributeModifiers();\n }</pre>",
           "returns": {
             "type": "void"
           },
@@ -6488,6 +6488,15 @@
         {
           "name": "getStates",
           "doc": "Получить глобальные состояния сервера.\n\n <pre>{@code\n    var states = c.getServer().getStates();\n\n    if (states.getNumber(\"total_money_earned\") > 1000000000)\n    {\n        // Give all players an achievement or something...\n    }\n }</pre>",
+          "returns": {
+            "type": "mchorse.mappet.api.scripts.user.mappet.IMappetStates"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getGlobalStates",
+          "doc": "Получить глобальные состояния сервера. Работают как отдельное хранилище поверх серверных состояний — доступны только при включённой глобальной папке Mappet, иначе вернётся null.\n\n <pre>{@code\n    var states = c.getServer().getGlobalStates();\n\n    if (states)\n    {\n        var kills = states.getNumber(\"total_kills\");\n        states.setNumber(\"total_kills\", kills + 1);\n    }\n }</pre>",
           "returns": {
             "type": "mchorse.mappet.api.scripts.user.mappet.IMappetStates"
           },

@@ -13,10 +13,14 @@ public class ServerHandlerStates extends ServerMessageHandler<PacketStates> {
    public static States getStates(MinecraftServer server, String target) {
       if (target.equals("~")) {
          return Mappet.states;
-      } else {
-         class_3222 player = server.method_3760().method_14566(target);
-         return target != null ? Character.get(player).getStates() : null;
       }
+
+      if (target.equals(States.GLOBAL_TARGET)) {
+         return Mappet.globalStates;
+      }
+
+      class_3222 player = server.method_3760().method_14566(target);
+      return target != null ? Character.get(player).getStates() : null;
    }
 
    public void run(class_3222 player, PacketStates message) {

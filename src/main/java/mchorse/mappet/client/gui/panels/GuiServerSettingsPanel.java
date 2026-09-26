@@ -50,10 +50,15 @@ import org.lwjgl.input.Keyboard;
 
 public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard> {
    public GuiElement states;
+   public GuiElement serverStates;
+   public GuiElement globalStates;
    public GuiStatesEditor statesEditor;
+   public GuiStatesEditor globalStatesEditor;
    public GuiLabel statesTitle;
+   public GuiLabel globalStatesTitle;
    public GuiIconElement statesSwitch;
    public GuiIconElement statesAdd;
+   public GuiIconElement globalStatesAdd;
    public GuiLabelSearchListElement<String> triggers;
    public GuiTriggerElement trigger;
    public GuiElement triggerCategoryTabs;
@@ -83,19 +88,33 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    private class_2487 settingsSnapshot;
    private class_2487 statesSnapshot;
    private String statesSnapshotTarget;
+   private class_2487 globalStatesSnapshot;
 
    public GuiServerSettingsPanel(class_310 mc, GuiMappetDashboard dashboard) {
       super(mc, dashboard);
       this.states = new GuiElement(mc);
       this.states.flex().relative(this).wh(0.5F, 1.0F);
+      this.serverStates = new GuiElement(mc);
+      this.serverStates.flex().relative(this.states).wh(1.0F, 1.0F);
       this.statesEditor = new GuiStatesEditor(mc);
-      this.statesEditor.flex().relative(this.states).y(35).w(1.0F).h(1.0F, -35);
+      this.statesEditor.flex().relative(this.serverStates).y(35).w(1.0F).h(1.0F, -35);
       this.statesTitle = Elements.label(IKey.str("")).anchor(0.0F, 0.5F).background();
-      this.statesTitle.flex().relative(this.states).xy(10, 10).wh(120, 20);
+      this.statesTitle.flex().relative(this.serverStates).xy(10, 10).wh(120, 20);
       this.statesSwitch = new GuiIconElement(mc, Icons.SEARCH, this::openSearch);
-      this.statesSwitch.flex().relative(this.states).x(1.0F, -50).y(10);
+      this.statesSwitch.flex().relative(this.serverStates).x(1.0F, -50).y(10);
       this.statesAdd = new GuiIconElement(mc, Icons.ADD, this::addState);
-      this.statesAdd.flex().relative(this.states).x(1.0F, -30).y(10);
+      this.statesAdd.flex().relative(this.serverStates).x(1.0F, -30).y(10);
+      this.globalStates = new GuiElement(mc);
+      this.globalStates.flex().relative(this.states).y(0.5F).wh(1.0F, 0.5F);
+      this.globalStatesTitle = Elements.label(IKey.lang("mappet.gui.states.global_title")).anchor(0.0F, 0.5F).background();
+      this.globalStatesTitle.flex().relative(this.globalStates).xy(10, 10).wh(160, 20);
+      this.globalStatesAdd = new GuiIconElement(mc, Icons.ADD, this::addGlobalState);
+      this.globalStatesAdd.flex().relative(this.globalStates).x(1.0F, -30).y(10);
+      this.globalStatesEditor = new GuiStatesEditor(mc);
+      this.globalStatesEditor.flex().relative(this.globalStates).y(35).w(1.0F).h(1.0F, -35);
+      this.serverStates.add(new IGuiElement[]{this.statesTitle, this.statesSwitch, this.statesAdd, this.statesEditor});
+      this.globalStates.add(new IGuiElement[]{this.globalStatesTitle, this.globalStatesAdd, this.globalStatesEditor});
+      this.globalStates.setVisible(false);
       this.globalTriggersLayout = new GuiElement(mc);
       this.globalTriggersLayout.flex().relative(this).wh(0.5F, 0.5F);
       this.triggerCategoryTabs = new GuiElement(mc);
@@ -147,7 +166,7 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
       this.resetChanges = new GuiIconElement(mc, Icons.REFRESH, (b) -> this.resetChanges());
       this.resetChanges.tooltip(IKey.str("Сбросить изменения"), Direction.LEFT);
       this.resetChanges.flex().relative(this).x(1.0F, -68).y(20).wh(20, 20).anchor(0.5F, 0.5F);
-      this.states.add(new IGuiElement[]{this.statesTitle, this.statesSwitch, this.statesAdd, this.statesEditor});
+      this.states.add(new IGuiElement[]{this.serverStates, this.globalStates});
       this.globalTriggersLayout.add(new IGuiElement[]{this.triggerCategoryTabs, this.modTriggerToggle, this.triggers, this.editor, this.trigger, triggersLabel});
       this.forgeTriggersLayout.add(new IGuiElement[]{this.forgeTriggers, this.forgeTrigger, forgeTriggersLabel, forgeAttention});
       this.add(new IGuiElement[]{this.states, this.hotkeys, this.applyChanges, this.resetChanges, this.globalTriggersLayout});
@@ -328,6 +347,17 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
       this.statesEditor.addNew();
    }
 
+   private void addGlobalState(GuiIconElement element) {
+      this.globalStatesEditor.addNew();
+   }
+
+   private void updateStatesLayout() {
+      boolean global = Mappet.globalMappet != null && Mappet.globalMappet.get();
+      this.globalStates.setVisible(global);
+      this.serverStates.flex().relative(this.states).wh(1.0F, global ? 0.5F : 1.0F);
+      this.resize();
+   }
+
    private void openHotkeysEditor() {
       GuiTriggerHotkeysOverlayPanel overlay = new GuiTriggerHotkeysOverlayPanel(this.mc, this.settings.hotkeys);
       GuiOverlay.addOverlay(GuiBase.getCurrent(), overlay, 0.5F, 0.7F);
@@ -376,8 +406,14 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
 
    public void fillStates(String target, class_2487 data) {
       States states = new States();
-      this.statesTitle.label = target.equals("~") ? IKey.lang("mappet.gui.states.server") : IKey.format("mappet.gui.states.player", new Object[]{target});
       states.deserializeNBT(data);
+      if (States.GLOBAL_TARGET.equals(target)) {
+         this.globalStatesEditor.set(states);
+         this.globalStatesSnapshot = this.copyTag(data);
+         return;
+      }
+
+      this.statesTitle.label = target.equals("~") ? IKey.lang("mappet.gui.states.server") : IKey.format("mappet.gui.states.player", new Object[]{target});
       this.statesEditor.set(states);
       this.lastTarget = target;
       this.lastStates = target;
@@ -387,7 +423,7 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
 
    
    public boolean hasUnsavedChanges() {
-      return this.isSettingsDirty() || this.isStatesDirty();
+      return this.isSettingsDirty() || this.isStatesDirty() || this.isGlobalStatesDirty();
    }
 
    private boolean isSettingsDirty() {
@@ -398,6 +434,11 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    private boolean isStatesDirty() {
       return this.statesEditor.get() != null && this.statesSnapshot != null
          && !this.statesEditor.get().serializeNBT().equals(this.statesSnapshot);
+   }
+
+   private boolean isGlobalStatesDirty() {
+      return this.globalStatesEditor.get() != null && this.globalStatesSnapshot != null
+         && !this.globalStatesEditor.get().serializeNBT().equals(this.globalStatesSnapshot);
    }
 
    private class_2487 copyTag(class_2487 tag) {
@@ -426,6 +467,12 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
          this.statesSnapshot = this.copyTag(tag);
          this.statesSnapshotTarget = this.lastTarget;
       }
+
+      if (this.globalStatesEditor.get() != null && this.isGlobalStatesDirty()) {
+         class_2487 tag = this.globalStatesEditor.get().serializeNBT();
+         Dispatcher.sendToServer(new PacketStates(States.GLOBAL_TARGET, tag));
+         this.globalStatesSnapshot = this.copyTag(tag);
+      }
    }
 
    
@@ -444,6 +491,10 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
    public void resetStatesChanges() {
       if (this.statesSnapshot != null) {
          this.fillStates(this.statesSnapshotTarget == null ? this.lastTarget : this.statesSnapshotTarget, this.copyTag(this.statesSnapshot));
+      }
+
+      if (this.globalStatesSnapshot != null) {
+         this.fillStates(States.GLOBAL_TARGET, this.copyTag(this.globalStatesSnapshot));
       }
    }
 
@@ -508,8 +559,12 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
 
    public void appear() {
       super.appear();
+      this.updateStatesLayout();
       Dispatcher.sendToServer(new PacketRequestServerSettings());
       Dispatcher.sendToServer(new PacketRequestStates(this.lastStates));
+      if (Mappet.globalMappet != null && Mappet.globalMappet.get()) {
+         Dispatcher.sendToServer(new PacketRequestStates(States.GLOBAL_TARGET));
+      }
    }
 
    public void disappear() {
@@ -521,11 +576,13 @@ public class GuiServerSettingsPanel extends GuiDashboardPanel<GuiMappetDashboard
       this.statesEditor.set((States)null);
       this.statesSnapshot = null;
       this.statesSnapshotTarget = null;
+      this.globalStatesEditor.set((States)null);
+      this.globalStatesSnapshot = null;
    }
 
    public void draw(mchorse.mclib.client.gui.framework.elements.utils.GuiContext context) {
       boolean settingsDirty = this.isSettingsDirty();
-      boolean statesDirty = this.isStatesDirty();
+      boolean statesDirty = this.isStatesDirty() || this.isGlobalStatesDirty();
       this.applyChanges.setEnabled(settingsDirty || statesDirty);
       this.resetChanges.setEnabled(settingsDirty || statesDirty);
       super.draw(context);

@@ -94,6 +94,7 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
       this.names = new GuiStringFolderSearchListElement(mc, (list) -> this.pickData((String)list.get(0)));
       this.namesList = (GuiStringFolderList)this.names.list;
       this.namesList.onFileDrop(this::moveDataToFolder);
+      this.namesList.onFolderDrop(this::moveFolderToFolder);
       this.names.label(IKey.lang("mappet.gui.search"));
       this.names.flex().relative(this.sidebar).xy(10, 25).w(1.0F, -20).h(1.0F, -35);
       this.names.list.context(() -> {
@@ -335,6 +336,15 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
       }
 
       return output;
+   }
+
+   protected void moveFolderToFolder(String source, String folder) {
+      if (source == null || source.isEmpty() || folder == null) return;
+      if (folder.equals(source) || folder.startsWith(source + "/")) return;
+      String folderName = FilenameUtils.getName(source);
+      String target = folder.isEmpty() ? folderName : (folder.endsWith("/") ? folder + folderName : folder + "/" + folderName);
+      if (target.equals(source)) return;
+      Dispatcher.sendToServer((new PacketContentFolder(this.getType(), "", source)).move(target));
    }
 
    protected void moveDataToFolder(String source, String folder) {

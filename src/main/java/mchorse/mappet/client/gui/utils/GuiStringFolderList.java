@@ -35,6 +35,7 @@ public class GuiStringFolderList extends GuiStringListElement
     private Consumer<String> middleClickCallback;
     private Consumer<List<String>> fileSelectionCallback;
     private BiConsumer<String, String> fileDropCallback;
+    private BiConsumer<String, String> folderDropCallback;
     private String draggingFile;
     private int dragStartY;
     private int dragStartX;
@@ -108,6 +109,12 @@ public class GuiStringFolderList extends GuiStringListElement
     }
 
     
+    public void onFolderDrop(BiConsumer<String, String> callback)
+    {
+        this.folderDropCallback = callback;
+    }
+
+    
     public boolean isContextFile()
     {
         return this.contextFile;
@@ -123,21 +130,29 @@ public class GuiStringFolderList extends GuiStringListElement
         if (this.scroll.isInside(context))
         {
             int index = this.scroll.getIndex(context.mouseX, context.mouseY);
-            if (this.exists(index))
+            if (!this.exists(index))
+            {
+                if (context.mouseButton == 0)
+                {
+                    this.setIndex(-1);
+                    return true;
+                }
+            }
+            else
             {
                 TreeEntry entry = this.entries.get(this.list.get(index));
                 if (context.mouseButton == 1 && entry != null)
                 {
                     this.contextFile = !entry.folder;
                 }
-                if (context.mouseButton == 0 && entry != null && entry.folder && this.isFolderArrow(entry, context.mouseX))
+                if (context.mouseButton == 0 && entry != null)
                 {
-                    this.toggleFolder(entry.path);
-                    return true;
-                }
+                    if (entry.folder && this.isFolderArrow(entry, context.mouseX))
+                    {
+                        this.toggleFolder(entry.path);
+                        return true;
+                    }
 
-                if (context.mouseButton == 0 && entry != null && !entry.folder)
-                {
                     this.draggingFile = entry.path;
                     this.dragStartX = context.mouseX;
                     this.dragStartY = context.mouseY;
@@ -176,9 +191,17 @@ public class GuiStringFolderList extends GuiStringListElement
             if (this.exists(index) && this.fileSelectionCallback != null)
             {
                 TreeEntry entry = this.entries.get(this.list.get(index));
-                if (entry != null && !entry.folder)
+                if (entry != null)
                 {
-                    this.fileSelectionCallback.accept(Collections.singletonList(entry.path));
+                    if (entry.folder)
+                    {
+                        this.setIndex(index);
+                        this.fileCallback(this.fileSelectionCallback, Collections.singletonList(entry.path));
+                    }
+                    else
+                    {
+                        this.fileSelectionCallback.accept(Collections.singletonList(entry.path));
+                    }
                 }
             }
             return;
@@ -210,7 +233,17 @@ public class GuiStringFolderList extends GuiStringListElement
 
         
 
-        if (this.fileDropCallback != null && !destination.equals(parent(source)))
+        TreeEntry sourceEntry = this.entries.get(entryId(source));
+        boolean draggingFolder = sourceEntry != null && sourceEntry.folder;
+
+        if (draggingFolder)
+        {
+            if (this.folderDropCallback != null && !destination.equals(parent(source)) && !destination.startsWith(source + "/"))
+            {
+                this.folderDropCallback.accept(source, destination);
+            }
+        }
+        else if (this.fileDropCallback != null && !destination.equals(parent(source)))
         {
             this.fileDropCallback.accept(source, destination);
         }
@@ -449,8 +482,21 @@ public class GuiStringFolderList extends GuiStringListElement
         int left = Math.max(2, Math.min(context.mouseX - this.dragMouseOffsetX, windowWidth - width - 2));
         int top = Math.max(2, Math.min(context.mouseY - this.dragMouseOffsetY, windowHeight - 18));
         GuiDraw.drawRect(left, top, left + width, top + 16, -10066330);
-        this.fileIcon.render(left + 4, top);
+        Icon icon = this.getDragFileIcon(this.draggingFile);
+        icon.render(left + 4, top);
         GuiDraw.drawString(this.font, label, left + 20, top + 5, -1, false);
+    }
+
+    private Icon getDragFileIcon(String path)
+    {
+        TreeEntry sourceEntry = this.entries.get(entryId(path));
+        if (sourceEntry != null && sourceEntry.folder)
+        {
+            return Icons.FOLDER;
+        }
+
+        Icon icon = this.fileIconResolver == null ? null : this.fileIconResolver.apply(path);
+        return icon == null ? this.fileIcon : icon;
     }
 
     private boolean isVisualDrag(GuiContext context)
@@ -474,6 +520,10 @@ public class GuiStringFolderList extends GuiStringListElement
             if (this.draggingFile != null && hover)
             {
                 GuiDraw.drawRect(this.area.x, y, this.area.ex(), y + 16, -10053172);
+            }
+            if (entry.path.equals(this.draggingFile))
+            {
+                GuiDraw.drawRect(this.area.x, y, this.area.ex(), y + 16, -11513776);
             }
             this.drawFolderArrow(entryX, y, this.expandedFolders.contains(entry.path));
             Icons.FOLDER.render(entryX + 10, y);

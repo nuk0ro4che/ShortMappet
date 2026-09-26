@@ -147,6 +147,26 @@ void disconnect(String reason);
 
    void resetWalkSpeed();
 
+   void disableWalking(boolean var1);
+
+   boolean isWalkingDisabled();
+
+   void disableKey(String var1, boolean var2);
+
+   boolean isKeyDisabled(String var1);
+
+   float getBlockBreakSpeed();
+
+   void setBlockBreakSpeed(float var1);
+
+   void resetBlockBreakSpeed();
+
+   float getSprintSpeed();
+
+   void setSprintSpeed(float var1);
+
+   void resetSprintSpeed();
+
    float getCooldown(int var1);
 
    float getCooldown(IScriptItemStack var1);

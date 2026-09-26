@@ -14,6 +14,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.class_287;
+import net.minecraft.class_332;
 import net.minecraft.class_4597;
 import net.minecraft.class_310;
 
@@ -71,6 +72,10 @@ public final class RenderingHandler {
       GuiQuestTracker.renderQuests(client.method_22683(), tickDelta);
       HUDStage active = currentStage == null ? stage : currentStage;
       active.render(client.method_22683(), tickDelta);
+   }
+
+   public static void renderHudPicker(class_332 context, float tickDelta) {
+      HudIdPicker.render(context, tickDelta);
    }
 
    public static void addOrReplaceWorldMorph(WorldMorph incoming) {

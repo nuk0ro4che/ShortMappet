@@ -992,5 +992,6 @@
     "mappet.gui.client_settings.triggers.variables.block_left_click": "§6block§r, ID блока, по которому кликнули (например §7minecraft:stone§r).\n§6meta§r, мета-значение состояния блока.\n§6x§r, §6y§r и §6z§r в мире.\n§6hand§r, всегда §7main§r.",
     "mappet.gui.client_settings.triggers.client_tick": "Игрок: при тике",
     "mappet.gui.client_settings.triggers.descriptions.client_tick": "Этот триггер срабатывает на §6клиенте§r каждый игровой тик, пока игрок находится в мире.\n\nВ отличие от серверного триггера, этот выполняется целиком на клиенте и ничего не отправляет на сервер, поэтому подходит для локальных звуков, партиклов и анимаций.",
-    "mappet.gui.client_settings.triggers.variables.client_tick": "§7Н/Д§r"
+    "mappet.gui.client_settings.triggers.variables.client_tick": "§7Н/Д§r",
+    "mappet.gui.script_panel.insert_hud_id": "Вставить айди игрового худа"
 }

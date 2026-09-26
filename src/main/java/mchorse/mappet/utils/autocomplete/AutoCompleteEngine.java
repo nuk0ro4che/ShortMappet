@@ -8,10 +8,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import mchorse.mappet.Mappet;
+import mchorse.mappet.client.HudVisibilityState;
 import mchorse.mappet.utils.autocomplete.utils.CollectionResolver;
 import mchorse.mappet.utils.autocomplete.utils.CompletionHelper;
 import mchorse.mappet.utils.autocomplete.utils.DocResolver;
@@ -126,7 +128,8 @@ public class AutoCompleteEngine {
    private static boolean isHudElementName(String name) {
       return name.equals("hotbar") || name.equals("health") || name.equals("hunger") || name.equals("experience")
          || name.equals("crosshair") || name.equals("statusEffects") || name.equals("mountHealth")
-         || name.equals("vignette") || name.equals("spyglass") || name.equals("itemTooltip");
+         || name.equals("vignette") || name.equals("spyglass") || name.equals("itemTooltip")
+         || name.equals("chat") || name.equals("playerList") || name.equals("scoreboard") || name.equals("bossBar");
    }
 
    private static List<String> splitChain(String chain) {
@@ -864,13 +867,13 @@ public class AutoCompleteEngine {
 
    public static List<AutoCompleteConfig.Suggestion> findMatchingHudElementNames(String prefix)
    {
-      String[] names = {"Crosshair", "Hotbar", "Health", "Hunger", "Experience", "StatusEffects", "MountHealth", "Vignette", "Spyglass", "ItemTooltip"};
       String lower = prefix == null ? "" : prefix.toLowerCase();
       List<AutoCompleteConfig.Suggestion> result = new ArrayList();
 
-      for (String name : names)
+      for (HudVisibilityState.Element element : HudVisibilityState.Element.values())
       {
-         if (lower.isEmpty() || name.toLowerCase().startsWith(lower))
+         String name = element.name().toLowerCase(Locale.ROOT);
+         if (lower.isEmpty() || name.startsWith(lower))
          {
             result.add(new AutoCompleteConfig.Suggestion(name, "HUD element", "hud"));
          }

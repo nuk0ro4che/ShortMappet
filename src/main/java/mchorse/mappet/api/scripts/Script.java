@@ -136,7 +136,7 @@ public class Script extends AbstractData {
 
    private int processLibrary(ScriptManager manager, String library, boolean isKotlin, Set<String> uniqueImports, StringBuilder finalCode, int total) {
       try {
-         Script libraryScript = manager.load(library);
+         Script libraryScript = manager.load(manager.resolveLibraryId(library));
          if (libraryScript == null) {
             System.err.println("[Mappet] Script library " + library + ".js failed to load...");
             return total;

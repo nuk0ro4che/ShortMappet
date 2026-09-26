@@ -10,6 +10,8 @@ public class PacketKeyBinding implements IMessage {
    public static final byte REQUEST = 2;
    public static final byte RESPONSE = 3;
    public static final byte ACTIVATE = 4;
+   public static final byte LOCK = 5;
+   public static final byte UNLOCK = 6;
 
    public byte action;
    public String id = "";

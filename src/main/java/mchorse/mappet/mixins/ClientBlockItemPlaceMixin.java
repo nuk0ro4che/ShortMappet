@@ -37,7 +37,6 @@ public abstract class ClientBlockItemPlaceMixin {
 		if (context != null) {
 			class_2680 state = this.method_7707(context);
 			if (state != null && this.method_7709(context, state)) {
-				mchorse.mappet.Mappet.logInfo("CLIENT-PREDICT place at " + context.method_8037().method_10263() + "," + context.method_8037().method_10264() + "," + context.method_8037().method_10260() + " block=" + net.minecraft.class_7923.field_41175.method_10221(state.method_26204()));
 				DataContext data = ClientBlockInteractHandler.onPlaceBlock(context.method_8037(), state);
 				if (data != null && data.isCanceled()) {
 					cir.setReturnValue(class_1269.field_5814);

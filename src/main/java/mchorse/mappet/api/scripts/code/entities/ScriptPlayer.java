@@ -63,6 +63,8 @@ import mchorse.mappet.capabilities.character.ICharacter;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketClipboard;
 import mchorse.mappet.network.common.scripts.PacketMovementLock;
+import mchorse.mappet.network.common.scripts.PacketKeyBinding;
+import mchorse.mappet.network.common.scripts.PacketBlockBreakSpeed;
 import mchorse.mappet.network.common.scripts.PacketEntityRotations;
 import mchorse.mappet.network.common.scripts.PacketOpenWeb;
 import mchorse.mappet.network.common.scripts.PacketPlayModelAnimation;
@@ -98,9 +100,12 @@ import net.minecraft.class_2770;
 import net.minecraft.class_2960;
 import net.minecraft.class_310;
 import net.minecraft.class_3222;
-import net.minecraft.class_746;
 import net.minecraft.class_1324;
 import net.minecraft.class_5134;
+import net.minecraft.class_1309;
+import net.minecraft.class_746;
+import mchorse.mappet.utils.MappetSprintSpeed;
+import mchorse.mappet.utils.MappetBlockBreakSpeed;
 import net.minecraft.class_3419;
 import net.minecraft.class_329;
 import net.minecraft.class_5894;
@@ -189,6 +194,66 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
          Dispatcher.sendTo(new PacketMovementLock(PacketMovementLock.SPRINT, disabled), (class_3222)this.entity);
       } else if (this.entity instanceof class_746) {
          ClientMovementLockState.setSprintDisabled(disabled);
+      }
+   }
+
+   public void disableWalking(boolean disabled) {
+      if (this.entity instanceof class_3222) {
+         Dispatcher.sendTo(new PacketMovementLock(PacketMovementLock.WALK, disabled), (class_3222)this.entity);
+      } else if (this.entity instanceof class_746) {
+         ClientMovementLockState.setWalkDisabled(disabled);
+      }
+   }
+
+   public boolean isWalkingDisabled() {
+      return this.entity instanceof class_746 && ClientMovementLockState.isWalkDisabled();
+   }
+
+   public void disableKey(String bind, boolean disabled) {
+      if (bind == null || bind.isEmpty()) {
+         return;
+      }
+      if (this.entity instanceof class_3222) {
+         Dispatcher.sendTo(new PacketKeyBinding(disabled ? PacketKeyBinding.LOCK : PacketKeyBinding.UNLOCK, bind, ""), (class_3222)this.entity);
+      } else if (this.entity instanceof class_746) {
+         ClientMovementLockState.setBindLocked(bind, disabled);
+      }
+   }
+
+   public boolean isKeyDisabled(String bind) {
+      return this.entity instanceof class_746 && bind != null && ClientMovementLockState.isBindLocked(bind);
+   }
+
+   public float getBlockBreakSpeed() {
+      if (this.entity instanceof class_3222) {
+         Float multiplier = MappetBlockBreakSpeed.get(this.entity.method_5667());
+         return multiplier == null ? 1.0F : multiplier;
+      } else if (this.entity instanceof class_746) {
+         Float multiplier = MappetBlockBreakSpeed.get(this.entity.method_5667());
+         return multiplier == null ? 1.0F : multiplier;
+      }
+      return 1.0F;
+   }
+
+   public void setBlockBreakSpeed(float multiplier) {
+      if (Float.isNaN(multiplier) || Float.isInfinite(multiplier)) {
+         return;
+      }
+      multiplier = Math.max(0.0F, multiplier);
+      if (this.entity instanceof class_3222) {
+         MappetBlockBreakSpeed.set(this.entity.method_5667(), multiplier);
+         Dispatcher.sendTo(new PacketBlockBreakSpeed(multiplier, false), (class_3222)this.entity);
+      } else if (this.entity instanceof class_746) {
+         MappetBlockBreakSpeed.set(this.entity.method_5667(), multiplier);
+      }
+   }
+
+   public void resetBlockBreakSpeed() {
+      if (this.entity instanceof class_3222) {
+         MappetBlockBreakSpeed.remove(this.entity.method_5667());
+         Dispatcher.sendTo(new PacketBlockBreakSpeed(1.0F, true), (class_3222)this.entity);
+      } else if (this.entity instanceof class_746) {
+         MappetBlockBreakSpeed.remove(this.entity.method_5667());
       }
    }
 
@@ -419,6 +484,32 @@ public String getGameMode() {
 
    public void resetWalkSpeed() {
       this.setWalkSpeed(0.1F);
+   }
+
+   public float getSprintSpeed() {
+      if (this.entity instanceof class_3222) {
+         Float speed = MappetSprintSpeed.get(this.entity.method_5667());
+         if (speed != null) {
+            return speed;
+         }
+      }
+      return 0.0F;
+   }
+
+   public void setSprintSpeed(float speed) {
+      if (!(this.entity instanceof class_3222) || Float.isNaN(speed) || Float.isInfinite(speed)) {
+         return;
+      }
+      speed = Math.max(0.0F, speed);
+      MappetSprintSpeed.set(this.entity.method_5667(), speed);
+      MappetSprintSpeed.sync((class_1309) this.entity);
+   }
+
+   public void resetSprintSpeed() {
+      if (this.entity instanceof class_3222) {
+         MappetSprintSpeed.remove(this.entity.method_5667());
+         MappetSprintSpeed.sync((class_1309) this.entity);
+      }
    }
 
    public float getCooldown(IScriptItemStack item) {

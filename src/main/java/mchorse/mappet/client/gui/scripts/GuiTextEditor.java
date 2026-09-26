@@ -4,6 +4,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Comparator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import java.util.regex.Pattern;
 import javax.vecmath.Vector2d;
 import mchorse.mappet.ClientProxy;
 import mchorse.mappet.api.utils.ContentType;
+import mchorse.mappet.client.HudIdPicker;
 import mchorse.mappet.client.gui.scripts.highlights.Highlighters;
 import mchorse.mappet.client.gui.scripts.utils.JavaScriptDiagnostics;
 import mchorse.mappet.client.gui.scripts.utils.JavaScriptDiagnostics.DiagnosticSnapshot;
@@ -34,6 +37,8 @@ import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
 import mchorse.mclib.client.gui.utils.GuiUtils;
 import mchorse.mclib.client.gui.utils.Icons;
+import mchorse.mclib.client.gui.framework.elements.context.GuiSimpleContextMenu;
+import mchorse.mclib.client.gui.utils.keys.IKey;
 import mchorse.mclib.utils.ColorUtils;
 import net.minecraft.class_310;
 import net.minecraft.class_3417;
@@ -91,6 +96,11 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
       this.ensureFoldState();
       this.foldRangesDirty = true;
       requestShaderNames();
+      this.context(() -> {
+         GuiSimpleContextMenu menu = new GuiSimpleContextMenu(mc);
+         menu.action(Icons.CURSOR, IKey.lang("mappet.gui.script_panel.insert_hud_id"), () -> HudIdPicker.start(GuiTextEditor.this));
+         return menu;
+      });
    }
 
    private static void requestShaderNames() {
@@ -712,6 +722,13 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
             result.add(new AutoCompleteConfig.Suggestion(name, (String)entry.getValue(), "var"));
          }
       }
+      String lower = prefix == null ? "" : prefix.toLowerCase(Locale.ROOT);
+      for(String name : this.javaScriptLibraryFunctions) {
+         if ((prefix == null || prefix.isEmpty() || name.toLowerCase(Locale.ROOT).startsWith(lower)) && !this.containsAutoCompleteSuggestion(result, name)) {
+            result.add(new AutoCompleteConfig.Suggestion(name, "", "fn"));
+         }
+      }
+      result.sort(Comparator.comparing((AutoCompleteConfig.Suggestion s) -> s.methodName, String.CASE_INSENSITIVE_ORDER));
       return result;
    }
 

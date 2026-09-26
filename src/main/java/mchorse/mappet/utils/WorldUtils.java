@@ -38,7 +38,7 @@ public class WorldUtils {
             soundCategory = class_3419.field_15250;
          }
 
-         player.field_13987.method_14364(new class_2767(class_6880.method_40223(class_3414.method_47908(id)), soundCategory, x + 0.5, y, z + 0.5, volume, pitch, player.method_6051().method_43055()));
+         player.field_13987.method_14364(new class_2767(class_6880.method_40223(class_3414.method_47908(id)), soundCategory, x, y, z, volume, pitch, player.method_6051().method_43055()));
       }
    }
 

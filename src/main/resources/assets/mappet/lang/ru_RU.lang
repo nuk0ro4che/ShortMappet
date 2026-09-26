@@ -981,3 +981,4 @@ mappet.gui.ui_editor.move_down=Ниже по слою
 mappet.gui.ui_editor.indent=Вложить в предыдущий layout
 mappet.gui.ui_editor.outdent=Извлечь из layout
 mappet.gui.ui_editor.preview_in_game=Предпросмотр в игре
+mappet.gui.script_panel.insert_hud_id=Вставить айди игрового худа

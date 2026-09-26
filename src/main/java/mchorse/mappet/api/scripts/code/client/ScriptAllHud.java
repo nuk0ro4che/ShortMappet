@@ -2,6 +2,7 @@ package mchorse.mappet.api.scripts.code.client;
 
 import java.util.Locale;
 import mchorse.mappet.api.scripts.user.client.IHudElement;
+import mchorse.mappet.client.HudCustomState;
 import mchorse.mappet.client.HudVisibilityState;
 import net.minecraft.class_1657;
 
@@ -21,7 +22,11 @@ public class ScriptAllHud implements IHudElement {
          throw new IllegalArgumentException("HUD element name cannot be null");
       }
 
-      return this.get(HudVisibilityState.Element.valueOf(name.toUpperCase(Locale.ROOT)));
+      try {
+         return this.get(HudVisibilityState.Element.valueOf(name.toUpperCase(Locale.ROOT)));
+      } catch (IllegalArgumentException e) {
+         return new ScriptHudElement(this.player, name);
+      }
    }
 
    public IHudElement Hotbar() {
@@ -64,6 +69,22 @@ public class ScriptAllHud implements IHudElement {
       return this.get(HudVisibilityState.Element.ITEM_TOOLTIP);
    }
 
+   public IHudElement Chat() {
+      return this.get(HudVisibilityState.Element.CHAT);
+   }
+
+   public IHudElement PlayerList() {
+      return this.get(HudVisibilityState.Element.PLAYER_LIST);
+   }
+
+   public IHudElement Scoreboard() {
+      return this.get(HudVisibilityState.Element.SCOREBOARD);
+   }
+
+   public IHudElement BossBar() {
+      return this.get(HudVisibilityState.Element.BOSS_BAR);
+   }
+
    public void render(boolean enabled) {
    }
 
@@ -76,5 +97,7 @@ public class ScriptAllHud implements IHudElement {
          hud.render(true);
          hud.pos(0, 0);
       }
+
+      HudCustomState.reset();
    }
 }

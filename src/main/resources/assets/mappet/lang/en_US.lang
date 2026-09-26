@@ -992,3 +992,4 @@ mappet.gui.ui_editor.move_down=Move layer down
 mappet.gui.ui_editor.indent=Nest in previous layout
 mappet.gui.ui_editor.outdent=Move out of layout
 mappet.gui.ui_editor.preview_in_game=Preview in game
+mappet.gui.script_panel.insert_hud_id=Insert Game HUD ID

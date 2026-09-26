@@ -822,6 +822,125 @@
           "annotations": []
         },
         {
+          "name": "getSprintSpeed",
+          "doc": "Возвращает установленную через <code>setSprintSpeed()</code> скорость спринта. Если скорость не задавалась или была сброшена через <code>resetSprintSpeed()</code>, возвращается <code>0</code>.\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.setSprintSpeed(0.2);\n    var speed = player.getSprintSpeed(); // 0.2\n}\n}</pre>",
+          "returns": {
+            "type": "float"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "setSprintSpeed",
+          "doc": "Задаёт абсолютную скорость спринта игрока. <code>0</code> — игрок будет бежать со скоростью ходьбы (ванильный буст x1.3 убирается). Значение больше <code>0</code> — скорость игрока в момент спринта. Для возврата к ванильному поведению используй <code>resetSprintSpeed()</code>.\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n\n    player.setSprintSpeed(0);   // спринт равен скорости ходьбы\n    player.setSprintSpeed(0.2); // спринт с абсолютной скоростью 0.2\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "speed",
+              "type": "float"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "resetSprintSpeed",
+          "doc": "Возвращает стандартное ванильное поведение спринта (множитель <code>x1.3</code> к скорости ходьбы).\n\n <pre>{@code\nfunction main(c)\n{\n    c.getSubject().resetSprintSpeed();\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "getBlockBreakSpeed",
+          "doc": "Возвращает установленный через <code>setBlockBreakSpeed()</code> множитель скорости ломания блоков. Если множитель не задавался или был сброшен, возвращает <code>1</code> (ванильная скорость).\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.setBlockBreakSpeed(2);\n    var x = player.getBlockBreakSpeed(); // 2\n}\n}</pre>",
+          "returns": {
+            "type": "float"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "setBlockBreakSpeed",
+          "doc": "Задаёт множитель скорости ломания блоков игроком. <code>1</code> — ванильная скорость. <code>2</code> — вдвое быстрее. <code>0</code> — блоки нельзя ломать. Работает и для выживания, и для творческого режима (в творчестве множитель применяется к базовой мгновенной скорости). Для сброса используй <code>resetBlockBreakSpeed()</code>.\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.setBlockBreakSpeed(0); // нельзя ломать блоки\n    player.setBlockBreakSpeed(3); // ломать в 3 раза быстрее\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "multiplier",
+              "type": "float"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "resetBlockBreakSpeed",
+          "doc": "Возвращает стандартную ванильную скорость ломания блоков.\n\n <pre>{@code\nfunction main(c)\n{\n    c.getSubject().resetBlockBreakSpeed();\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "disableWalking",
+          "doc": "Запрещает или разрешает игроку движение (WASD). Позволяет поставить игрока на привязь или вовсе остановить. Прыжок флагом не блокируется. Работает только для локального игрока (в одиночной игре).\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.disableWalking(true);  // игрок не может ходить\n    player.disableWalking(false); // вернуть движение\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "disabled",
+              "type": "boolean"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isWalkingDisabled",
+          "doc": "Возвращает <code>true</code>, если движение игрока находится под запретом (<code>disableWalking(true)</code>).\n\n <pre>{@code\nfunction main(c)\n{\n    var locked = c.getSubject().isWalkingDisabled();\n}\n}</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "disableKey",
+          "doc": "Блокирует или разблокирует конкретный бинд (клавишу) для игрока по его транслированному идентификатору, например <code>key.forward</code>, <code>key.attack</code>, <code>key.use</code>, <code>key.jump</code>. Блокирует нажатия и с клавиатуры, и с мыши (для мышиных кнопок). Работает только для локального игрока.\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.disableKey(\"key.attack.lock\", true); // игрок не может атаковать\n    player.disableKey(\"key.forward.lock\", true); // и не может идти вперёд\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "key",
+              "type": "String"
+            },
+            {
+              "name": "disabled",
+              "type": "boolean"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isKeyDisabled",
+          "doc": "Возвращает <code>true</code>, если указанный бинд был заблокирован через <code>disableKey()</code>.\n\n <pre>{@code\nfunction main(c)\n{\n    var locked = c.getSubject().isKeyDisabled(\"key.attack\");\n}\n}</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [
+            {
+              "name": "key",
+              "type": "String"
+            }
+          ],
+          "annotations": []
+        },
+        {
           "name": "getCooldown",
           "doc": "Возвращает время отката для предмета по индексу в инвентаре игрока.\n\n <pre>{@code\n    function main(c)\n    {\n        var player = c.getSubject();\n        var item = mappet.createItem(\"minecraft:diamond_sword\");\n        var cooldown = player.getCooldown(item);\n\n        c.send(The held item cooldown \" + ((1 - cooldown) * 100) + \" percent expired.\");\n    }\n }</pre>",
           "returns": {

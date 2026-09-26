@@ -253,6 +253,24 @@ public class ScriptManager extends BaseManager<Script> {
       return this.folder == null ? null : new File(this.folder, id.lastIndexOf(".") != -1 ? id : id + ".js");
    }
 
+   public String resolveLibraryId(String id) {
+      if (id == null) {
+         return id;
+      }
+      File direct = this.getScriptFile(id);
+      if (direct != null && direct.isFile()) {
+         return id;
+      }
+      String wanted = id.endsWith(".js") ? id : id + ".js";
+      for(String key : this.getKeys()) {
+         File file = this.getScriptFile(key);
+         if (file != null && file.isFile() && file.getName().equals(wanted)) {
+            return key;
+         }
+      }
+      return id;
+   }
+
    public void initiateAllScripts() {
       for(String id : this.getKeys()) {
          try {

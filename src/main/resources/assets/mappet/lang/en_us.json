@@ -1000,5 +1000,6 @@
     "mappet.gui.client_settings.triggers.variables.block_left_click": "§6block§r, the ID of the block that was clicked (like §7minecraft:stone§r).\n§6meta§r, the meta value of the block's state.\n§6x§r, §6y§r, and §6z§r in the world.\n§6hand§r, always §7main§r.",
     "mappet.gui.client_settings.triggers.client_tick": "Player: ticking",
     "mappet.gui.client_settings.triggers.descriptions.client_tick": "This trigger gets triggered on the §6client§r every game tick while the player is in the world.\n\nUnlike the server-side trigger, this one runs entirely on the client and sends nothing to the server, which makes it suitable for local sounds, particles and animations.",
-    "mappet.gui.client_settings.triggers.variables.client_tick": "§7N/A§r"
+    "mappet.gui.client_settings.triggers.variables.client_tick": "§7N/A§r",
+    "mappet.gui.script_panel.insert_hud_id": "Insert Game HUD ID"
 }

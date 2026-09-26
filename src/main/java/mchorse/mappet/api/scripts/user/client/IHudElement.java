@@ -44,6 +44,9 @@ public interface IHudElement {
    void render(boolean enabled);
    void pos(int x, int y);
 
+   default void scale(float factor) {
+   }
+
    default void reset() {
    }
 }

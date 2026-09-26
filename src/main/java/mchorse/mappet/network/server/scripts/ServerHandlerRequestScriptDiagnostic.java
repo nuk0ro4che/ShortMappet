@@ -42,13 +42,19 @@ public class ServerHandlerRequestScriptDiagnostic extends ServerMessageHandler<P
          return new HashSet();
       }
       Set<String> libraryIds = new HashSet(manager.globalLibraries.keySet());
+      for(String key : manager.getKeys()) {
+         Script candidate = manager.load(key);
+         if (candidate != null && candidate.globalLibrary) {
+            libraryIds.add(key);
+         }
+      }
       if (script != null && script.libraries != null) {
          libraryIds.addAll(script.libraries);
       }
 
       List<String> libraryCodes = new ArrayList();
       for(String id : libraryIds) {
-         Script library = manager.load(id);
+         Script library = manager.load(manager.resolveLibraryId(id));
          if (library != null && library.code != null && !library.code.isEmpty()) {
             libraryCodes.add(library.code);
          }

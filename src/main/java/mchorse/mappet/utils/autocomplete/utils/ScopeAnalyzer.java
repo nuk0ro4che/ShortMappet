@@ -21,10 +21,13 @@ public class ScopeAnalyzer {
    private static final Pattern SWITCH_OPEN = Pattern.compile("switch\\s*\\([^)]*\\)\\s*\\{");
    private static final Pattern LIB_FUNC_GLOBAL = Pattern.compile("function\\s+(\\w+)\\s*\\(([^)]*?)\\)", 8);
    private static final Pattern LIB_FUNC_VAR = Pattern.compile("(?:var|let|const)\\s+(\\w+)\\s*=\\s*function\\s*\\(([^)]*?)\\)", 8);
-   private static final Pattern LIB_FUNC_EXPORT = Pattern.compile("(?:exports|module\\.exports)\\.(\\w+)\\s*=\\s*function\\s*\\(([^)]*?)\\)", 8);
-   private static final Pattern LIB_FUNC_PROP = Pattern.compile("(?<!function\\s)(\\w+)\\.(\\w+)\\s*=\\s*function\\s*\\(([^)]*?)\\)", 8);
-   
-   private static final Pattern LIB_VAR = Pattern.compile("(?:var|let|const)\\s+([A-Za-z_$][\\w$]*)\\s*=", 8);
+private static final Pattern LIB_FUNC_EXPORT = Pattern.compile("(?:exports|module\\.exports)\\.(\\w+)\\s*=\\s*function\\s*\\(([^)]*?)\\)", 8);
+    private static final Pattern LIB_FUNC_PROP = Pattern.compile("(?<!function\\s)(\\w+)\\.(\\w+)\\s*=\\s*function\\s*\\(([^)]*?)\\)", 8);
+    private static final Pattern LIB_FUNC_BARE = Pattern.compile("(?<![.\\w$])([A-Za-z_$][\\w$]*)\\s*=\\s*function\\s*\\(([^)]*?)\\)", 8);
+    private static final Pattern LIB_FUNC_ARROW = Pattern.compile("(?<![.\\w$])([A-Za-z_$][\\w$]*)\\s*=\\s*(?:async\\s+)?\\(([^)]*?)\\)\\s*=>", 8);
+    
+    private static final Pattern LIB_VAR = Pattern.compile("(?:var|let|const)\\s+([A-Za-z_$][\\w$]*)\\s*=", 8);
+    private static final Pattern LIB_VAR_BARE = Pattern.compile("(?<![.\\w$])([A-Za-z_$][\\w$]*)\\s*=(?!=)", 8);
    private static final Map<String, String> KNOWN_PARAM_TYPES = new LinkedHashMap();
 
    public static List<AutoCompleteConfig.Suggestion> findMatchingInScope(String prefix, List<String> allLines) {
@@ -151,13 +154,15 @@ public class ScopeAnalyzer {
 
    private static void collectLibraryFunctions(String prefix, String lower, LinkedHashMap<String, AutoCompleteConfig.Suggestion> map) {
       try {
-         List<String> libraryNames = getCurrentScriptLibraries();
-         if (libraryNames == null || libraryNames.isEmpty()) {
-            return;
+         Set<String> libraryNames = new HashSet();
+         List<String> currentLibraries = getCurrentScriptLibraries();
+         if (currentLibraries != null && !currentLibraries.isEmpty()) {
+            libraryNames.addAll(currentLibraries);
          }
+         libraryNames.addAll(getGlobalLibraryNames());
 
          for(String libName : libraryNames) {
-            String libCode = readLibraryCode(libName);
+            String libCode = readLibraryCode(resolveLibraryName(libName));
             if (libCode != null && !libCode.isEmpty()) {
                parseLibFunctions(libCode, prefix, lower, map);
             }
@@ -165,6 +170,25 @@ public class ScopeAnalyzer {
       } catch (Exception var7) {
       }
 
+   }
+
+   private static String resolveLibraryName(String libName) {
+      try {
+         Class<?> mappetClass = Class.forName("mchorse.mappet.Mappet");
+         Field scriptsField = mappetClass.getDeclaredField("scripts");
+         scriptsField.setAccessible(true);
+         Object scriptManager = scriptsField.get((Object)null);
+         if (scriptManager == null) {
+            return libName;
+         } else {
+            Method resolve = scriptManager.getClass().getDeclaredMethod("resolveLibraryId", String.class);
+            resolve.setAccessible(true);
+            Object resolved = resolve.invoke(scriptManager, libName);
+            return resolved instanceof String ? (String)resolved : libName;
+         }
+      } catch (Exception var6) {
+         return libName;
+      }
    }
 
    private static List<String> getCurrentScriptLibraries() {
@@ -284,9 +308,26 @@ public class ScopeAnalyzer {
          addLibFunc(m4.group(2), m4.group(3).trim(), prefix, lower, map);
       }
 
+      Matcher m5 = LIB_FUNC_BARE.matcher(code);
+
+      while(m5.find()) {
+         addLibFunc(m5.group(1), m5.group(2).trim(), prefix, lower, map);
+      }
+
+      Matcher m6 = LIB_FUNC_ARROW.matcher(code);
+
+      while(m6.find()) {
+         addLibFunc(m6.group(1), m6.group(2).trim(), prefix, lower, map);
+      }
+
       Matcher variables = LIB_VAR.matcher(code);
       while (variables.find()) {
          addLibVariable(variables.group(1), prefix, lower, map);
+      }
+
+      Matcher bareVariables = LIB_VAR_BARE.matcher(code);
+      while (bareVariables.find()) {
+         addLibVariable(bareVariables.group(1), prefix, lower, map);
       }
 
    }

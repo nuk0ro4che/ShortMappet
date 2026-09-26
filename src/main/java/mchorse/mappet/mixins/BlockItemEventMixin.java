@@ -86,7 +86,6 @@ public abstract class BlockItemEventMixin {
                client.field_1769.method_18145(priorPos.method_10263(), priorPos.method_10264(), priorPos.method_10260());
             }
          }
-         Mappet.logInfo("SP-MIRROR client placed " + class_7923.field_41175.method_10221(state.method_26204()) + " at " + pos.method_10263() + "," + pos.method_10264() + "," + pos.method_10260());
       }
       class_1657 player = context.method_8036();
       if (player != null && !player.method_31549().field_7477) {

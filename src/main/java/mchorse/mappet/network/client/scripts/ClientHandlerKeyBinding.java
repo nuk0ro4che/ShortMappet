@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import mchorse.mappet.client.ClientMovementLockState;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketKeyBinding;
 import mchorse.mclib.network.ClientMessageHandler;
@@ -30,6 +31,15 @@ public class ClientHandlerKeyBinding extends ClientMessageHandler<PacketKeyBindi
    @Environment(EnvType.CLIENT)
    public static void apply(PacketKeyBinding message) {
       class_315 options = class_310.method_1551().field_1690;
+
+      if (message.action == PacketKeyBinding.LOCK) {
+         ClientMovementLockState.setBindLocked(message.id, true);
+         return;
+      } else if (message.action == PacketKeyBinding.UNLOCK) {
+         ClientMovementLockState.setBindLocked(message.id, false);
+         return;
+      }
+
       class_304 binding = find(options, message.id);
       if (binding == null) {
          return;

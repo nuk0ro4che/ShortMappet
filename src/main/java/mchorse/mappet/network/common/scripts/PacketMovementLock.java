@@ -7,6 +7,7 @@ import mchorse.mclib.network.IMessage;
 public class PacketMovementLock implements IMessage {
    public static final byte JUMP = 0;
    public static final byte SPRINT = 1;
+   public static final byte WALK = 2;
 
    public byte action;
    public boolean disabled;

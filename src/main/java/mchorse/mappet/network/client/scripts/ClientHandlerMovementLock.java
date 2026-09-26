@@ -14,6 +14,8 @@ public class ClientHandlerMovementLock extends ClientMessageHandler<PacketMoveme
          ClientMovementLockState.setJumpDisabled(message.disabled);
       } else if (message.action == PacketMovementLock.SPRINT) {
          ClientMovementLockState.setSprintDisabled(message.disabled);
+      } else if (message.action == PacketMovementLock.WALK) {
+         ClientMovementLockState.setWalkDisabled(message.disabled);
       }
    }
 }

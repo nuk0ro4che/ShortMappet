@@ -14,6 +14,7 @@ import mchorse.mappet.api.scripts.Script;
 import mchorse.mappet.api.utils.ContentType;
 import mchorse.mappet.api.utils.IContentType;
 import mchorse.mappet.client.gui.GuiMappetDashboard;
+import mchorse.mappet.client.HudIdPicker;
 import mchorse.mappet.client.gui.scripts.GuiDocumentationOverlayPanel;
 import mchorse.mappet.client.gui.scripts.GuiLibrariesOverlayPanel;
 import mchorse.mappet.client.gui.scripts.GuiRepl;
@@ -151,7 +152,11 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
               .action(
                       Icons.MATERIAL,
                       IKey.lang("mappet.gui.scripts.context.paste_colorARGB"),
-                      () -> openColorPicker(editor, true));
+                      () -> openColorPicker(editor, true))
+              .action(
+                      Icons.CURSOR,
+                      IKey.lang("mappet.gui.script_panel.insert_hud_id"),
+                      () -> HudIdPicker.start(editor));
 
       if (editor.isSelected()) {
          setupDocumentation(editor, menu);

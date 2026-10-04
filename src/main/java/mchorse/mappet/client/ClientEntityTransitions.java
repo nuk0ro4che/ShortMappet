@@ -2,10 +2,10 @@ package mchorse.mappet.client;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import mchorse.mappet.network.common.scripts.PacketEntityTransition;
 import mchorse.mclib.utils.Interpolation;
+import mchorse.mappet.utils.Interpolations;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.class_1297;
@@ -196,11 +196,7 @@ public final class ClientEntityTransitions {
       }
 
       private static Interpolation resolveInterpolation(String name) {
-         try {
-            return Interpolation.valueOf(name == null ? "LINEAR" : name.toUpperCase(Locale.ROOT));
-         } catch (IllegalArgumentException exception) {
-            return Interpolation.LINEAR;
-         }
+         return Interpolations.resolve(name, Interpolation.LINEAR);
       }
    }
 }

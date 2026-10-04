@@ -54,6 +54,8 @@ public abstract class DrawContextMixin {
          return;
       }
 
+      HudCapture.markHandled(id);
+
       if (HudCustomState.hasTransform(id) && !HudCustomState.isVisible(id)) {
          mappet$cancel(ci);
          return;
@@ -84,6 +86,8 @@ public abstract class DrawContextMixin {
       if (id == null) {
          return;
       }
+
+      HudCapture.markHandled(id);
 
       if (HudCustomState.hasTransform(id) && !HudCustomState.isVisible(id)) {
          mappet$cancel(ci);

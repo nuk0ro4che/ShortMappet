@@ -24,6 +24,7 @@ import mchorse.mappet.api.scripts.code.entities.ai.rotations.RotationDataStorage
 import mchorse.mappet.api.scripts.code.items.ScriptItemStack;
 import mchorse.mappet.api.scripts.code.mappet.MappetStates;
 import mchorse.mappet.api.scripts.code.nbt.ScriptNBTCompound;
+import mchorse.mappet.api.scripts.user.ScriptExtensions;
 import mchorse.mappet.api.scripts.user.IScriptRayTrace;
 import mchorse.mappet.api.scripts.user.client.ISimpleVoiceChat;
 import mchorse.mappet.api.scripts.user.IScriptWorld;
@@ -49,6 +50,7 @@ import mchorse.mappet.network.common.scripts.PacketEntityTransition;
 import mchorse.mappet.network.common.scripts.PacketWorldMorph;
 import mchorse.mappet.utils.EntityUtils;
 import mchorse.mappet.utils.RunnableExecutionFork;
+import mchorse.mappet.utils.Interpolations;
 import mchorse.mclib.utils.Interpolation;
 import mchorse.mclib.utils.RayTracing;
 import mchorse.metamorph.api.MorphManager;
@@ -116,6 +118,10 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
 
    public ISimpleVoiceChat getSVC() {
       return new ScriptSimpleVoiceChat(this.entity);
+   }
+
+   public Object get(String id) {
+      return ScriptExtensions.get(this, id);
    }
 
    public IScriptWorld getWorld() {
@@ -228,7 +234,7 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
          return;
       }
 
-      Interpolation interp = Interpolation.valueOf(interpolation.toUpperCase(java.util.Locale.ROOT));
+      Interpolation interp = Interpolations.resolve(interpolation, Interpolation.LINEAR);
       float startPitch = this.getPitch();
       float startYaw = this.getYaw();
       float startYawHead = this.getYawHead();
@@ -550,6 +556,10 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
    }
 
    public INBTCompound getFullData() {
+      class_2487 tag = new class_2487();
+      if (this.entity.method_5786(tag)) {
+         return new ScriptNBTCompound(tag);
+      }
       return new ScriptNBTCompound(this.entity.method_5647(new class_2487()));
    }
 
@@ -1032,7 +1042,7 @@ public class ScriptEntity<T extends class_1297> implements IScriptEntity {
          return;
       }
 
-      Interpolation interp = Interpolation.valueOf(interpolation.toUpperCase(java.util.Locale.ROOT));
+      Interpolation interp = Interpolations.resolve(interpolation, Interpolation.LINEAR);
       double startX = this.entity.method_23317();
       double startY = this.entity.method_23318();
       double startZ = this.entity.method_23321();

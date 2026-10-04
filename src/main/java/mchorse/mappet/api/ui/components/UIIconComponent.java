@@ -14,9 +14,9 @@ import net.minecraft.class_2487;
 import net.minecraft.class_310;
 import net.minecraft.class_4587;
 import org.joml.Quaternionf;
-import java.util.Locale;
 import java.util.function.Consumer;
 import mchorse.mclib.client.gui.utils.resizers.Flex.Measure;
+import mchorse.mappet.utils.Interpolations;
 import mchorse.mclib.utils.Interpolation;
 
 
@@ -141,44 +141,17 @@ public class UIIconComponent extends UIComponent {
       return this;
    }
 
+
    @DiscardMethod
    private String getInterpolationKey(String interpolation)
    {
-      if (interpolation == null || interpolation.trim().isEmpty())
-      {
-         return DEFAULT_INTERPOLATION_KEY;
-      }
-
-      try
-      {
-         return Interpolation.valueOf(
-                 interpolation.trim().toUpperCase(Locale.ROOT).replace('-', '_')
-         ).name().toLowerCase(Locale.ROOT);
-      }
-      catch (IllegalArgumentException exception)
-      {
-         return DEFAULT_INTERPOLATION_KEY;
-      }
+      return Interpolations.normalize(interpolation, DEFAULT_INTERPOLATION_KEY);
    }
 
    @DiscardMethod
    private static Interpolation getInterpolation(String interpolation)
    {
-      if (interpolation == null || interpolation.trim().isEmpty())
-      {
-         return DEFAULT_INTERPOLATION;
-      }
-
-      try
-      {
-         return Interpolation.valueOf(
-                 interpolation.trim().toUpperCase(Locale.ROOT).replace('-', '_')
-         );
-      }
-      catch (IllegalArgumentException exception)
-      {
-         return DEFAULT_INTERPOLATION;
-      }
+      return Interpolations.resolve(interpolation, DEFAULT_INTERPOLATION);
    }
 
 
@@ -483,6 +456,8 @@ public class UIIconComponent extends UIComponent {
          this.rotationInterpolation = interpolation;
          this.rotationPending = true;
       }
+
+
 
       @Override
       public void draw(GuiContext context)

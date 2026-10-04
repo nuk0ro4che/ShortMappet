@@ -72,13 +72,14 @@ public final class HudCapture {
    private static final int TOL = 10;
    private static final int XTOL = TOL;
    private static final int YTOL = 2;
-   private static final int CLUSTER_VERSION = 3;
+   private static final int CLUSTER_VERSION = 4;
    private static int clusterVersion = 0;
    private static final Map<HudVisibilityState.Element, int[]> boxes = new EnumMap(HudVisibilityState.Element.class);
    private static final Map<String, List<Cluster>> clustersByTexture = new HashMap();
    private static final Map<String, Integer> clusterCounters = new HashMap();
    private static final Map<String, int[]> lastSeen = new HashMap();
    private static final Set<String> touched = new HashSet();
+   private static final Set<String> handled = new HashSet();
    private static List<CustomBox> customBoxes = new ArrayList();
    private static List<CustomDraw> customDraws = new ArrayList();
    private static HudVisibilityState.Element tag;
@@ -101,6 +102,82 @@ public final class HudCapture {
       return capturing;
    }
 
+   /**
+    * Low level (Tesselator) capture only tracks modded textures: vanilla HUD
+    * textures are already measured through {@link class_332} and the vanilla
+    * element system, so tracking them twice would duplicate every element.
+    */
+   public static boolean isRawCandidate(String path) {
+      return path != null && !path.startsWith("minecraft:");
+   }
+
+   /** Framebuffer size of the game window, used to filter out non-GUI geometry */
+   public static int[] frameBuffer() {
+      net.minecraft.class_310 client = net.minecraft.class_310.method_1551();
+
+      if (client == null || client.method_22683() == null) {
+         return null;
+      }
+
+      return new int[]{client.method_22683().method_4489(), client.method_22683().method_4506()};
+   }
+
+   /**
+    * Marks an element as already transformed by the {@link class_332} path, so
+    * the low level vertex path doesn't apply the same offset twice.
+    */
+   public static void markHandled(String key) {
+      if (key != null) {
+         handled.add(key);
+      }
+   }
+
+   public static boolean isHandled(String key) {
+      return key != null && handled.contains(key);
+   }
+
+   /**
+    * Resolves the element a raw vertex belongs to by looking at where it was
+    * drawn in the previous frame.
+    */
+   public static String peekId(String path, int x, int y) {
+      List<Cluster> clusters = clustersByTexture.get(path);
+
+      if (clusters == null) {
+         return null;
+      }
+
+      for (Cluster cluster : clusters) {
+         int[] b = cluster.box;
+
+         if (b == null) {
+            continue;
+         }
+
+         if (x >= b[0] - XTOL && x <= b[2] + XTOL && y >= b[1] - YTOL && y <= b[3] + YTOL) {
+            return cluster.key;
+         }
+      }
+
+      return null;
+   }
+
+   public static int[] box(String key) {
+      if (key == null) {
+         return null;
+      }
+
+      for (List<Cluster> clusters : clustersByTexture.values()) {
+         for (Cluster cluster : clusters) {
+            if (cluster.key.equals(key)) {
+               return cluster.box;
+            }
+         }
+      }
+
+      return null;
+   }
+
    public static void begin() {
       if (clusterVersion != CLUSTER_VERSION) {
          clustersByTexture.clear();
@@ -113,9 +190,11 @@ public final class HudCapture {
       customDraws = new ArrayList();
       customBoxes = new ArrayList();
       touched.clear();
+      handled.clear();
       tag = null;
       savedTag = null;
       capturing = true;
+      HudRawCapture.frame();
       for (Map.Entry<String, List<Cluster>> entry : clustersByTexture.entrySet()) {
          for (Cluster cluster : entry.getValue()) {
             cluster.frameBox = null;
@@ -210,7 +289,25 @@ public final class HudCapture {
          return null;
       }
 
+      return cluster(path, x0, y0, x1, y1);
+   }
+
+   /**
+    * Registers a draw measured on the raw vertex path (Forge-style blits that
+    * bypass {@link class_332}) using absolute screen coordinates.
+    */
+   public static String rawDrawAndKey(String path, int x0, int y0, int x1, int y1) {
+      if (!capturing || !isRawCandidate(path) || x1 <= x0 || y1 <= y0) {
+         return null;
+      }
+
+      return cluster(path, x0, y0, x1, y1);
+   }
+
+   private static String cluster(String path, int x0, int y0, int x1, int y1) {
       List<Cluster> clusters = clustersByTexture.computeIfAbsent(path, (k) -> new ArrayList());
+      int width = x1 - x0;
+      int height = y1 - y0;
       String sizeKey = (width / 4) + "x" + (height / 4);
       Cluster match = null;
       for (Cluster cluster : clusters) {
@@ -244,6 +341,7 @@ public final class HudCapture {
       }
 
       touched.add(match.key);
+      handled.add(match.key);
       customDraws.add(new CustomDraw(match.key, x0, y0, x1, y1));
       return match.key;
    }

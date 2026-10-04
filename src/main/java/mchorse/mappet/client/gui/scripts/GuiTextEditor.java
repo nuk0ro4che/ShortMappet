@@ -16,9 +16,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.vecmath.Vector2d;
 import mchorse.mappet.ClientProxy;
+import mchorse.mappet.Mappet;
 import mchorse.mappet.api.utils.ContentType;
 import mchorse.mappet.client.HudIdPicker;
 import mchorse.mappet.client.gui.scripts.highlights.Highlighters;
+import mchorse.mappet.client.gui.scripts.vim.VimEngine;
 import mchorse.mappet.client.gui.scripts.utils.JavaScriptDiagnostics;
 import mchorse.mappet.client.gui.scripts.utils.JavaScriptDiagnostics.DiagnosticSnapshot;
 import mchorse.mappet.client.gui.scripts.utils.JavaScriptNavigation;
@@ -50,6 +52,8 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
    private static long lastShaderNamesRequest;
    private static final long SHADER_NAMES_REQUEST_DELAY_MS = 500L;
    private SyntaxHighlighter highlighter = Highlighters.readHighlighter(Highlighters.highlighterFile("js.json"));
+   private final VimEngine vim = new VimEngine(this);
+   private boolean vimEnabled = true;
    private int placements;
    private boolean lines = true;
    private List<TextLineNumber> numbers = new ArrayList(40);
@@ -119,6 +123,29 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
    
    public void setFindReplaceHandler(Runnable handler) {
       this.findReplaceHandler = handler;
+   }
+
+   public GuiTextEditor vim(boolean enabled) {
+      this.vimEnabled = enabled;
+      this.vim.enabled(enabled);
+
+      return this;
+   }
+
+   public void setVimSaveAction(Runnable saveAction) {
+      this.vim.setSaveAction(saveAction);
+   }
+
+   public boolean isVimEnabled() {
+      return this.vimEnabled && Mappet.isScriptEditorVim();
+   }
+
+   public void afterExternalEdit() {
+      this.markSyntaxDirty();
+      this.resetHighlight();
+      this.foldedBlocks.clear();
+      this.foldRangesDirty = true;
+      this.clearHyperlinkHover();
    }
 
    
@@ -213,6 +240,10 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
       this.clearJavaScriptDiagnostics();
       this.markSyntaxDirty();
       this.resetHighlight();
+
+      if (this.vim != null) {
+         this.vim.reset();
+      }
    }
 
    
@@ -393,6 +424,7 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
       super.unfocus(context);
       this.clearHyperlinkHover();
       this.applyHyperlinkCursor(false);
+      this.vim.onFocusLost();
    }
 
    private void updateHyperlinkHover(GuiContext context) {
@@ -565,16 +597,54 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
          return true;
       }
 
+      if (this.isVimEnabled() && this.isFocused() && context.keyCode == 1 && this.vim.getMode() != VimEngine.Mode.NORMAL) {
+         if (this.autoCompleteMenu != null) {
+            this.closeAutoComplete();
+         }
+
+         this.vim.leaveInsertMode();
+         this.moveViewportToCursor();
+
+         return true;
+      }
+
       if (this.handleAutoCompleteKey(context)) {
          return true;
       }
 
       boolean handled = super.keyTyped(context);
+
       if (this.isFocused()) {
-         this.refreshAutoComplete(context);
+         if (this.isVimEnabled() && this.vim.getMode() != VimEngine.Mode.INSERT) {
+            this.closeAutoComplete();
+         } else {
+            this.refreshAutoComplete(context);
+         }
       }
 
       return handled;
+   }
+
+   protected boolean handleKeys(GuiContext context, TextEditUndo undo, boolean ctrl, boolean shift) {
+      if (!this.isVimEnabled()) {
+         return super.handleKeys(context, undo, ctrl, shift);
+      }
+
+      if (this.vim.getMode() == VimEngine.Mode.INSERT) {
+         return super.handleKeys(context, undo, ctrl, shift);
+      }
+
+      if (this.vim.handleKey(context)) {
+         this.moveViewportToCursor();
+
+         return true;
+      }
+
+      if (GuiUtils.isCtrlKeyDown() || context.typedChar == 0) {
+         return super.handleKeys(context, undo, ctrl, shift);
+      }
+
+      return true;
    }
 
    private boolean handleAutoCompleteKey(GuiContext context) {
@@ -1639,6 +1709,10 @@ public class GuiTextEditor extends GuiMultiTextElement<HighlightedTextLine> {
 
       this.drawFoldOverlay();
       this.drawHelpHint(context);
+
+      if (this.isVimEnabled()) {
+         this.vim.draw(this.font, this.area, this.lineHeight);
+      }
    }
 
       private void drawHelpHint(GuiContext context) {

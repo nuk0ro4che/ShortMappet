@@ -44,11 +44,6 @@ public abstract class MouseInputMixin {
       cancellable = true
    )
    private void mappet$mouseInput(long window, int button, int action, int modifiers, CallbackInfo ci) {
-      if (ClientMovementLockState.shouldBlockMouse(button)) {
-         ci.cancel();
-         return;
-      }
-
       if (HudIdPicker.isActive()) {
          ci.cancel();
          if (button == 0 || button == 1) {
@@ -60,6 +55,10 @@ public abstract class MouseInputMixin {
       }
 
       InputTriggerHandler.onMouse(button, action);
+
+      if (ClientMovementLockState.shouldBlockMouse(button)) {
+         ci.cancel();
+      }
    }
 
    @Inject(

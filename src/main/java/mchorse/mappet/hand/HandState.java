@@ -56,6 +56,7 @@ public class HandState {
          this.rotation.set(this.pitch, this.yaw, this.roll, pitch, yaw, roll, interpolation, now, ticks);
       }
 
+
       public void reset(boolean main) {
          this.renderArm = main;
          this.renderItem = true;
@@ -105,10 +106,6 @@ public class HandState {
    }
 
    private static double apply(String interpolation, double t) {
-      String key = interpolation.toLowerCase();
-      if (key.equals("quadin") || key.equals("easein")) return t * t;
-      if (key.equals("quadout") || key.equals("easeout")) return 1.0D - (1.0D - t) * (1.0D - t);
-      if (key.equals("quadinout") || key.equals("easeinout")) return t < 0.5D ? 2.0D * t * t : 1.0D - Math.pow(-2.0D * t + 2.0D, 2.0D) / 2.0D;
-      return t;
+      return mchorse.mappet.utils.Interpolations.apply(interpolation, t);
    }
 }

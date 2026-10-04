@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 import mchorse.mappet.api.ui.UIContext;
@@ -22,6 +21,7 @@ import mchorse.mclib.client.gui.utils.Icons;
 import mchorse.mclib.client.gui.utils.Keybind;
 import mchorse.mclib.client.gui.utils.keys.IKey;
 import mchorse.mclib.utils.Direction;
+import mchorse.mappet.utils.Interpolations;
 import mchorse.mclib.utils.Interpolation;
 import mchorse.mclib.utils.TextUtils;
 import mchorse.metamorph.api.MorphManager;
@@ -402,26 +402,16 @@ public abstract class UIComponent implements INBTSerializable<class_2487> {
       return this;
    }
 
+
    @DiscardMethod
    private String normalizeInterpolation(String interpolation) {
-      if (interpolation == null || interpolation.trim().isEmpty()) {
-         return "sine_inout";
-      }
-      try {
-         return Interpolation.valueOf(interpolation.trim().toUpperCase(Locale.ROOT).replace('-', '_')).name().toLowerCase(Locale.ROOT);
-      } catch (IllegalArgumentException exception) {
-         return "sine_inout";
-      }
+      return Interpolations.normalize(interpolation, "sine_inout");
    }
 
    @DiscardMethod
    @Environment(EnvType.CLIENT)
    private Interpolation getInterpolation(String interpolation) {
-      try {
-         return Interpolation.valueOf((interpolation == null ? "sine_inout" : interpolation).toUpperCase(Locale.ROOT).replace('-', '_'));
-      } catch (IllegalArgumentException exception) {
-         return Interpolation.SINE_INOUT;
-      }
+      return Interpolations.resolve(interpolation, Interpolation.SINE_INOUT);
    }
 
    @DiscardMethod

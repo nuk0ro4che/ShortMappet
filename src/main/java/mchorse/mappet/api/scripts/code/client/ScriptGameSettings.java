@@ -4,6 +4,7 @@ import mchorse.mappet.api.scripts.user.client.IGameSettings;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.client.scripts.ClientHandlerClientSetting;
 import mchorse.mappet.network.client.scripts.ClientHandlerKeyBinding;
+import mchorse.mappet.network.client.scripts.ClientHandlerMouseSensitivity;
 import mchorse.mappet.network.common.scripts.PacketClientSetting;
 import mchorse.mappet.network.common.scripts.PacketKeyBinding;
 import mchorse.mappet.network.common.scripts.PacketMouseSensitivity;
@@ -43,10 +44,17 @@ public class ScriptGameSettings implements IGameSettings {
 
    public double getMouseSensitivity() {
       if (this.player instanceof class_3222) {
-         Dispatcher.sendTo(new PacketMouseSensitivity(PacketMouseSensitivity.REQUEST), (class_3222)this.player);
+         if (!ClientMouseSensitivityCache.has(this.player.method_5667())) {
+            Dispatcher.sendTo(new PacketMouseSensitivity(PacketMouseSensitivity.REQUEST), (class_3222)this.player);
+         }
+
          return ClientMouseSensitivityCache.get(this.player.method_5667());
       }
-      return ClientMouseSensitivityCache.get(this.player.method_5667());
+
+      double value = ClientHandlerMouseSensitivity.getLocalSensitivity();
+      ClientMouseSensitivityCache.set(this.player.method_5667(), value);
+
+      return value;
    }
 
    public void setHudHidden(boolean hidden) {

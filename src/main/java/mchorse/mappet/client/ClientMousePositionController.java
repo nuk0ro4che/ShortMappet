@@ -81,7 +81,7 @@ public final class ClientMousePositionController {
       ++elapsed;
       class_310 client = class_310.method_1551();
       double progress = Math.min(1.0D, (double)elapsed / (double)duration);
-      if (interpolation.contains("sine")) progress = 0.5D - 0.5D * Math.cos(Math.PI * progress);
+      progress = mchorse.mappet.utils.Interpolations.apply(interpolation, progress, mchorse.mclib.utils.Interpolation.SINE_INOUT);
       double automaticX = startX + (targetX - startX) * progress;
       double automaticY = startY + (targetY - startY) * progress;
       if (additive && client != null && client.method_22683() != null) {

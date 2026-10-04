@@ -23,12 +23,15 @@ public abstract class InGameHudVisibilityMixin {
    private void mappet$renderHudBeforeVanilla(class_332 context, float tickDelta, CallbackInfo ci) {
       ClientShaderRuntime.beginHud();
       RenderingHandler.renderHud(tickDelta);
-      HudCapture.begin();
    }
 
    @Inject(method = "method_1753", at = @At("RETURN"))
    private void mappet$renderHudAfterVanilla(class_332 context, float tickDelta, CallbackInfo ci) {
-      HudCapture.finish();
+      /* The capture is closed before the picker is drawn, otherwise the picker itself becomes a HUD element */
+      if (HudCapture.isCapturing()) {
+         HudCapture.finish();
+      }
+
       RenderingHandler.renderHudPicker(context, tickDelta);
       ClientShaderRuntime.endHud(tickDelta);
    }

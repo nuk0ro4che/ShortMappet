@@ -106,6 +106,7 @@ import net.minecraft.class_1309;
 import net.minecraft.class_746;
 import mchorse.mappet.utils.MappetSprintSpeed;
 import mchorse.mappet.utils.MappetBlockBreakSpeed;
+import mchorse.mappet.utils.MappetMovementLock;
 import net.minecraft.class_3419;
 import net.minecraft.class_329;
 import net.minecraft.class_5894;
@@ -183,6 +184,7 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
 
    public void disableJump(boolean disabled) {
       if (this.entity instanceof class_3222) {
+         MappetMovementLock.setJumpDisabled(this.entity.method_5667(), disabled);
          Dispatcher.sendTo(new PacketMovementLock(PacketMovementLock.JUMP, disabled), (class_3222)this.entity);
       } else if (this.entity instanceof class_746) {
          ClientMovementLockState.setJumpDisabled(disabled);
@@ -191,14 +193,32 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
 
    public void disableSprint(boolean disabled) {
       if (this.entity instanceof class_3222) {
+         MappetMovementLock.setSprintDisabled(this.entity.method_5667(), disabled);
          Dispatcher.sendTo(new PacketMovementLock(PacketMovementLock.SPRINT, disabled), (class_3222)this.entity);
       } else if (this.entity instanceof class_746) {
          ClientMovementLockState.setSprintDisabled(disabled);
       }
    }
 
+   public boolean isJumpDisabled() {
+      if (this.entity instanceof class_3222) {
+         return MappetMovementLock.isJumpDisabled(this.entity.method_5667());
+      }
+
+      return this.entity instanceof class_746 && ClientMovementLockState.isJumpDisabled();
+   }
+
+   public boolean isSprintDisabled() {
+      if (this.entity instanceof class_3222) {
+         return MappetMovementLock.isSprintDisabled(this.entity.method_5667());
+      }
+
+      return this.entity instanceof class_746 && ClientMovementLockState.isSprintDisabled();
+   }
+
    public void disableWalking(boolean disabled) {
       if (this.entity instanceof class_3222) {
+         MappetMovementLock.setWalkDisabled(this.entity.method_5667(), disabled);
          Dispatcher.sendTo(new PacketMovementLock(PacketMovementLock.WALK, disabled), (class_3222)this.entity);
       } else if (this.entity instanceof class_746) {
          ClientMovementLockState.setWalkDisabled(disabled);
@@ -206,6 +226,10 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
    }
 
    public boolean isWalkingDisabled() {
+      if (this.entity instanceof class_3222) {
+         return MappetMovementLock.isWalkDisabled(this.entity.method_5667());
+      }
+
       return this.entity instanceof class_746 && ClientMovementLockState.isWalkDisabled();
    }
 
@@ -214,6 +238,7 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
          return;
       }
       if (this.entity instanceof class_3222) {
+         MappetMovementLock.setBindLocked(this.entity.method_5667(), bind, disabled);
          Dispatcher.sendTo(new PacketKeyBinding(disabled ? PacketKeyBinding.LOCK : PacketKeyBinding.UNLOCK, bind, ""), (class_3222)this.entity);
       } else if (this.entity instanceof class_746) {
          ClientMovementLockState.setBindLocked(bind, disabled);
@@ -221,6 +246,10 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
    }
 
    public boolean isKeyDisabled(String bind) {
+      if (this.entity instanceof class_3222) {
+         return MappetMovementLock.isBindLocked(this.entity.method_5667(), bind);
+      }
+
       return this.entity instanceof class_746 && bind != null && ClientMovementLockState.isBindLocked(bind);
    }
 
@@ -271,17 +300,18 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
 
 
    public boolean applyShader(String id, boolean ui, boolean hud) {
-      ShaderFile shader = this.getShader(id);
-      if (shader == null) {
+      if (this.getShader(id) == null) {
          return false;
       }
 
-      Dispatcher.sendTo(PacketShader.apply(0, shader), this.getMinecraftPlayer());
+      String key = id.trim();
+
+      Dispatcher.sendTo(PacketShader.apply(0, key), this.getMinecraftPlayer());
       if (ui) {
-         Dispatcher.sendTo(PacketShader.apply(1, shader), this.getMinecraftPlayer());
+         Dispatcher.sendTo(PacketShader.apply(1, key), this.getMinecraftPlayer());
       }
       if (hud) {
-         Dispatcher.sendTo(PacketShader.apply(2, shader), this.getMinecraftPlayer());
+         Dispatcher.sendTo(PacketShader.apply(2, key), this.getMinecraftPlayer());
       }
       return true;
    }
@@ -292,13 +322,25 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
    }
 
    
+   public void removeShader(String id) {
+      this.removeShader(id, false, false);
+   }
+
+   
    public void removeShader(boolean ui, boolean hud) {
-      Dispatcher.sendTo(PacketShader.remove(0), this.getMinecraftPlayer());
+      this.removeShader("", ui, hud);
+   }
+
+   
+   public void removeShader(String id, boolean ui, boolean hud) {
+      String key = id == null ? "" : id.trim();
+
+      Dispatcher.sendTo(PacketShader.remove(0, key), this.getMinecraftPlayer());
       if (ui) {
-         Dispatcher.sendTo(PacketShader.remove(1), this.getMinecraftPlayer());
+         Dispatcher.sendTo(PacketShader.remove(1, key), this.getMinecraftPlayer());
       }
       if (hud) {
-         Dispatcher.sendTo(PacketShader.remove(2), this.getMinecraftPlayer());
+         Dispatcher.sendTo(PacketShader.remove(2, key), this.getMinecraftPlayer());
       }
    }
 
@@ -313,6 +355,11 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
    }
 
    
+   public void removeUIShader(String id) {
+      Dispatcher.sendTo(PacketShader.remove(1, id == null ? "" : id.trim()), this.getMinecraftPlayer());
+   }
+
+   
    public boolean applyHUDShader(String id) {
       return this.applyShaderToTarget(id, 2);
    }
@@ -322,13 +369,18 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
       Dispatcher.sendTo(PacketShader.remove(2), this.getMinecraftPlayer());
    }
 
+   
+   public void removeHUDShader(String id) {
+      Dispatcher.sendTo(PacketShader.remove(2, id == null ? "" : id.trim()), this.getMinecraftPlayer());
+   }
+
    private boolean applyShaderToTarget(String id, int target) {
       ShaderFile shader = this.getShader(id);
       if (shader == null) {
          return false;
       }
 
-      Dispatcher.sendTo(PacketShader.apply(target, shader), this.getMinecraftPlayer());
+      Dispatcher.sendTo(PacketShader.apply(target, id.trim()), this.getMinecraftPlayer());
       return true;
    }
 

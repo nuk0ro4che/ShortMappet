@@ -27,6 +27,7 @@ public class ServerSettings implements INBTSerializable<class_2487> {
    public final Trigger entityAttacked;
    public final Trigger entityDeath;
    public final Trigger entityLanded;
+   public final Trigger entityJump;
    public final Trigger entitySpawn;
    public final Trigger worldDayTick;
    public final Trigger worldWeatherChange;
@@ -51,9 +52,9 @@ public final Trigger playerRespawn;
    public final Trigger playerEntityLeash;
    public final Trigger playerKeyboard;
    public final Trigger mouseInput;
-   public final Trigger stateChanged;
-   public final Trigger soundEnded;
-   public final Trigger playerTick;
+public final Trigger stateChanged;
+    public final Trigger soundEnded;
+    public final Trigger playerTick;
 
    public Trigger register(String key, Trigger trigger) {
       return this.register(key, (String)null, trigger);
@@ -99,6 +100,7 @@ public final Trigger playerRespawn;
       this.entityAttacked = this.register("entity_attacked", "attack_entity", new Trigger());
       this.entityDeath = this.register("entity_death", new Trigger());
       this.entityLanded = this.register("entity_landed", new Trigger());
+      this.entityJump = this.register("entity_jump", new Trigger());
       this.entitySpawn = this.register("entity_spawn", new Trigger());
       this.worldDayTick = this.register("world_day_tick", new Trigger());
       this.worldWeatherChange = this.register("world_weather_change", new Trigger());

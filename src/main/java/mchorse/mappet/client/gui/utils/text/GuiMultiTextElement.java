@@ -149,6 +149,56 @@ public class GuiMultiTextElement<T extends TextLine> extends GuiElement implemen
       return this.text;
    }
 
+   public String getLineText(int line) {
+      return this.hasLine(line) ? ((TextLine)this.text.get(line)).text : "";
+   }
+
+   public int getLineCount() {
+      return this.text.size();
+   }
+
+   public void setLineText(int line, String text) {
+      if (!this.hasLine(line)) {
+         return;
+      }
+
+      ((TextLine)this.text.get(line)).set(text);
+      this.changedLine(line);
+   }
+
+   public void insertLine(int line, String text) {
+      line = Math.max(0, Math.min(line, this.text.size()));
+      this.text.add(line, this.createTextLine(text));
+      this.changedLine(line);
+   }
+
+   public void removeLine(int line) {
+      if (!this.hasLine(line)) {
+         return;
+      }
+
+      this.text.remove(line);
+      this.changedLineAfter(Math.max(0, line - 1));
+   }
+
+   public void replaceAllText(String text) {
+      this.text.clear();
+
+      for(String line : text.split("\n")) {
+         this.text.add(this.createTextLine(line));
+      }
+
+      this.cursor.set(0, 0);
+      this.selection.set(-1, 0);
+      this.horizontal.scroll = 0;
+      this.vertical.scroll = 0;
+
+      if (this.area.w > 0) {
+         this.recalculateWrapping();
+         this.recalculateSizes();
+      }
+   }
+
    public int getWrappedWidth() {
       return this.area.w - this.padding * 3 - this.getShiftX();
    }

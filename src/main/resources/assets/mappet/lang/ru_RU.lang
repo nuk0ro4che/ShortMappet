@@ -188,6 +188,8 @@ mappet.config.script_editor.ui_debug=Режим отладки интерфей�
 mappet.config.comments.script_editor.ui_debug=Когда включён, добавляет несколько отладочных опций интерфейса, сгенерированных скриптовым API, такие как копирование позиции камеры у компонента морфа.
 mappet.config.script_editor.docs_new_structure=Новая структура документации
 mappet.config.comments.script_editor.docs_new_structure=Когда включено, меняет структуру документации, сортируя классы по их предназначению.
+mappet.config.script_editor.vim=Режим Vim
+mappet.config.comments.script_editor.vim=Если включено, скриптовый редактор использует раскладку клавиш Vim (обычный, вставка, визуальный и командный режимы).
 
 
 mappet.gui.none=<none>
@@ -295,6 +297,10 @@ mappet.gui.settings.triggers.variables.entity_death=§6damageType§r, тип у�
 mappet.gui.settings.triggers.entity_spawn=Сущность: при спавне
 mappet.gui.settings.triggers.descriptions.entity_spawn=Этот триггер срабатывает когда в мире появляется новая сущность.
 mappet.gui.settings.triggers.variables.entity_spawn=§6entity§r, появившаяся сущность.\n§6type§r, тип появившейся сущности: §7player§r, §7mob§r, §7item§r или §7other§r.
+
+mappet.gui.settings.triggers.entity_jump=Сущность: при прыжке
+mappet.gui.settings.triggers.descriptions.entity_jump=Этот отменяемый триггер срабатывает, когда живая сущность прыгает. Если триггер вернёт §6false§r, прыжок будет отменён.
+mappet.gui.settings.triggers.variables.entity_jump=§7N/A§r
 
 mappet.gui.settings.triggers.world_day_tick=Мир: каждый тик дня
 mappet.gui.settings.triggers.descriptions.world_day_tick=Этот триггер срабатывает каждый тик мира (§720§r раз в секунду).\n\nСовет от профи: используйте ползунок "частота" чтобы ограничить количество срабатываний триггера.

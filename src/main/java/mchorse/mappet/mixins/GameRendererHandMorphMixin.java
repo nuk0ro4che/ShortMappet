@@ -35,17 +35,15 @@ public abstract class GameRendererHandMorphMixin
     )
     private void mappet$renderShaderBeforeHand(class_4587 matrices, class_4184 camera, float tickDelta, CallbackInfo ci)
     {
-        
-
         ClientShaderRuntime.render(tickDelta);
         ClientShaderRuntime.beginHand();
     }
 
     @Inject(
-        method = "method_3172(Lnet/minecraft/class_4587;Lnet/minecraft/class_4184;F)V",
+        method = "method_3188(FJLnet/minecraft/class_4587;)V",
         at = @At("RETURN")
     )
-    private void mappet$renderShaderAfterHand(class_4587 matrices, class_4184 camera, float tickDelta, CallbackInfo ci)
+    private void mappet$endHandCapture(float tickDelta, long startTime, class_4587 matrices, CallbackInfo ci)
     {
         ClientShaderRuntime.endHand(tickDelta);
     }

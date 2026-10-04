@@ -288,17 +288,21 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
       if (this.data != null) {
          GuiModal.addFullModal(this.sidebar, () -> {
             GuiPromptModal promptModal = new GuiPromptModal(this.mc, IKey.lang("mappet.gui.panels.modals.dupe"), this::dupeData);
-            return promptModal.setValue(this.data.getId()).filename();
+            /* Только имя файла: слеши в поле ввода режет filename()-валидатор */
+            return promptModal.setValue(FilenameUtils.getName(this.data.getId())).filename();
          });
       }
    }
 
    protected void dupeData(String name) {
-      if (!this.namesList.hasInHierarchy(name)) {
+      /* Путь папки добавляется сам, в поле ввода его быть не должно */
+      String id = this.getDataPath() + this.getDataName(name);
+
+      if (!this.namesList.hasInHierarchy(id)) {
          this.save();
-         Dispatcher.sendToServer(new PacketContentData(this.getType(), name, (class_2487)this.data.serializeNBT()));
-         this.namesList.addFile(name);
-         T data = this.createClientData(name, (class_2487)this.data.serializeNBT());
+         Dispatcher.sendToServer(new PacketContentData(this.getType(), id, (class_2487)this.data.serializeNBT()));
+         this.namesList.addFile(id);
+         T data = this.createClientData(id, (class_2487)this.data.serializeNBT());
          if (data != null) {
             this.fill(data);
          } else {
@@ -318,14 +322,25 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
    }
 
    protected void renameData(String name) {
-      if (!this.namesList.hasInHierarchy(name)) {
-         String path = this.getDataPath();
-         Dispatcher.sendToServer((new PacketContentData(this.getType(), this.data.getId(), (class_2487)this.data.serializeNBT())).rename(path + name));
+      String path = this.getDataPath();
+      String id = path + this.getDataName(name);
+
+      if (!this.namesList.hasInHierarchy(id)) {
+         Dispatcher.sendToServer((new PacketContentData(this.getType(), this.data.getId(), (class_2487)this.data.serializeNBT())).rename(id));
          this.namesList.removeFile(this.data.getId());
-         this.namesList.addFile(path + name);
-         this.data.setId(path + name);
+         this.namesList.addFile(id);
+         this.data.setId(id);
       }
 
+   }
+
+   /**
+    * Имя файла без пути и без слешей
+    */
+   protected String getDataName(String name) {
+      int index = name.lastIndexOf(47);
+
+      return index == -1 ? name : name.substring(index + 1);
    }
 
    protected String getDataPath() {

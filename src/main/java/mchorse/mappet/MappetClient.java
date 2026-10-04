@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
 import mchorse.mappet.api.misc.ClientSettings;
+import mchorse.mappet.api.shaders.ShaderManager;
 import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.client.ClientEventHandler;
 import mchorse.mappet.client.ClientTriggers;
@@ -26,6 +27,7 @@ import mchorse.mappet.client.renders.tile.TileConditionModelRenderer;
 import mchorse.mappet.client.renders.tile.TileRegionRenderer;
 import mchorse.mappet.client.renders.tile.TileTriggerRenderer;
 import mchorse.mappet.network.Dispatcher;
+import mchorse.mappet.network.client.scripts.ClientHandlerMouseSensitivity;
 import mchorse.mappet.network.common.content.PacketGlobalMigrate;
 import mchorse.mappet.utils.MPIcons;
 import mchorse.mappet.utils.ValueButtons;
@@ -68,6 +70,7 @@ public class MappetClient implements ClientModInitializer {
    public static ClientScriptManager clientScriptRuntime;
    
    public static ClientSettings clientSettings;
+   public static ShaderManager clientShaders;
    private static boolean soundsPackLoaded;
    private static boolean soundsPackWarningShown;
    private static Field soundPackProviders;
@@ -118,11 +121,14 @@ public class MappetClient implements ClientModInitializer {
       clientScriptRuntime = new ClientScriptManager();
 clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_settings.json"));
        clientSettings.load();
+      clientShaders = new ShaderManager(new File(CommonProxy.configFolder, "shaders"));
       ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-          if (client.field_1724 != null) {
+         if (client.field_1724 != null) {
+             ClientHandlerMouseSensitivity.reset();
+             ClientHandlerMouseSensitivity.syncSensitivity();
              ClientTriggers.trigger("player_login", DataContext.client(client.field_1724));
              UpdateChecker.check();
-          }
+         }
       });
        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
           if (client.field_1724 != null) {
@@ -174,6 +180,7 @@ clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_s
       KeyboardHandler.register();
       DiscordRPC.initialize();
       ClientTickEvents.END_CLIENT_TICK.register(DiscordRPC::tick);
+      ClientTickEvents.END_CLIENT_TICK.register((client) -> ClientHandlerMouseSensitivity.syncSensitivity());
       ClientTickEvents.END_CLIENT_TICK.register((client) -> VanillaWorldLightManager.tick());
       ClientProxy.sounds = new File(CommonProxy.configFolder, "sounds");
       ClientTickEvents.END_CLIENT_TICK.register((client) -> {

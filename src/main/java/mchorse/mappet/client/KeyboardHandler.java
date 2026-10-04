@@ -23,11 +23,14 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.class_1799;
 import net.minecraft.class_1802;
+import net.minecraft.class_1132;
 import net.minecraft.class_2561;
 import net.minecraft.class_304;
 import net.minecraft.class_310;
+import net.minecraft.class_3928;
 import net.minecraft.class_4185;
 import net.minecraft.class_437;
+import net.minecraft.class_442;
 import net.minecraft.class_481;
 import net.minecraft.class_490;
 import net.minecraft.class_491;
@@ -59,14 +62,46 @@ ScreenEvents.AFTER_INIT.register((ScreenEvents.AfterInit)(client, screen, width,
              ClientTriggers.trigger("player_open_container", DataContext.client(client.field_1724));
           }
 
-          if (screen instanceof class_490 || screen instanceof class_481) {
+if (screen instanceof class_490 || screen instanceof class_481) {
             int x = (Integer)Mappet.journalButtonX.get();
             int y = height - 20 - (Integer)Mappet.journalButtonY.get();
             class_4185 button = class_4185.method_46430(class_2561.method_43470("§6✎"), (ignored) -> openPlayerJournal()).method_46434(x, y, 20, 20).method_46436(class_7919.method_47407(class_2561.method_43471("mappet.gui.player_journal"))).method_46431();
             addDrawableChild(screen, button);
          }
 
+         if (screen instanceof class_3928) {
+            addCancelWorldLoading(screen, client, width, height);
+         }
+
       });
+    }
+
+    /**
+     * Кнопка отмены загрузки своего мира, как при подключении к сетевому миру
+     */
+    private static void addCancelWorldLoading(class_437 screen, class_310 client, int width, int height) {
+      class_1132 server = client.method_1576();
+
+      /* В сетевом мире отмена уже есть, добавляем только для своего мира */
+      if (server == null) {
+         return;
+      }
+
+      class_4185 button = class_4185.method_46430(class_2561.method_43471("gui.cancel"), (ignored) -> cancelWorldLoading(client, server))
+         .method_46434(width / 2 - 100, height - 48, 200, 20)
+         .method_46431();
+
+      addDrawableChild(screen, button);
+    }
+
+private static void cancelWorldLoading(class_310 client, class_1132 server) {
+      /* Останавливаем сервер, иначе мир загрузится уже после возврата в меню.
+         halt(false) не ждёт остановки сервера, иначе блокируется поток рендера */
+      server.method_3747(false);
+
+      /* disconnect() здесь вызывать нельзя: он обнуляет integratedServer, пока
+         WorldOpenFlows ещё в работе, из-за чего Essential падает с NPE */
+      client.method_1507(new class_442());
    }
 
    private static void addDrawableChild(class_437 screen, class_4185 button) {

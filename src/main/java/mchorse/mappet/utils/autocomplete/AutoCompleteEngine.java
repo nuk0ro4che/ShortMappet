@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import mchorse.mappet.Mappet;
+import mchorse.mappet.api.scripts.user.ScriptExtensions;
 import mchorse.mappet.client.HudVisibilityState;
 import mchorse.mappet.utils.autocomplete.utils.CollectionResolver;
 import mchorse.mappet.utils.autocomplete.utils.CompletionHelper;
@@ -43,6 +44,13 @@ public class AutoCompleteEngine {
          if (chain.matches(".*\\.getHand\\([^)]*\\)")) {
             return "IHandSettings";
          }
+
+         String extension = resolveExtensionType(chain);
+
+         if (extension != null) {
+            return extension;
+         }
+
          if (!chain.contains(".")) {
             String direct = (String)KNOWN_VAR_TYPES.get(chain);
             if (direct != null) {
@@ -121,6 +129,25 @@ public class AutoCompleteEngine {
             }
          }
       } else {
+         return null;
+      }
+   }
+
+   private static final Pattern EXTENSION_CHAIN = Pattern.compile(".*\\.get\\(\\s*\"(\\w+)\"\\s*\\)");
+
+   /**
+    * Resolves addon objects that scripts get from an entity, like player.get("changed").
+    */
+   private static String resolveExtensionType(String chain) {
+      Matcher matcher = EXTENSION_CHAIN.matcher(chain);
+
+      if (!matcher.matches()) {
+         return null;
+      }
+
+      try {
+         return ScriptExtensions.getDocTypes().get(matcher.group(1));
+      } catch (Throwable var4) {
          return null;
       }
    }
@@ -351,6 +378,12 @@ public class AutoCompleteEngine {
          addApiSuggestion(suggestions, lowerPrefix, "executeClientScript", "String script, String function, Object... args", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "disableJump", "boolean disabled", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "disableSprint", "boolean disabled", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "isJumpDisabled", "", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "isSprintDisabled", "", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "disableWalking", "boolean disabled", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "isWalkingDisabled", "", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "disableKey", "String bind, boolean disabled", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "isKeyDisabled", "String bind", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "openUI", "String id, boolean defaultData", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "closeUI", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "closeMappetUI", "", "fn");
@@ -358,10 +391,14 @@ public class AutoCompleteEngine {
          addApiSuggestion(suggestions, lowerPrefix, "setHUDWorldLighting", "String id, boolean enabled, float intensity (0.0..4.0)", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "applyShader", "String id, boolean ui, boolean hud", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeShader", "boolean ui, boolean hud", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "removeShader", "String id", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "removeShader", "String id, boolean ui, boolean hud", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "applyUIShader", "String id", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeUIShader", "", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "removeUIShader", "String id", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "applyHUDShader", "String id", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeHUDShader", "", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "removeHUDShader", "String id", "fn");
       }
 
       if (className.contains("IScriptWorld")) {
@@ -1405,7 +1442,7 @@ public class AutoCompleteEngine {
 
    public static List<AutoCompleteConfig.Suggestion> findMatchingInterpolations(String prefix) {
       String lower = prefix == null ? "" : prefix.toLowerCase();
-      String[] values = {"linear", "sine_in", "sine_out", "sine_inout", "quad_in", "quad_out", "quad_inout", "cubic_in", "cubic_out", "cubic_inout", "smoothstep"};
+      String[] values = mchorse.mappet.utils.Interpolations.getKeys().toArray(new String[0]);
       List<AutoCompleteConfig.Suggestion> result = new ArrayList();
       for (String value : values) {
          if (lower.isEmpty() || value.startsWith(lower)) result.add(new AutoCompleteConfig.Suggestion(value, "interpolation", "value"));
@@ -1417,11 +1454,13 @@ public class AutoCompleteEngine {
       return CompletionHelper.applyCompletionRaw(line, cursorOffset, value, newCursorOffset);
    }
 
+   private static final String[] HUD_ID_PATTERNS = new String[]{"setupHUD(", "changeHUDMorph(", "changeHUD(", "closeHUD(", "setHUDWorldLighting("};
+
    public static String extractHUDPrefix(String line, int cursorOffset) {
       if (line != null && cursorOffset > 0) {
          int safeOffset = Math.min(cursorOffset, line.length());
          String before = line.substring(0, safeOffset);
-         String[] patterns = new String[]{"setupHUD(", "changeHUDMorph(", "changeHUD(", "closeHUD("};
+         String[] patterns = HUD_ID_PATTERNS;
          int last = -1;
          String found = null;
 
@@ -1503,7 +1542,7 @@ public class AutoCompleteEngine {
 
       String before = line.substring(0, safe);
       String tail = line.substring(safe);
-      String[] patterns = new String[]{"setupHUD(", "changeHUDMorph(", "changeHUD("};
+      String[] patterns = HUD_ID_PATTERNS;
       int last = -1;
       String found = null;
 

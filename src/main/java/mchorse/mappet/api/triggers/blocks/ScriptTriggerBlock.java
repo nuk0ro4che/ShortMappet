@@ -133,7 +133,6 @@ public class ScriptTriggerBlock extends DataTriggerBlock {
                overrideRequested = true;
             }
             context.applyResult();
-            Mappet.logger.info("CLIENT-TRIGGER result=" + (result == null ? "null" : result.getClass().getName()) + " block=" + context.getValue("x") + "," + context.getValue("y") + "," + context.getValue("z") + " -> " + context.getValue("block") + "; canceled=" + data.isCanceled());
             if (!context.isCanceled()) {
                context.cancel(data.isCanceled());
             }

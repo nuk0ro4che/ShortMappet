@@ -13,6 +13,10 @@ public final class ClientMouseSensitivityCache {
       return VALUES.getOrDefault(player, 0.5D);
    }
 
+   public static boolean has(UUID player) {
+      return player != null && VALUES.containsKey(player);
+   }
+
    public static void set(UUID player, double value) {
       VALUES.put(player, value);
    }

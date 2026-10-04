@@ -59,6 +59,7 @@ import mchorse.mappet.network.common.scripts.PacketClick;
 import mchorse.mappet.network.common.scripts.PacketCancelDeath;
 import mchorse.mappet.api.scripts.client.ClientScriptExecutor;
 import mchorse.mappet.network.common.content.PacketClientSettings;
+import mchorse.mappet.utils.MappetMovementLock;
 import mchorse.mappet.utils.RunnableExecutionFork;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -92,8 +93,8 @@ import net.minecraft.class_7923;
 public class EventHandler {
    public static final class_2960 CAPABILITY = new class_2960("mappet", "character");
    private static Boolean isMohist;
-   private Set<class_1657> playersToCheck = new HashSet();
-   private List<IExecutable> executables = new ArrayList();
+private Set<class_1657> playersToCheck = new HashSet();
+    private List<IExecutable> executables = new ArrayList();
    private List<IExecutable> secondList = new ArrayList();
    private Set<String> cancelledExecutableIds = new HashSet();
    private DataContext context;
@@ -213,7 +214,6 @@ class_2680 state = event.getState();
           String tool = stack == null || stack.method_7960() ? "empty" : class_7923.field_41178.method_10221(stack.method_7909()).toString();
           DataContext context = (new DataContext(event.getPlayer())).set("block", class_7923.field_41175.method_10221(state.method_26204()).toString()).set("meta", (double)state.method_26204().method_9595().method_11662().indexOf(state)).set("x", (double)event.getPos().method_10263()).set("y", (double)event.getPos().method_10264()).set("z", (double)event.getPos().method_10260()).set("tool", tool);
           this.trigger(event, Mappet.settings.blockBreak, context);
-          Mappet.logger.info("BREAK-EVENT fired canceled=" + event.isCanceled() + " block=" + context.getValue("block") + " meta=" + context.getValue("meta") + " tool=" + tool + " result=" + context.getResult());
          if (!event.isCanceled()) {
             this.setBrokenBlockOverride(event, context);
          }
@@ -229,9 +229,6 @@ class_2680 state = event.getState();
          class_2680 override = resolveBlockStateId(id, ((Number)meta).intValue());
          if (override != null && override.method_26204() != event.getState().method_26204()) {
             event.setBrokenBlockOverride(override);
-            Mappet.logger.info("OVERRIDE-break requested " + class_7923.field_41175.method_10221(event.getState().method_26204()) + " -> " + class_7923.field_41175.method_10221(override.method_26204()));
-         } else {
-            Mappet.logger.info("OVERRIDE-break skipped applied=false (override=" + (override == null ? "null" : "same block") + ")");
          }
       }
    }
@@ -260,9 +257,6 @@ class_2680 state = event.getState();
          class_2680 override = resolveBlockStateId(id, ((Number)meta).intValue());
          if (override != null && override != event.getPlacedBlock()) {
             event.setPlacedBlock(override);
-            Mappet.logger.info("OVERRIDE applied " + class_7923.field_41175.method_10221(event.getPlacedBlock().method_26204()) + " -> " + class_7923.field_41175.method_10221(override.method_26204()));
-         } else {
-            Mappet.logger.info("OVERRIDE skipped applied=false (placed=" + (override == null ? "null" : "same state") + ")");
          }
       }
    }
@@ -284,12 +278,10 @@ class_2680 state = event.getState();
          if (legacy != null) {
             block = (class_2248)class_7923.field_41175.method_10223(new class_2960(legacy[meta >= 0 && meta < legacy.length ? meta : 0]));
             class_2680 result = block == null ? null : block.method_9564();
-            Mappet.logger.info("OVERRIDE legacy=" + blockId + " meta=" + meta + " result=" + (result == null ? "null" : class_7923.field_41175.method_10221(result.method_26204())));
             return result;
          }
          block = (class_2248)class_7923.field_41175.method_10223(new class_2960(blockId));
          if (block == null) {
-            Mappet.logger.info("OVERRIDE block=" + blockId + " meta=" + meta + " result=null (unknown block)");
             return null;
          }
          List<class_2680> states = block.method_9595().method_11662();
@@ -299,7 +291,6 @@ class_2680 state = event.getState();
          } else {
             result = block.method_9564();
          }
-         Mappet.logger.info("OVERRIDE block=" + blockId + " meta=" + meta + " result=" + class_7923.field_41175.method_10221(result.method_26204()) + "[]" + meta + " sized=" + states.size());
          return result;
       } catch (Exception e) {
          return null;
@@ -462,6 +453,9 @@ class_2680 state = event.getState();
 
          this.syncData(player, character);
       }
+      else {
+         this.syncHotkeys(player);
+      }
 
       if (Mappet.clientSettings != null) {
          Dispatcher.sendTo(new PacketClientSettings(Mappet.clientSettings.serializeNBT()), player);
@@ -469,19 +463,23 @@ class_2680 state = event.getState();
 
       ClientScriptExecutor.syncClientScripts(player);
 
-      Map<String, List<HUDScene>> displayedHUDs = character.getDisplayedHUDs();
+      if (character != null) {
+         this.pruneMissingHUDs(character);
+         Map<String, List<HUDScene>> displayedHUDs = character.getDisplayedHUDs();
 
-      for(Map.Entry<String, List<HUDScene>> entry : displayedHUDs.entrySet()) {
-         String id = (String)entry.getKey();
+         for(Map.Entry<String, List<HUDScene>> entry : displayedHUDs.entrySet()) {
+            String id = (String)entry.getKey();
 
-         for(HUDScene scene : entry.getValue()) {
-            Dispatcher.sendTo(new PacketHUDScene(id, scene.serializeNBT()), player);
+            for(HUDScene scene : entry.getValue()) {
+               Dispatcher.sendTo(new PacketHUDScene(id, scene.serializeNBT()), player);
+            }
          }
       }
 
       for(class_3222 p : Mappet.server.method_3760().method_14571()) {
          ICharacter c = Character.get(p);
          if (c != null) {
+            this.pruneMissingHUDs(c);
             Map<String, List<HUDScene>> displayed = c.getDisplayedHUDs();
 
             for(Map.Entry<String, List<HUDScene>> entry : displayed.entrySet()) {
@@ -506,6 +504,8 @@ class_2680 state = event.getState();
 
    @SubscribeEvent
    public void onPlayerLogsOut(LegacyEvents.PlayerEvent.PlayerLoggedOutEvent event) {
+      MappetMovementLock.clear(event.player.method_5667());
+
       if (!Mappet.settings.playerLogOut.isEmpty()) {
          DataContext context = new DataContext(event.player);
          Mappet.settings.playerLogOut.trigger(context);
@@ -548,10 +548,27 @@ class_2680 state = event.getState();
          Dispatcher.sendTo(new PacketQuests(character.getQuests()), player);
       }
 
-      if (!Mappet.settings.hotkeys.hotkeys.isEmpty()) {
-         Dispatcher.sendTo(new PacketEventHotkeys(Mappet.settings), player);
+      this.syncHotkeys(player);
+   }
+
+   private void syncHotkeys(class_3222 player) {
+      Dispatcher.sendTo(new PacketEventHotkeys(Mappet.settings), player);
+   }
+
+   private void pruneMissingHUDs(ICharacter character) {
+      if (Mappet.huds == null) {
+         return;
       }
 
+      Iterator<Map.Entry<String, List<HUDScene>>> iterator = character.getDisplayedHUDs().entrySet().iterator();
+
+      while(iterator.hasNext()) {
+         Map.Entry<String, List<HUDScene>> entry = iterator.next();
+
+         if (!Mappet.huds.exists(entry.getKey())) {
+            iterator.remove();
+         }
+      }
    }
 
    @SubscribeEvent
@@ -630,7 +647,7 @@ class_2680 state = event.getState();
 
    @SubscribeEvent
    public void onEntityJoinWorld(LegacyEvents.EntityJoinWorldEvent event) {
-      if (!event.getWorld().field_9236) {
+      if (!event.getWorld().field_9236 && Mappet.settings != null) {
          Trigger spawnTrigger = Mappet.settings.entitySpawn;
          if (spawnTrigger != null && !spawnTrigger.isEmpty() && event.getEntity().field_6012 == 0) {
             class_1297 entity = event.getEntity();
@@ -757,7 +774,7 @@ class_2680 state = event.getState();
    }
 
    public void onEntityLanded(class_1297 entity, double distance) {
-      if (entity.method_37908().field_9236 || Mappet.settings.entityLanded.isEmpty()) {
+      if (Mappet.settings == null || entity.method_37908().field_9236 || Mappet.settings.entityLanded.isEmpty()) {
          return;
       }
 
@@ -773,6 +790,15 @@ class_2680 state = event.getState();
       }
 
       Mappet.settings.entityLanded.trigger(new DataContext(entity).set("falling", value).set("distance", Math.max(0.0F, distance)));
+   }
+
+   public void onEntityJump(LegacyEvents.LivingJumpEvent event) {
+      class_1297 entity = event.getEntity();
+      if (Mappet.settings == null || entity.method_37908().field_9236 || Mappet.settings.entityJump.isEmpty()) {
+         return;
+      }
+
+      this.trigger(event, Mappet.settings.entityJump, new DataContext(entity));
    }
 
    @SubscribeEvent
@@ -803,8 +829,8 @@ class_2680 state = event.getState();
 
    @SubscribeEvent
    public void onStateChange(StateChangedEvent event) {
-      Trigger trigger = Mappet.settings.stateChanged;
-      if (!trigger.isEmpty()) {
+      Trigger trigger = Mappet.settings == null ? null : Mappet.settings.stateChanged;
+      if (trigger != null && !trigger.isEmpty()) {
          this.handleStateChangedEvent(event, trigger);
       }
 

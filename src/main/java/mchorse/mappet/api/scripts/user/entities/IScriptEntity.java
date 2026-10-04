@@ -147,6 +147,13 @@ public interface IScriptEntity {
 
    String getEntityId();
 
+   /**
+    * Returns an object registered by an addon, so scripts can use
+    * player.get("changed").setForm("changed:latex") instead of a global call that takes the entity
+    * as an argument. Returns null for unknown ids.
+    */
+   Object get(String id);
+
    int getTicks();
 
    int getCombinedLight();

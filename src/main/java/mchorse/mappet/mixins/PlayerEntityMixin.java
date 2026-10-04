@@ -44,6 +44,22 @@ public abstract class PlayerEntityMixin implements CharacterHolder {
        }
     }
 
+    @Inject(
+         method = {"method_6043"},
+         at = {@At("HEAD")},
+         cancellable = true
+      )
+     private void mappet$jump(CallbackInfo ci) {
+        class_1657 player = (class_1657)(Object)this;
+        if (!player.method_37908().field_9236) {
+           LegacyEvents.LivingJumpEvent event = new LegacyEvents.LivingJumpEvent(player);
+           CommonProxy.eventHandler.onEntityJump(event);
+           if (event.isCanceled()) {
+              ci.cancel();
+           }
+        }
+     }
+
     @ModifyVariable(
        method = {"method_6074"},
        at = @At("HEAD"),

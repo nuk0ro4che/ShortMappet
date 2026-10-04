@@ -106,6 +106,21 @@ public abstract class LivingEntityEventMixin {
    }
 
    @Inject(
+      method = {"method_6043"},
+      at = {@At("HEAD")},
+      cancellable = true
+   )
+   private void mappet$jump(CallbackInfo ci) {
+      if (!this.mappet$self().method_37908().field_9236) {
+         LegacyEvents.LivingJumpEvent event = new LegacyEvents.LivingJumpEvent(this.mappet$self());
+         CommonProxy.eventHandler.onEntityJump(event);
+         if (event.isCanceled()) {
+            ci.cancel();
+         }
+      }
+   }
+
+   @Inject(
       method = {"method_6116"},
       at = {@At("HEAD")}
    )

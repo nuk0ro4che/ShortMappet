@@ -400,8 +400,24 @@ public final class LegacyEvents {
          return this.ratioX;
       }
 
-      public float getRatioZ() {
-         return this.ratioZ;
+public float getRatioZ() {
+          return this.ratioZ;
+       }
+    }
+
+   public static class LivingJumpEvent extends Event {
+      private final class_1309 entity;
+
+      public LivingJumpEvent(class_1309 e) {
+         this.entity = e;
+      }
+
+      public class_1309 getEntity() {
+         return this.entity;
+      }
+
+      public class_1309 getMobEntity() {
+         return this.entity;
       }
    }
 

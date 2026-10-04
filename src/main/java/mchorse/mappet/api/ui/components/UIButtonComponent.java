@@ -1,6 +1,5 @@
 package mchorse.mappet.api.ui.components;
 
-import java.util.Locale;
 import java.util.function.Consumer;
 import mchorse.mappet.api.ui.UIContext;
 import mchorse.mappet.api.ui.utils.DiscardMethod;
@@ -10,6 +9,7 @@ import mchorse.mclib.client.gui.framework.elements.buttons.GuiButtonElement;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.utils.keys.IKey;
 import mchorse.mclib.client.gui.utils.resizers.Flex.Measure;
+import mchorse.mappet.utils.Interpolations;
 import mchorse.mclib.utils.Interpolation;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -130,6 +130,7 @@ public class UIButtonComponent extends UILabelBaseComponent
       return this;
    }
 
+
    @DiscardMethod
    private String getInterpolationKey(String interpolation)
    {
@@ -138,32 +139,13 @@ public class UIButtonComponent extends UILabelBaseComponent
          return DEFAULT_INTERPOLATION_KEY;
       }
 
-      try
-      {
-         return Interpolation.valueOf(interpolation.trim().toUpperCase(Locale.ROOT).replace('-', '_')).name().toLowerCase(Locale.ROOT);
-      }
-      catch (IllegalArgumentException exception)
-      {
-         return DEFAULT_INTERPOLATION_KEY;
-      }
+      return Interpolations.normalize(interpolation, DEFAULT_INTERPOLATION_KEY);
    }
 
    @DiscardMethod
    private static Interpolation getInterpolation(String interpolation)
    {
-      if (interpolation == null || interpolation.trim().isEmpty())
-      {
-         return DEFAULT_INTERPOLATION;
-      }
-
-      try
-      {
-         return Interpolation.valueOf(interpolation.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
-      }
-      catch (IllegalArgumentException exception)
-      {
-         return DEFAULT_INTERPOLATION;
-      }
+      return Interpolations.resolve(interpolation, DEFAULT_INTERPOLATION);
    }
 
    public UIButtonComponent enterHover()
@@ -500,6 +482,7 @@ public class UIButtonComponent extends UILabelBaseComponent
          this.rotationInterpolation = interpolation;
          this.rotationPending = true;
       }
+
 
       public void draw(GuiContext context)
       {

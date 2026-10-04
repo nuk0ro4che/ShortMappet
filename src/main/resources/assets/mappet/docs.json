@@ -909,6 +909,52 @@
           "annotations": []
         },
         {
+          "name": "disableJump",
+          "doc": "Запрещает или разрешает игроку прыжок (клавиша прыжка). Позволяет временно отключить прыжки у игрока. Работает только для локального игрока (в одиночной игре).\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.disableJump(true);  // игрок не может прыгать\n    player.disableJump(false); // вернуть прыжки\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "disabled",
+              "type": "boolean"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isJumpDisabled",
+          "doc": "Возвращает <code>true</code>, если прыжок игрока находится под запретом (<code>disableJump(true)</code>).\n\n <pre>{@code\nfunction main(c)\n{\n    var locked = c.getSubject().isJumpDisabled();\n}\n}</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "disableSprint",
+          "doc": "Запрещает или разрешает игроку спринт (клавиша бега). Позволяет временно отключить бег у игрока. Работает только для локального игрока (в одиночной игре).\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.disableSprint(true);  // игрок не может бежать\n    player.disableSprint(false); // вернуть бег\n}\n}</pre>",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "disabled",
+              "type": "boolean"
+            }
+          ],
+          "annotations": []
+        },
+        {
+          "name": "isSprintDisabled",
+          "doc": "Возвращает <code>true</code>, если спринт игрока находится под запретом (<code>disableSprint(true)</code>).\n\n <pre>{@code\nfunction main(c)\n{\n    var locked = c.getSubject().isSprintDisabled();\n}\n}</pre>",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
           "name": "disableKey",
           "doc": "Блокирует или разблокирует конкретный бинд (клавишу) для игрока по его транслированному идентификатору, например <code>key.forward</code>, <code>key.attack</code>, <code>key.use</code>, <code>key.jump</code>. Блокирует нажатия и с клавиатуры, и с мыши (для мышиных кнопок). Работает только для локального игрока.\n\n <pre>{@code\nfunction main(c)\n{\n    var player = c.getSubject();\n    player.disableKey(\"key.attack.lock\", true); // игрок не может атаковать\n    player.disableKey(\"key.forward.lock\", true); // и не может идти вперёд\n}\n}</pre>",
           "returns": {
@@ -4509,7 +4555,7 @@
         },
         {
           "name": "moveTo",
-          "doc": "<p>Перемещает сущность в указанную позицию (<b>x, y, z</b>) с заданным <b>типом интерполяции</b> и <b>продолжительностью</b>. Поддерживаются следующие типы интерполяции:</p>\n <ul>\n     <li>§7linear§r</li>\n     <li>§7quad_in§r</li>\n     <li>§7quad_out§r</li>\n     <li>§7quad_inout§r</li>\n     <li>§7cubic_in§r</li>\n     <li>§7cubic_out§r</li>\n     <li>§7cubic_inout§r</li>\n     <li>§7exp_in§r</li>\n     <li>§7exp_out§r</li>\n     <li>§7exp_inout§r</li>\n     <li>§7back_in§r</li>\n     <li>§7back_out§r</li>\n     <li>§7back_inout§r</li>\n     <li>§7elastic_in§r</li>\n     <li>§7elastic_out§r</li>\n     <li>§7elastic_inout§r</li>\n     <li>§7bounce_in§r</li>\n     <li>§7bounce_out§r</li>\n     <li>§7bounce_inout§r</li>\n     <li>§7sine_in§r</li>\n     <li>§7sine_out§r</li>\n     <li>§7sine_inout§r</li>\n     <li>§7quart_in§r</li>\n     <li>§7quart_out§r</li>\n     <li>§7quart_inout§r</li>\n     <li>§7quint_in§r</li>\n     <li>§7quint_out§r</li>\n </ul>\n\n <pre>{@code\n    var s = c.getSubject();\n    var pos = s.getPosition();\n    s.moveTo(\"quad_out\", 30, pos.x, pos.y+2, pos.z, false);\n }</pre>",
+          "doc": "<p>Перемещает сущность в указанную позицию (<b>x, y, z</b>) с заданным <b>типом интерполяции</b> и <b>продолжительностью</b>. Поддерживаются следующие типы интерполяции:</p>\n <ul>\n     <li>§7linear§r</li>\n     <li>§7quad_in§r</li>\n     <li>§7quad_out§r</li>\n     <li>§7quad_inout§r</li>\n     <li>§7cubic_in§r</li>\n     <li>§7cubic_out§r</li>\n     <li>§7cubic_inout§r</li>\n     <li>§7exp_in§r</li>\n     <li>§7exp_out§r</li>\n     <li>§7exp_inout§r</li>\n     <li>§7back_in§r</li>\n     <li>§7back_out§r</li>\n     <li>§7back_inout§r</li>\n     <li>§7elastic_in§r</li>\n     <li>§7elastic_out§r</li>\n     <li>§7elastic_inout§r</li>\n     <li>§7bounce_in§r</li>\n     <li>§7bounce_out§r</li>\n     <li>§7bounce_inout§r</li>\n     <li>§7sine_in§r</li>\n     <li>§7sine_out§r</li>\n     <li>§7sine_inout§r</li>\n     <li>§7quart_in§r</li>\n     <li>§7quart_out§r</li>\n     <li>§7quart_inout§r</li>\n     <li>§7quint_in§r</li>\n     <li>§7quint_out§r</li>\n     <li>§7quint_inout§r</li>\n     <li>§7circle_in§r</li>\n     <li>§7circle_out§r</li>\n     <li>§7circle_inout§r</li>\n </ul>\n\n <pre>{@code\n    var s = c.getSubject();\n    var pos = s.getPosition();\n    s.moveTo(\"quad_out\", 30, pos.x, pos.y+2, pos.z, false);\n }</pre>",
           "returns": {
             "type": "void"
           },
@@ -4517,7 +4563,7 @@
             {
               "name": "interpolation",
               "type": "java.lang.String",
-              "doc": "Тип интерполяции, используемый при перемещении."
+              "doc": "Тип интерполяции, используемый при перемещении. Поддерживаются все кривые Blockbuster: linear; quad_in, quad_out, quad_inout; cubic_in, cubic_out, cubic_inout; exp_in, exp_out, exp_inout; back_in, back_out, back_inout; elastic_in, elastic_out, elastic_inout; bounce_in, bounce_out, bounce_inout; sine_in, sine_out, sine_inout; quart_in, quart_out, quart_inout; quint_in, quint_out, quint_inout; circle_in, circle_out или circle_inout."
             },
             {
               "name": "durationTicks",
@@ -15583,7 +15629,7 @@
             {
               "name": "interpolation",
               "type": "String",
-              "doc": "Интерполяция, например <code>linear</code> или <code>sine_inout</code>."
+              "doc": "Кривая перехода. Поддерживаются все кривые Blockbuster: linear; quad_in, quad_out, quad_inout; cubic_in, cubic_out, cubic_inout; exp_in, exp_out, exp_inout; back_in, back_out, back_inout; elastic_in, elastic_out, elastic_inout; bounce_in, bounce_out, bounce_inout; sine_in, sine_out, sine_inout; quart_in, quart_out, quart_inout; quint_in, quint_out, quint_inout; circle_in, circle_out или circle_inout."
             },
             {
               "name": "durationTicks",
@@ -15926,7 +15972,7 @@
             {
               "name": "interpolation",
               "type": "java.lang.String",
-              "doc": "Тип интерполяции: <code>linear</code>, <code>easeIn</code>, <code>easeOut</code> или <code>easeInOut</code>."
+              "doc": "Кривая перехода. Поддерживаются все кривые Blockbuster: linear; quad_in, quad_out, quad_inout; cubic_in, cubic_out, cubic_inout; exp_in, exp_out, exp_inout; back_in, back_out, back_inout; elastic_in, elastic_out, elastic_inout; bounce_in, bounce_out, bounce_inout; sine_in, sine_out, sine_inout; quart_in, quart_out, quart_inout; quint_in, quint_out, quint_inout; circle_in, circle_out или circle_inout."
             },
             {
               "name": "ticks",
@@ -15961,7 +16007,7 @@
             {
               "name": "interpolation",
               "type": "java.lang.String",
-              "doc": "Способ интерполяции перехода."
+              "doc": "Кривая перехода. Поддерживаются все кривые Blockbuster: linear; quad_in, quad_out, quad_inout; cubic_in, cubic_out, cubic_inout; exp_in, exp_out, exp_inout; back_in, back_out, back_inout; elastic_in, elastic_out, elastic_inout; bounce_in, bounce_out, bounce_inout; sine_in, sine_out, sine_inout; quart_in, quart_out, quart_inout; quint_in, quint_out, quint_inout; circle_in, circle_out или circle_inout."
             },
             {
               "name": "ticks",
@@ -15996,7 +16042,7 @@
             {
               "name": "interpolation",
               "type": "java.lang.String",
-              "doc": "Способ интерполяции перехода."
+              "doc": "Кривая перехода. Поддерживаются все кривые Blockbuster: linear; quad_in, quad_out, quad_inout; cubic_in, cubic_out, cubic_inout; exp_in, exp_out, exp_inout; back_in, back_out, back_inout; elastic_in, elastic_out, elastic_inout; bounce_in, bounce_out, bounce_inout; sine_in, sine_out, sine_inout; quart_in, quart_out, quart_inout; quint_in, quint_out, quint_inout; circle_in, circle_out или circle_inout."
             },
             {
               "name": "ticks",

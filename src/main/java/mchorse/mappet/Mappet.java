@@ -129,6 +129,7 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
    public static ValueInt journalButtonY;
    public static ValueSyntaxStyle scriptEditorSyntaxStyle;
    public static ValueBoolean scriptEditorSounds;
+   public static ValueBoolean scriptEditorVim;
    public static ValueBoolean scriptUIDebug;
    public static ValueBoolean scriptDocsNewStructure;
    public static ValueBoolean discordRpcEnabled;
@@ -169,6 +170,7 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
       builder.getCategory().markClientSide();
       builder.category("script_editor").register(scriptEditorSyntaxStyle = new ValueSyntaxStyle("syntax_style"));
       scriptEditorSounds = builder.getBoolean("sounds", true);
+      scriptEditorVim = (ValueBoolean)builder.getBoolean("vim", false).clientSide();
       scriptUIDebug = builder.getBoolean("ui_debug", false);
       scriptDocsNewStructure = builder.getBoolean("docs_new_structure", true);
       builder.getCategory().markClientSide();
@@ -189,6 +191,10 @@ public static ValueBoolean nodePulseBackgroundMcLibPrimary;
       discordRpcButton2Text = discord.getString("button2_text", "discord shortmappet");
       discordRpcButton2Url = discord.getString("button2_url", "https://discord.gg/VrSw4wQm2G");
       discord.getCategory().markClientSide();
+   }
+
+   public static boolean isScriptEditorVim() {
+      return scriptEditorVim != null && (Boolean)scriptEditorVim.get();
    }
 
    private static void registerConfig() {

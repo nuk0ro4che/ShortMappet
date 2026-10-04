@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import mchorse.mappet.Mappet;
 import mchorse.mappet.client.gui.GuiMappetDashboard;
 import mchorse.mappet.client.gui.scripts.GuiTextEditor;
 import mchorse.mappet.mixins.MousePositionAccessor;
@@ -397,6 +398,15 @@ public final class HudIdPicker {
       int width = (int)((x2 - x) * scale);
       int height = (int)((y2 - y) * scale);
       return new int[]{px, py, px + width, py + height};
+   }
+
+   /** Prints how many HUD elements the picker can see, so an empty list can be diagnosed from the log */
+   public static void debugState() {
+      if (active) {
+         int[] cursor = cursor();
+
+         Mappet.LOGGER.info("[hud-picker] active draws={} lastSeen={} boxes={} cursor={}", HudCapture.getCustomDraws().size(), HudCapture.getLastSeen().size(), HudCapture.getCustomBoxes().size(), cursor == null ? "none" : cursor[0] + "," + cursor[1]);
+      }
    }
 
    private static List<String> customHitsAt(int x, int y) {

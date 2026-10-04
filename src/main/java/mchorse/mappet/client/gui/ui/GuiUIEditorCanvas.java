@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import mchorse.mappet.Mappet;
 import mchorse.mappet.api.ui.UIContext;
 import mchorse.mappet.client.gui.utils.AnimatedUIComponentElement;
 import mchorse.mappet.client.gui.utils.GuiMorphRenderer;
@@ -49,7 +48,6 @@ import net.minecraft.class_4587;
 
 
 public class GuiUIEditorCanvas extends GuiCanvas {
-   private static final boolean UI_DEBUG = Boolean.getBoolean("mappet.ui.debug");
    private static final int DESIGN_WIDTH = 1280;
    private static final int DESIGN_HEIGHT = 720;
    private static final int TOOLBAR_HEIGHT = 25;
@@ -452,9 +450,6 @@ public class GuiUIEditorCanvas extends GuiCanvas {
       super.draw(context);
       this.drawToolbar(context);
       if (this.selected != null) {
-         if (UI_DEBUG) {
-            this.logSelectedElementState();
-         }
          Area sandbox = this.getSandboxArea();
          Area area = this.getArea(this.selected);
          int primary = -16777216 | (Integer)McLib.primaryColor.get() & 16777215;
@@ -1039,28 +1034,6 @@ public class GuiUIEditorCanvas extends GuiCanvas {
 
    private Area getArea(UIComponent component) {
       return this.getDataArea(component);
-   }
-
-   private void logSelectedElementState() {
-      try {
-         UIComponent component = this.selected;
-         Area area = this.getDataArea(component);
-         GuiElement element = this.runtimeContext == null || this.runtimeHost == null ? null : this.findRuntimeElement(component);
-         Area runtimeArea = this.getRuntimeDataArea(component);
-         StringBuilder trace = new StringBuilder();
-         if (element != null) {
-            GuiElement node = element;
-            while (node != null) {
-               trace.append(node.getClass().getSimpleName()).append("(").append(node.area.x).append(",").append(node.area.y).append(",").append(node.area.w).append(",").append(node.area.h).append(") <- ");
-               node = node.getParent();
-            }
-         } else {
-            trace.append("ELEMENT_NOT_FOUND");
-         }
-         Mappet.LOGGER.warn("[ui-area] id={} type={} runtimeWindow={}x{} sandboxArea=({},{},{},{}) runtimeArea=({},{},{},{}) src={}", component.id, component.getClass().getSimpleName(), this.getRuntimeWidth(), this.getRuntimeHeight(), area.x, area.y, area.w, area.h, runtimeArea.x, runtimeArea.y, runtimeArea.w, runtimeArea.h, trace);
-      } catch (Exception e) {
-         Mappet.LOGGER.warn("[ui-area] debug error: " + e);
-      }
    }
 
    private Area getDataArea(UIComponent component) {

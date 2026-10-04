@@ -38,10 +38,16 @@ boolean executeClientScript(String script, String function, Object... args);
     boolean executeClientScript(Object code, Object... args);
 
    
-    void disableJump(boolean disabled);
+void disableJump(boolean disabled);
 
-   
-   void disableSprint(boolean disabled);
+    
+    void disableSprint(boolean disabled);
+
+    
+    boolean isJumpDisabled();
+
+    
+    boolean isSprintDisabled();
 
 
    void playAnimation(String animation);
@@ -80,8 +86,12 @@ boolean executeClientScript(String script, String function, Object... args);
    
    void removeShader();
 
+   void removeShader(String id);
+
    
    void removeShader(boolean ui, boolean hud);
+
+   void removeShader(String id, boolean ui, boolean hud);
 
    
 
@@ -92,6 +102,8 @@ boolean executeClientScript(String script, String function, Object... args);
    
    void removeUIShader();
 
+   void removeUIShader(String id);
+
    
 
 
@@ -100,6 +112,8 @@ boolean executeClientScript(String script, String function, Object... args);
 
    
    void removeHUDShader();
+
+   void removeHUDShader(String id);
 
    void openWeb(String url);
 

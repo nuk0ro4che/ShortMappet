@@ -46,7 +46,7 @@ public class JavaScriptDiagnostics {
    private static final Pattern ASSIGNMENT_DECLARATION = Pattern.compile("(?m)(?<![=!<>])\\b([A-Za-z_$][\\w$]*)\\s*=(?!=)");
    private static final Pattern FUNCTION_DECLARATION = Pattern.compile("\\bfunction\\s+([A-Za-z_$][\\w$]*)\\s*\\(([^)]*)\\)");
    private static final Pattern FUNCTION_PARAMETERS = Pattern.compile("\\bfunction\\s*(?:[A-Za-z_$][\\w$]*)?\\s*\\(([^)]*)\\)");
-   private static final Pattern FOR_IN_DECLARATION = Pattern.compile("\\bfor\\s*\\(\\s*(?:(?:var|let|const)\\s+)?([A-Za-z_$][\\w$]*)\\s+(?:in|of)\\b");
+   private static final Pattern FOR_EACH_DECLARATION = Pattern.compile("\\bfor\\s+(?:each\\s*)?\\(?\\s*(?:(?:var|let|const)\\s+)?([A-Za-z_$][\\w$]*)\\s+(?:in|of)\\b");
    private static final Pattern MAPPET_IMPORT = Pattern.compile("(?m)^[ \\t]*import[ \\t]+(?:([\\\"'])([^\\\"']+)\\1|([^;\\s]+))[ \\t]*;?[ \\t]*(?=\\r?$)");
    
 
@@ -315,10 +315,16 @@ public class JavaScriptDiagnostics {
       known.addAll(AutoCompleteConfig.JS_KEYWORDS);
       known.add("in");
       known.add("of");
+      known.add("each");
       if (libraryFunctions == null) {
          known.addAll(ScopeAnalyzer.getCurrentLibraryFunctionNames());
       } else {
          known.addAll(libraryFunctions);
+      }
+
+      Matcher forEachVariable = FOR_EACH_DECLARATION.matcher(code);
+      while(forEachVariable.find()) {
+         known.add(forEachVariable.group(1));
       }
 
       

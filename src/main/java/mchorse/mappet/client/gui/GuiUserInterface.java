@@ -1,6 +1,5 @@
 package mchorse.mappet.client.gui;
 
-import java.util.Locale;
 import mchorse.mappet.api.ui.UI;
 import mchorse.mappet.api.ui.UIContext;
 import mchorse.mappet.network.Dispatcher;
@@ -10,6 +9,7 @@ import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
 import mchorse.mclib.client.gui.utils.keys.CompoundKey;
 import mchorse.mclib.client.gui.utils.keys.LangKey;
+import mchorse.mappet.utils.Interpolations;
 import mchorse.mclib.utils.Interpolation;
 import net.minecraft.class_2487;
 import net.minecraft.class_310;
@@ -256,15 +256,7 @@ public class GuiUserInterface extends GuiBase {
    }
 
    private Interpolation getInterpolation(String interpolation) {
-      if (interpolation == null || interpolation.trim().isEmpty()) {
-         return DEFAULT_INTERPOLATION;
-      }
-
-      try {
-         return Interpolation.valueOf(interpolation.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
-      } catch (IllegalArgumentException exception) {
-         return DEFAULT_INTERPOLATION;
-      }
+      return Interpolations.resolve(interpolation, DEFAULT_INTERPOLATION);
    }
 
    private void finishClose(boolean fadeToWorld) {

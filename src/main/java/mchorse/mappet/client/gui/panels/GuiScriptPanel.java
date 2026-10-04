@@ -477,6 +477,7 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
               });
       this.code = new GuiTextEditor(mc, this::trackCurrentTabChange);
       this.code.setClientScriptMode(this.isClientOnlyScripts());
+      this.code.setVimSaveAction(this::save);
       this.code.setFindReplaceHandler(this::openSearchReplace);
       this.code.setApiDocumentationHandler(this::openApiDocumentation);
       this.code.background().context(() -> createScriptContextMenu(this.mc, this.code));

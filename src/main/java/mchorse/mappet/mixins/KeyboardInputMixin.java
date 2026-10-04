@@ -16,11 +16,10 @@ public abstract class KeyboardInputMixin {
       cancellable = true
    )
    private void mappet$keyboardInput(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
+      InputTriggerHandler.onKeyboard(key, action);
+
       if (ClientMovementLockState.shouldBlockKey(key, scancode)) {
          ci.cancel();
-         return;
       }
-
-      InputTriggerHandler.onKeyboard(key, action);
    }
 }

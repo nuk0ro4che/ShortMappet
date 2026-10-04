@@ -29,6 +29,7 @@ public class GuiRepl extends GuiElement {
    public GuiRepl(class_310 mc) {
       super(mc);
       this.repl = new GuiTextEditor(mc, (Consumer)null);
+      this.repl.vim(false);
       this.repl.background().flex().relative(this).y(1.0F).w(1.0F).h(100).anchorY(1.0F);
       this.repl.context(() -> GuiScriptPanel.createScriptContextMenu(this.mc, this.repl));
       this.log = new GuiScrollElement(mc);

@@ -229,8 +229,9 @@ public class Character implements ICharacter {
 
    public void closeHUD(String id) {
       Dispatcher.sendTo(new PacketHUDScene(id == null ? "" : id, (class_2487)null), (class_3222)this.player);
-      HUDScene scene = (HUDScene)Mappet.huds.load(id);
-      if (scene.global) {
+      List<HUDScene> stored = this.getDisplayedHUDs().get(id);
+
+      if (stored != null && !stored.isEmpty() && ((HUDScene)stored.get(0)).global) {
          for(class_1657 player : this.player.method_37908().method_18456()) {
             if (player != this.player) {
                Dispatcher.sendTo(new PacketHUDScene(id == null ? "" : id, (class_2487)null), (class_3222)player);
@@ -245,7 +246,9 @@ public class Character implements ICharacter {
       this.closeHUD((String)null);
 
       for(Map.Entry<String, List<HUDScene>> entry : this.getDisplayedHUDs().entrySet()) {
-         if (((HUDScene)entry.getValue().get(0)).global) {
+         List<HUDScene> scenes = entry.getValue();
+
+         if (scenes != null && !scenes.isEmpty() && ((HUDScene)scenes.get(0)).global) {
             for(class_1657 player : this.player.method_37908().method_18456()) {
                if (player != this.player) {
                   Dispatcher.sendTo(new PacketHUDScene((String)entry.getKey(), (class_2487)null), (class_3222)player);

@@ -29,6 +29,10 @@ public final class ClientShaderRuntime {
    private static final ShaderChannel hud = new ShaderChannel(TARGET_HUD);
    
    private static final ShaderChannel hand = new ShaderChannel(TARGET_HAND);
+   private static final ShaderChannel handScratch = new ShaderChannel(TARGET_HAND);
+   private static final String MASK_VERTEX = "#version 120\n\nvarying vec2 texCoord;\n\nvoid main() {\n    texCoord = gl_MultiTexCoord0.xy;\n    gl_Position = gl_Vertex;\n}";
+   private static final String MASK_FRAGMENT = "#version 120\n\nuniform sampler2D colorTex;\nuniform sampler2D maskTex;\nvarying vec2 texCoord;\n\nvoid main() {\n    vec4 color = texture2D(colorTex, texCoord);\n    float mask = clamp(texture2D(maskTex, texCoord).a, 0.0, 1.0);\n    gl_FragColor = vec4(color.rgb * mask, mask);\n}";
+   private static int maskProgram;
    private static int copiedScreenTexture;
    private static int fullscreenVao;
    private static int fullscreenVbo;
@@ -57,25 +61,49 @@ public final class ClientShaderRuntime {
          setError("Шейдер не выбран");
          return false;
       }
-      if (!GL.getCapabilities().OpenGL20 || !GL.getCapabilities().OpenGL30) {
-         setError("Видеодрайвер не поддерживает современный OpenGL, нужный для экранного шейдера");
-         return false;
-      }
 
-      
+      boolean[] applied = new boolean[]{false};
 
-
-      boolean applied = applyToChannel(shader, getChannel(target));
-      if (target == TARGET_SCREEN) {
-         if (shader.renderOnHand && applied) {
-            
-
-            applyToChannel(shader, hand);
-         } else if (!shader.renderOnHand) {
-            removeChannel(hand);
+      runOnRenderThread(() -> {
+         if (!GL.getCapabilities().OpenGL20 || !GL.getCapabilities().OpenGL30) {
+            setError("Видеодрайвер не поддерживает современный OpenGL, нужный для экранного шейдера");
+            return;
          }
+
+         applied[0] = applyToChannel(shader, getChannel(target));
+
+         if (target == TARGET_SCREEN) {
+            if (shader.renderOnHand && applied[0]) {
+               applyToChannel(shader, hand);
+            } else if (!shader.renderOnHand) {
+               removeChannel(hand);
+            }
+         }
+      });
+
+      return applied[0];
+   }
+
+   /**
+    * Runs the action on the render thread.
+    *
+    * <p>Every {@code gl*} call in this class needs the context of the render
+    * thread. Packets and disconnect events are handled on the network thread,
+    * where such a call is a fatal LWJGL error that aborts the JVM, so anything
+    * that does not already run on the render thread has to be deferred.</p>
+    */
+   private static void runOnRenderThread(Runnable action) {
+      class_310 client = class_310.method_1551();
+
+      if (client == null) {
+         return;
       }
-      return applied;
+
+      if (client.method_18854()) {
+         action.run();
+      } else {
+         client.execute(action);
+      }
    }
 
    private static boolean applyToChannel(ShaderFile shader, ShaderChannel channel) {
@@ -145,20 +173,32 @@ public final class ClientShaderRuntime {
    }
 
    public static void remove(int target) {
-      removeChannel(getChannel(target));
-      if (target == TARGET_SCREEN) {
-         removeChannel(hand);
-      }
+      runOnRenderThread(() -> {
+         removeChannel(getChannel(target));
+
+         if (target == TARGET_SCREEN) {
+            removeChannel(hand);
+         }
+      });
    }
 
    private static void removeChannel(ShaderChannel channel) {
-      channel.active = null;
-      channel.activeName = "";
-      error = "";
-      if (channel.program != 0) {
-         GL20.glDeleteProgram(channel.program);
-         channel.program = 0;
-      }
+      runOnRenderThread(() -> {
+         channel.active = null;
+         channel.activeName = "";
+         error = "";
+
+         if (channel.program != 0) {
+            GL20.glDeleteProgram(channel.program);
+            channel.program = 0;
+         }
+      });
+   }
+
+   public static String getAppliedName(int target) {
+      ShaderChannel channel = getChannel(target);
+
+      return channel.activeName == null ? "" : channel.activeName;
    }
 
    public static boolean isApplied(ShaderFile shader) {
@@ -225,7 +265,7 @@ public final class ClientShaderRuntime {
 
    
    public static void endHand(float tickDelta) {
-      endCapture(hand, hand);
+      endCapture(hand, hand, true);
    }
 
    
@@ -277,6 +317,10 @@ public final class ClientShaderRuntime {
    }
 
    private static void endCapture(ShaderChannel capture, ShaderChannel effect) {
+      endCapture(capture, effect, false);
+   }
+
+   private static void endCapture(ShaderChannel capture, ShaderChannel effect, boolean masked) {
       if (!capture.capturing) {
          return;
       }
@@ -288,7 +332,18 @@ public final class ClientShaderRuntime {
          int height = getHeight(client);
          GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, capture.previousFramebuffer);
          GL11.glViewport(0, 0, width, height);
-         renderTexture(effect, capture.texture, width, height);
+
+         if (masked) {
+            /* The effect paints the whole frame, so it is applied to the hand layer first and then composited through the captured hand alpha, otherwise the effect's own alpha (usually 1.0) erases the world */
+            ensureCaptureBuffer(handScratch, width, height);
+            GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, handScratch.framebuffer);
+            renderTexture(effect, capture.texture, width, height);
+            GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, capture.previousFramebuffer);
+            GL11.glViewport(0, 0, width, height);
+            compositeHand(handScratch.texture, capture.texture, width, height);
+         } else {
+            renderTexture(effect, capture.texture, width, height);
+         }
       } catch (Throwable throwable) {
          handleRenderFailure(effect, throwable);
       } finally {
@@ -369,7 +424,7 @@ public final class ClientShaderRuntime {
          GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glDisable(GL11.GL_CULL_FACE);
-         configureBlend(channel.active.blendMode);
+         configureBlend(channel);
          GL20.glUseProgram(channel.program);
          setUniform1i("colorTex", 0);
          setUniform2f("resolution", width, height);
@@ -398,6 +453,88 @@ public final class ClientShaderRuntime {
       }
    }
 
+   /**
+    * Draws the painted hand through the alpha of the captured hand layer.
+    *
+    * <p>The result is composited with a premultiplied "over" blend, so the hand
+    * stays opaque and the world behind it is never touched, no matter what alpha
+    * the effect itself outputs.</p>
+    */
+   private static void compositeHand(int colorTexture, int maskTexture, int width, int height) {
+      int program = ensureMaskProgram();
+      int previousProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+      int previousActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+      boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+      boolean cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+      boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
+      int blendSource = GL11.glGetInteger(GL11.GL_BLEND_SRC);
+      int blendDestination = GL11.glGetInteger(GL11.GL_BLEND_DST);
+      int previousVao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+      GL13.glActiveTexture(GL13.GL_TEXTURE0);
+      int previousTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+      GL13.glActiveTexture(GL13.GL_TEXTURE1);
+      int previousTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+      try {
+         GL13.glActiveTexture(GL13.GL_TEXTURE0);
+         GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorTexture);
+         GL13.glActiveTexture(GL13.GL_TEXTURE1);
+         GL11.glBindTexture(GL11.GL_TEXTURE_2D, maskTexture);
+         GL11.glDisable(GL11.GL_DEPTH_TEST);
+         GL11.glDisable(GL11.GL_CULL_FACE);
+         GL11.glEnable(GL11.GL_BLEND);
+         GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
+         GL20.glUseProgram(program);
+         GL20.glUniform1i(GL20.glGetUniformLocation(program, "colorTex"), 0);
+         GL20.glUniform1i(GL20.glGetUniformLocation(program, "maskTex"), 1);
+
+         ensureFullscreenQuad();
+         GL30.glBindVertexArray(fullscreenVao);
+         GL20.glEnableVertexAttribArray(0);
+         GL20.glEnableVertexAttribArray(8);
+         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, 4);
+         GL30.glBindVertexArray(0);
+      } finally {
+         GL13.glActiveTexture(GL13.GL_TEXTURE1);
+         GL11.glBindTexture(GL11.GL_TEXTURE_2D, previousTexture1);
+         GL13.glActiveTexture(GL13.GL_TEXTURE0);
+         GL11.glBindTexture(GL11.GL_TEXTURE_2D, previousTexture0);
+         GL30.glBindVertexArray(previousVao);
+         GL20.glUseProgram(previousProgram);
+         GL13.glActiveTexture(previousActiveTexture);
+         if (depth) GL11.glEnable(GL11.GL_DEPTH_TEST); else GL11.glDisable(GL11.GL_DEPTH_TEST);
+         if (cull) GL11.glEnable(GL11.GL_CULL_FACE); else GL11.glDisable(GL11.GL_CULL_FACE);
+         GL11.glBlendFunc(blendSource, blendDestination);
+         if (blend) GL11.glEnable(GL11.GL_BLEND); else GL11.glDisable(GL11.GL_BLEND);
+      }
+   }
+
+   private static int ensureMaskProgram() {
+      if (maskProgram != 0) {
+         return maskProgram;
+      }
+
+      int vertexShader = 0;
+      int fragmentShader = 0;
+      int program = 0;
+      try {
+         vertexShader = compile(GL20.GL_VERTEX_SHADER, MASK_VERTEX, "Вершинный шейдер маски");
+         fragmentShader = compile(GL20.GL_FRAGMENT_SHADER, MASK_FRAGMENT, "Фрагментный шейдер маски");
+         program = GL20.glCreateProgram();
+         GL20.glAttachShader(program, vertexShader);
+         GL20.glAttachShader(program, fragmentShader);
+         GL20.glLinkProgram(program);
+         if (GL20.glGetProgrami(program, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
+            throw new IllegalArgumentException("Ошибка связывания:\n" + GL20.glGetProgramInfoLog(program, 8192));
+         }
+         maskProgram = program;
+         return maskProgram;
+      } finally {
+         if (vertexShader != 0) GL20.glDeleteShader(vertexShader);
+         if (fragmentShader != 0) GL20.glDeleteShader(fragmentShader);
+         if (program != 0 && maskProgram != program) GL20.glDeleteProgram(program);
+      }
+   }
+
    private static void ensureFullscreenQuad() {
       if (fullscreenVao != 0 && fullscreenVbo != 0) {
          return;
@@ -422,7 +559,15 @@ public final class ClientShaderRuntime {
       }
    }
 
-   private static void configureBlend(String mode) {
+   private static void configureBlend(ShaderChannel channel) {
+      /* The hand channel holds the whole first person frame, so it always replaces the screen, otherwise the effect's additive mode makes the hand translucent */
+      if (channel == hand) {
+         GL11.glDisable(GL11.GL_BLEND);
+
+         return;
+      }
+
+      String mode = channel.active.blendMode;
       String value = mode == null ? "replace" : mode.trim().toLowerCase();
       if ("additive".equals(value)) {
          GL11.glEnable(GL11.GL_BLEND);
@@ -474,12 +619,15 @@ public final class ClientShaderRuntime {
    }
 
    private static void removeChannelAfterFailure(ShaderChannel channel) {
-      channel.active = null;
-      channel.activeName = "";
-      if (channel.program != 0) {
-         GL20.glDeleteProgram(channel.program);
-         channel.program = 0;
-      }
+      runOnRenderThread(() -> {
+         channel.active = null;
+         channel.activeName = "";
+
+         if (channel.program != 0) {
+            GL20.glDeleteProgram(channel.program);
+            channel.program = 0;
+         }
+      });
    }
 
    private static ShaderChannel getChannel(int target) {
@@ -494,43 +642,60 @@ public final class ClientShaderRuntime {
    }
 
    public static void reset() {
-      removeChannel(screen);
-      removeChannel(interfaceChannel);
-      removeChannel(hud);
-      removeChannel(hand);
-      if (copiedScreenTexture != 0) {
-         GL11.glDeleteTextures(copiedScreenTexture);
-         copiedScreenTexture = 0;
-      }
-      deleteCaptureBuffer(interfaceChannel);
-      deleteCaptureBuffer(hud);
-      deleteCaptureBuffer(hand);
-      if (fullscreenVbo != 0) {
-         GL15.glDeleteBuffers(fullscreenVbo);
-         fullscreenVbo = 0;
-      }
-      if (fullscreenVao != 0) {
-         GL30.glDeleteVertexArrays(fullscreenVao);
-         fullscreenVao = 0;
-      }
+      runOnRenderThread(() -> {
+         removeChannel(screen);
+         removeChannel(interfaceChannel);
+         removeChannel(hud);
+         removeChannel(hand);
+
+         if (copiedScreenTexture != 0) {
+            GL11.glDeleteTextures(copiedScreenTexture);
+            copiedScreenTexture = 0;
+         }
+
+         deleteCaptureBuffer(interfaceChannel);
+         deleteCaptureBuffer(hud);
+         deleteCaptureBuffer(hand);
+         deleteCaptureBuffer(handScratch);
+
+         if (maskProgram != 0) {
+            GL20.glDeleteProgram(maskProgram);
+            maskProgram = 0;
+         }
+
+         if (fullscreenVbo != 0) {
+            GL15.glDeleteBuffers(fullscreenVbo);
+            fullscreenVbo = 0;
+         }
+
+         if (fullscreenVao != 0) {
+            GL30.glDeleteVertexArrays(fullscreenVao);
+            fullscreenVao = 0;
+         }
+      });
    }
 
    private static void deleteCaptureBuffer(ShaderChannel channel) {
-      channel.capturing = false;
-      channel.width = 0;
-      channel.height = 0;
-      if (channel.texture != 0) {
-         GL11.glDeleteTextures(channel.texture);
-         channel.texture = 0;
-      }
-      if (channel.depthBuffer != 0) {
-         GL30.glDeleteRenderbuffers(channel.depthBuffer);
-         channel.depthBuffer = 0;
-      }
-      if (channel.framebuffer != 0) {
-         GL30.glDeleteFramebuffers(channel.framebuffer);
-         channel.framebuffer = 0;
-      }
+      runOnRenderThread(() -> {
+         channel.capturing = false;
+         channel.width = 0;
+         channel.height = 0;
+
+         if (channel.texture != 0) {
+            GL11.glDeleteTextures(channel.texture);
+            channel.texture = 0;
+         }
+
+         if (channel.depthBuffer != 0) {
+            GL30.glDeleteRenderbuffers(channel.depthBuffer);
+            channel.depthBuffer = 0;
+         }
+
+         if (channel.framebuffer != 0) {
+            GL30.glDeleteFramebuffers(channel.framebuffer);
+            channel.framebuffer = 0;
+         }
+      });
    }
 
    private static class ShaderChannel {

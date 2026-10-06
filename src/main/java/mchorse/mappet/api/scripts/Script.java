@@ -58,7 +58,23 @@ public class Script extends AbstractData {
    public long lastLoadedAt = 0;
    private ScriptEngine engine;
    private List<ScriptRange> ranges;
+   private String remoteImportsCode;
+   private boolean hasRemoteImports;
    private String DEFAULT_KOTLIN_IMPORTS = "import mchorse.metamorph.api.morphs.AbstractMorph\nimport mchorse.mappet.entities.EntityNpc\nimport net.minecraft.entity.effect.StatusEffect\nimport net.minecraft.entity.Entity\nimport net.minecraft.inventory.Inventory\nimport net.minecraft.server.network.ServerPlayerEntity\nimport net.minecraft.item.Item\nimport net.minecraft.item.ItemStack\nimport net.minecraft.block.entity.BlockEntity\nimport net.minecraft.block.BlockState\nimport net.minecraft.particle.ParticleType\nimport javax.vecmath.*\nimport java.lang.Math.*\nimport mchorse.mappet.api.scripts.user.*\nimport mchorse.mappet.api.scripts.user.blocks.*\nimport mchorse.mappet.api.scripts.user.data.*\nimport mchorse.mappet.api.scripts.user.entities.*\nimport mchorse.mappet.api.scripts.user.items.*\nimport mchorse.mappet.api.scripts.user.mappet.*\nimport mchorse.mappet.api.scripts.user.nbt.*\nimport mchorse.mappet.api.scripts.code.*\nimport mchorse.mappet.api.scripts.code.blocks.*\nimport mchorse.mappet.api.scripts.code.entities.*\nimport mchorse.mappet.api.scripts.code.items.*\nimport mchorse.mappet.api.scripts.code.mappet.*\nimport mchorse.mappet.api.scripts.code.nbt.*\n";
+
+   public Script copy() {
+      Script script = new Script();
+
+      script.setId(this.getId());
+      script.code = this.code;
+      script.unique = this.unique;
+      script.globalLibrary = this.globalLibrary;
+      script.client = this.client;
+      script.libraries = new ArrayList(this.libraries);
+      script.lastLoadedAt = this.lastLoadedAt;
+
+      return script;
+   }
 
    public void start(ScriptManager manager) throws ScriptException {
       if (this.engine != null && this.hasRemoteImports() && this.refreshRemoteImports(manager)) {
@@ -327,7 +343,13 @@ public class Script extends AbstractData {
    }
 
    private boolean hasRemoteImports() {
-      return REMOTE_IMPORT.matcher(this.code == null ? "" : this.code).find();
+      String code = this.code == null ? "" : this.code;
+      if (code != this.remoteImportsCode) {
+         this.remoteImportsCode = code;
+         this.hasRemoteImports = REMOTE_IMPORT.matcher(code).find();
+      }
+
+      return this.hasRemoteImports;
    }
 
    private boolean refreshRemoteImports(ScriptManager manager) {

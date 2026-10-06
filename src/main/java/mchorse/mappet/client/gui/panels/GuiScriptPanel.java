@@ -52,6 +52,7 @@ import mchorse.mclib.client.gui.framework.elements.IGuiElement;
 import mchorse.mclib.client.gui.framework.elements.buttons.GuiIconElement;
 import mchorse.mclib.client.gui.framework.elements.buttons.GuiToggleElement;
 import mchorse.mclib.client.gui.framework.elements.context.GuiContextMenu;
+import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
 import mchorse.mclib.client.gui.framework.elements.input.GuiTrackpadElement;
 import mchorse.mclib.client.gui.framework.elements.input.color.GuiColorPicker;
 import mchorse.mclib.client.gui.framework.elements.modals.GuiModal;
@@ -103,6 +104,12 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    private final Set<String> modifiedScriptTabs = new HashSet();
    private static final Map<String, Integer> CACHED_SCRIPT_DIAGNOSTIC_STATUSES = new HashMap();
    private Map<String, Integer> scriptDiagnosticStatuses = new HashMap();
+   private static final long AUTOSAVE_DELAY = 2000L;
+   private static final long TOAST_DURATION = 2500L;
+   private static final long TOAST_FADE = 500L;
+   private long lastEditTime;
+   private String toast;
+   private long toastExpiration;
    
 
    private final Map<String, Set<String>> scriptLibraryFunctions = new HashMap();
@@ -660,7 +667,75 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    public void draw(GuiContext context) {
       this.updateCurrentScriptDiagnosticStatus();
       this.updateScriptDiagnosticScan();
+      this.updateAutosave();
       super.draw(context);
+      this.drawToast();
+   }
+
+   /**
+    * Сохраняет скрипт через 3 секунды после последнего изменения, чтобы правки не терялись
+    */
+   private void updateAutosave() {
+      if (this.lastEditTime == 0L || this.data == null || this.code == null || !this.code.isVisible()) {
+         return;
+      }
+
+      long now = System.currentTimeMillis();
+
+      if (now - this.lastEditTime < AUTOSAVE_DELAY) {
+         return;
+      }
+
+      this.lastEditTime = 0L;
+      this.saveAndSyncTab(true);
+   }
+
+   /**
+    * Сбрасывает содержимое редактора на сервер и отмечает вкладку как сохранённую
+    */
+   private void saveAndSyncTab(boolean toast) {
+      if (this.data == null) {
+         return;
+      }
+
+      String script = ((Script)this.data).getId();
+
+      this.save();
+      this.tabInitialCode.put(script, this.code.getText());
+      this.modifiedScriptTabs.remove(script);
+      this.refreshScriptTabs();
+
+      if (toast) {
+         this.toast = IKey.lang("mappet.gui.scripts.saved").get();
+         this.toastExpiration = System.currentTimeMillis() + TOAST_DURATION;
+      }
+   }
+
+   private void drawToast() {
+      if (this.toast == null || this.font == null) {
+         return;
+      }
+
+      long remaining = this.toastExpiration - System.currentTimeMillis();
+
+      if (remaining <= 0L) {
+         this.toast = null;
+         return;
+      }
+
+      if (remaining <= 2L) {
+         this.toast = null;
+         return;
+      }
+
+      /* Плавное затухание вместо ступенек, иначе анимация выглядит дёргано */
+      int alpha = remaining < TOAST_FADE ? (int) (255L * remaining / TOAST_FADE) : 255;
+
+      int x = this.editor.area.x + 8;
+      int y = this.editor.area.y + GuiScriptTabBar.getHeight() + 6;
+
+      GuiDraw.drawRect(x - 4, y - 4, x + this.font.method_1727(this.toast) + 4, y + 10, alpha << 24);
+      GuiDraw.drawStringWithShadow(this.font, this.toast, x, y, alpha << 24 | 0xFFFFFF);
    }
 
    private static class DiagnosticScanResult {
@@ -1063,6 +1138,79 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    }
 
    @Override
+   protected void onDataCreated(String id) {
+      this.saveAndSyncTab(false);
+   }
+
+   @Override
+   protected void onDataRenamed(String oldId, String newId) {
+      this.renameOpenScript(oldId, newId);
+
+      if (this.data != null && newId.equals(((Script)this.data).getId())) {
+         this.requestCurrentScriptDiagnostic((Script)this.data);
+      }
+
+      this.refreshScriptTabs();
+   }
+
+   @Override
+   protected void onFolderRenamed(String oldFolder, String newFolder) {
+      this.renameOpenScripts(oldFolder, newFolder);
+      this.refreshScriptTabs();
+   }
+
+   @Override
+   protected void onFolderMoved(String oldFolder, String newFolder) {
+      this.renameOpenScripts(oldFolder, newFolder);
+      this.refreshScriptTabs();
+   }
+
+   /** Переименовывает одну открытую вкладку, чтобы запись шла в существующий файл */
+   private void renameOpenScript(String oldId, String newId) {
+      if (oldId == null || newId == null || oldId.equals(newId)) {
+         return;
+      }
+
+      int index = this.openScriptTabs.indexOf(oldId);
+
+      if (index >= 0) {
+         this.openScriptTabs.set(index, newId);
+      }
+
+      this.renameKey(this.editorViewStates, oldId, newId);
+      this.renameKey(this.tabInitialCode, oldId, newId);
+      this.renameKey(this.scriptLibraryFunctions, oldId, newId);
+      this.renameKey(this.scriptDiagnosticStatuses, oldId, newId);
+      this.renameKey(CACHED_SCRIPT_DIAGNOSTIC_STATUSES, oldId, newId);
+
+      if (this.modifiedScriptTabs.remove(oldId)) {
+         this.modifiedScriptTabs.add(newId);
+      }
+   }
+
+   /** То же, но для всех скриптов внутри переименованной или перемещённой папки */
+   private void renameOpenScripts(String oldFolder, String newFolder) {
+      if (oldFolder == null || newFolder == null || oldFolder.equals(newFolder)) {
+         return;
+      }
+
+      String prefix = oldFolder.endsWith("/") ? oldFolder : oldFolder + "/";
+
+      for (String script : new ArrayList<>(this.openScriptTabs)) {
+         if (script.startsWith(prefix)) {
+            this.renameOpenScript(script, newFolder + script.substring(oldFolder.length()));
+         }
+      }
+   }
+
+   private static <V> void renameKey(Map<String, V> map, String oldId, String newId) {
+      if (map.containsKey(oldId)) {
+         V value = map.remove(oldId);
+         map.put(newId, value);
+      }
+   }
+
+   @Override
    protected void onDataRemoved(String id) {
       if (id == null || id.isEmpty()) {
          return;
@@ -1139,8 +1287,11 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
       }
       String script = ((Script)this.data).getId();
       String original = (String)this.tabInitialCode.get(script);
+
       if (original != null && !original.equals(code)) {
          this.modifiedScriptTabs.add(script);
+         this.lastEditTime = System.currentTimeMillis();
+         this.refreshScriptTabs();
       }
    }
 

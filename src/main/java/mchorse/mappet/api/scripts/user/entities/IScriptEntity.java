@@ -19,6 +19,7 @@ import net.minecraft.class_1297;
 public interface IScriptEntity {
    class_1297 getMinecraftEntity();
 
+
    
    ISimpleVoiceChat getSVC();
 

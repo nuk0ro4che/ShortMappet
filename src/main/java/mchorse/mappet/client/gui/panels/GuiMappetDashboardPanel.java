@@ -244,6 +244,7 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
          this.fill(data);
       }
 
+      this.onDataCreated(name);
    }
 
    protected void addFolder() {
@@ -263,7 +264,12 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
 
    protected void renameFolder(String name) {
       String path = this.namesList.getPath("");
-      Dispatcher.sendToServer((new PacketContentFolder(this.getType(), "", path.substring(0, path.length() - 1))).rename(name));
+      String oldFolder = path.substring(0, path.length() - 1);
+      int index = oldFolder.lastIndexOf('/');
+      String newFolder = index == -1 ? name : oldFolder.substring(0, index + 1) + name;
+
+      Dispatcher.sendToServer((new PacketContentFolder(this.getType(), "", oldFolder)).rename(name));
+      this.onFolderRenamed(oldFolder, newFolder);
       this.fill(null);
    }
 
@@ -310,6 +316,7 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
          }
       }
 
+      this.onDataCreated(id);
    }
 
    protected void renameData(GuiIconElement element) {
@@ -326,10 +333,13 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
       String id = path + this.getDataName(name);
 
       if (!this.namesList.hasInHierarchy(id)) {
-         Dispatcher.sendToServer((new PacketContentData(this.getType(), this.data.getId(), (class_2487)this.data.serializeNBT())).rename(id));
-         this.namesList.removeFile(this.data.getId());
+         String oldId = this.data.getId();
+
+         Dispatcher.sendToServer((new PacketContentData(this.getType(), oldId, (class_2487)this.data.serializeNBT())).rename(id));
+         this.namesList.removeFile(oldId);
          this.namesList.addFile(id);
          this.data.setId(id);
+         this.onDataRenamed(oldId, id);
       }
 
    }
@@ -360,6 +370,7 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
       String target = folder.isEmpty() ? folderName : (folder.endsWith("/") ? folder + folderName : folder + "/" + folderName);
       if (target.equals(source)) return;
       Dispatcher.sendToServer((new PacketContentFolder(this.getType(), "", source)).move(target));
+      this.onFolderMoved(source, target);
    }
 
    protected void moveDataToFolder(String source, String folder) {
@@ -373,6 +384,7 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
       this.namesList.addFile(target);
       if (this.data != null && source.equals(this.data.getId())) {
          this.data.setId(target);
+         this.onDataRenamed(source, target);
       }
    }
 
@@ -408,6 +420,20 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
 
    
    protected void onDataRemoved(String id) {
+   }
+
+   /** Файл только что создали или продублировали, содержимое можно сразу сбросить на диск */
+   protected void onDataCreated(String id) {
+   }
+
+   /** Файл переименовали или переместили, открытые вкладки и вьюпорт надо переименовать вместе с ним */
+   protected void onDataRenamed(String oldId, String newId) {
+   }
+
+   protected void onFolderRenamed(String oldFolder, String newFolder) {
+   }
+
+   protected void onFolderMoved(String oldFolder, String newFolder) {
    }
 
    public void fillNames(List<String> names) {

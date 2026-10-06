@@ -9,6 +9,7 @@ import mchorse.mappet.api.scripts.user.blocks.IScriptBlockState;
 import mchorse.mappet.api.scripts.user.data.ScriptBox;
 import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.api.scripts.user.entities.IScriptEntity;
+import mchorse.mappet.api.scripts.user.forge.IScriptForge;
 import mchorse.mappet.api.scripts.user.items.IScriptItemStack;
 import mchorse.mappet.api.scripts.user.logs.IMappetLogger;
 import mchorse.mappet.api.scripts.user.mappet.IMappetUIBuilder;
@@ -109,6 +110,9 @@ public interface IScriptFactory {
    String style(String... var1);
 
    IMappetLogger getLogger();
+
+   /** Bridge to Forge, gives scripts capabilities and the event bus, see {@link IScriptForge} */
+   IScriptForge getForge();
 
    IScriptEntity getMappetEntity(class_1297 var1);
 

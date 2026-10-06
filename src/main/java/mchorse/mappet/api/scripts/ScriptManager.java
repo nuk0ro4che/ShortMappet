@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.script.ScriptEngine;
@@ -25,9 +26,16 @@ import net.minecraft.server.MinecraftServer;
 import org.apache.commons.io.FileUtils;
 
 public class ScriptManager extends BaseManager<Script> {
+   private static final int MAX_CACHED_SCRIPTS = 64;
+
    public final Map<String, Object> objects = new HashMap();
    protected Map<String, Script> uniqueScripts = new HashMap();
    public Map<String, Script> globalLibraries = new HashMap();
+   private final Map<String, LoadedScript> loadedScripts = new LinkedHashMap<String, LoadedScript>(16, 0.75F, true) {
+      protected boolean removeEldestEntry(Map.Entry<String, LoadedScript> eldest) {
+         return this.size() > MAX_CACHED_SCRIPTS;
+      }
+   };
    private Map<Object, ScriptEngine> repls = new HashMap();
    private String replOutput = "";
 
@@ -141,10 +149,14 @@ public class ScriptManager extends BaseManager<Script> {
 
       if (script == null) {
          return null;
-      } else {
-         script.start(this);
-         return script;
       }
+
+      if (!script.unique) {
+         script = script.copy();
+      }
+
+      script.start(this);
+      return script;
    }
 
    public Collection<String> getKeys() {
@@ -175,13 +187,23 @@ public class ScriptManager extends BaseManager<Script> {
    }
 
    public Script load(String id) {
-      Script script = (Script)super.load(id);
       File scriptFile = this.getScriptFile(id);
+      long scriptModified = scriptFile == null ? -1L : scriptFile.lastModified();
+      long dataModified = this.getFileStamped(id);
+      LoadedScript cached = this.loadedScripts.get(id);
+
+      if (cached != null && cached.scriptModified == scriptModified && cached.dataModified == dataModified) {
+         return cached.script;
+      }
+
+      Script script = (Script)super.load(id);
+
       if (scriptFile != null && scriptFile.isFile()) {
          try {
             String code = FileUtils.readFileToString(scriptFile, Utils.getCharset());
             if (script == null) {
                script = new Script();
+               script.setId(id);
             }
 
             script.code = code.replaceAll("\t", "    ").replaceAll("\r", "");
@@ -190,7 +212,23 @@ public class ScriptManager extends BaseManager<Script> {
          }
       }
 
+      if (script == null) {
+         this.loadedScripts.remove(id);
+      } else {
+         this.loadedScripts.put(id, new LoadedScript(script, scriptModified, dataModified));
+      }
+
       return script;
+   }
+
+   private long getFileStamped(String id) {
+      File file = this.folder == null ? null : this.getFile(id);
+
+      return file == null ? -1L : file.lastModified();
+   }
+
+   private void invalidate(String id) {
+      this.loadedScripts.remove(id);
    }
 
    public boolean save(String id, class_2487 tag) {
@@ -207,6 +245,7 @@ public class ScriptManager extends BaseManager<Script> {
 
       if (result) {
          this.uniqueScripts.remove(id);
+         this.invalidate(id);
          Script script = this.load(id);
          if (script != null && script.unique) {
             this.uniqueScripts.put(id, script);
@@ -232,6 +271,8 @@ public class ScriptManager extends BaseManager<Script> {
          targetFile.getParentFile().mkdirs();
       }
       boolean result = super.rename(id, newId);
+      this.invalidate(id);
+      this.invalidate(newId);
       if (scriptFile != null && scriptFile.exists() && targetFile != null) {
          return scriptFile.renameTo(targetFile) || result;
       } else {
@@ -241,6 +282,7 @@ public class ScriptManager extends BaseManager<Script> {
 
    public boolean delete(String name) {
       boolean result = super.delete(name);
+      this.invalidate(name);
       File scriptFile = this.getScriptFile(name);
       return scriptFile != null && scriptFile.delete() || result;
    }
@@ -288,5 +330,17 @@ public class ScriptManager extends BaseManager<Script> {
          }
       }
 
+   }
+
+   private static class LoadedScript {
+      final Script script;
+      final long scriptModified;
+      final long dataModified;
+
+      LoadedScript(Script script, long scriptModified, long dataModified) {
+         this.script = script;
+         this.scriptModified = scriptModified;
+         this.dataModified = dataModified;
+      }
    }
 }

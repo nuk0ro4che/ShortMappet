@@ -19,7 +19,9 @@ import mchorse.mappet.api.scripts.code.nbt.ScriptNBTCompound;
 import mchorse.mappet.api.scripts.code.nbt.ScriptNBTList;
 import mchorse.mappet.api.scripts.user.IScriptFactory;
 import mchorse.mappet.api.scripts.user.blocks.IScriptBlockState;
+import mchorse.mappet.api.scripts.code.forge.ScriptForge;
 import mchorse.mappet.api.scripts.user.entities.IScriptEntity;
+import mchorse.mappet.api.scripts.user.forge.IScriptForge;
 import mchorse.mappet.api.scripts.user.items.IScriptItemStack;
 import mchorse.mappet.api.scripts.user.mappet.IMappetUIBuilder;
 import mchorse.mappet.api.scripts.user.nbt.INBTCompound;
@@ -51,6 +53,7 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 public class ScriptFactory implements IScriptFactory {
    private static final Map<String, String> formattingCodes = new HashMap();
    private Random random = new Random();
+   private IScriptForge forge;
 
    public IScriptBlockState createBlockState(String blockId, int meta) {
       class_2960 location = new class_2960(blockId);
@@ -361,6 +364,14 @@ public class ScriptFactory implements IScriptFactory {
 
    public MappetLogger getLogger() {
       return Mappet.logger;
+   }
+
+   public IScriptForge getForge() {
+      if (this.forge == null) {
+         this.forge = new ScriptForge();
+      }
+
+      return this.forge;
    }
 
    public IScriptEntity getMappetEntity(class_1297 minecraftEntity) {

@@ -88,7 +88,7 @@ if (screen instanceof class_490 || screen instanceof class_481) {
       }
 
       class_4185 button = class_4185.method_46430(class_2561.method_43471("gui.cancel"), (ignored) -> cancelWorldLoading(client, server))
-         .method_46434(width / 2 - 100, height - 48, 200, 20)
+         .method_46434(width / 2 - 100, height / 2 + 80, 200, 20)
          .method_46431();
 
       addDrawableChild(screen, button);

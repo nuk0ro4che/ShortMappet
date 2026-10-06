@@ -1,6 +1,7 @@
 package mchorse.mappet.api.scripts.code.forge;
 
 import java.util.List;
+import jdk.dynalink.beans.StaticClass;
 import mchorse.mappet.api.scripts.code.entities.ScriptEntity;
 import mchorse.mappet.api.scripts.user.forge.IScriptForge;
 import mchorse.mappet.compat.forge.Forge;
@@ -19,12 +20,38 @@ public class ScriptForge implements IScriptForge {
       return Forge.getVersion();
    }
 
+   /**
+    * Класс Java для скрипта. Возвращает {@code jdk.dynalink.beans.StaticClass} — то же, что возвращает
+    * Nashorn'овский {@code Java.type}: с голого {@code java.lang.Class} скрипт не видит статических полей
+    * (свойство возвращает {@code undefined}).
+    */
    public Object type(String className) {
-      return Forge.mappet$class(className);
+      Class<?> clazz = Forge.mappet$class(className);
+
+      if (clazz == null) {
+         ForgeCapabilities.mappet$warn("type:" + className, "Forge bridge: class not found: " + className);
+
+         return null;
+      }
+
+      try {
+         return StaticClass.forClass(clazz);
+      } catch (Throwable t) {
+         return clazz;
+      }
    }
 
    public Object capability(Object entity, Object capability) {
       return ForgeCapabilities.get(mappet$entity(entity), capability);
+   }
+
+   /** Диагностика capability: почему lookup вернул null. Печатается через print() из скрипта */
+   public String capabilityDebug(Object entity, Object capability) {
+      class_1297 minecraftEntity = mappet$entity(entity);
+
+      return "script entity = " + (entity == null ? "null" : entity.getClass().getName())
+              + "\nminecraft entity = " + (minecraftEntity == null ? "null" : minecraftEntity.getClass().getName())
+              + "\n" + ForgeCapabilities.diagnose(minecraftEntity, capability);
    }
 
    public boolean hasCapability(Object entity, Object capability) {

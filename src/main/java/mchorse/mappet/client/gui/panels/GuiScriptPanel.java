@@ -40,6 +40,7 @@ import mchorse.mappet.client.gui.utils.overlays.GuiOverlayPanel;
 import mchorse.mappet.client.gui.utils.overlays.GuiSoundOverlayPanel;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketRequestScriptDiagnostic;
+import mchorse.mappet.network.common.scripts.PacketRequestScriptStamp;
 import mchorse.mappet.network.common.scripts.PacketRequestClientScriptFlags;
 import mchorse.mappet.network.common.scripts.PacketRequestScriptSearch;
 import mchorse.mappet.network.common.scripts.ScriptSearchResult;
@@ -107,9 +108,30 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    private static final long AUTOSAVE_DELAY = 2000L;
    private static final long TOAST_DURATION = 2500L;
    private static final long TOAST_FADE = 500L;
+   private static final long STAMP_POLL_INTERVAL = 1000L;
    private long lastEditTime;
    private String toast;
    private long toastExpiration;
+   /* Опрос метки времени файла, чтобы заметить правку скрипта снаружи игры */
+   private long lastStampPoll;
+   private String stampId;
+   private long stampModified;
+   private long stampLength;
+   private long stampDataModified;
+   private boolean externalChange;
+   private long externalModified;
+   private long externalLength;
+   private long externalDataModified;
+   private boolean reloadFromServer;
+   private boolean changeBarVisible;
+   private int applyX0;
+   private int applyY0;
+   private int applyX1;
+   private int applyY1;
+   private int rejectX0;
+   private int rejectY0;
+   private int rejectX1;
+   private int rejectY1;
    
 
    private final Map<String, Set<String>> scriptLibraryFunctions = new HashMap();
@@ -667,15 +689,197 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    public void draw(GuiContext context) {
       this.updateCurrentScriptDiagnosticStatus();
       this.updateScriptDiagnosticScan();
+      this.updateStampPoll();
       this.updateAutosave();
       super.draw(context);
+      this.drawExternalChangeBar(context);
       this.drawToast();
    }
 
    /**
-    * Сохраняет скрипт через 3 секунды после последнего изменения, чтобы правки не терялись
+    * Раз в секунду спрашивает у сервера, не изменился ли файл скрипта на диске
+    */
+   private void updateStampPoll() {
+      if (this.data == null || this.code == null || !this.code.isVisible()) {
+         return;
+      }
+
+      long now = System.currentTimeMillis();
+
+      if (now - this.lastStampPoll < STAMP_POLL_INTERVAL) {
+         return;
+      }
+
+      this.lastStampPoll = now;
+
+      String id = ((Script) this.data).getId();
+
+      Dispatcher.sendToServer(new PacketRequestScriptStamp(id, this.isClientOnlyScripts()));
+   }
+
+   /**
+    * Метка времени файла с сервера: первая ответная метка становится базовой,
+    * расхождение с ней означает, что файл правили вне редактора
+    */
+   public void receiveScriptStamp(String id, long modified, long length, long dataModified) {
+      if (id == null || this.data == null || !id.equals(((Script) this.data).getId())) {
+         return;
+      }
+
+      if (modified <= 0L && length < 0L) {
+         /* Файла больше нет на диске — оставляем буфер редактора как есть */
+         return;
+      }
+
+      if (!id.equals(this.stampId)) {
+         this.stampId = id;
+         this.stampModified = modified;
+         this.stampLength = length;
+         this.stampDataModified = dataModified;
+
+         return;
+      }
+
+      if (modified == this.stampModified && length == this.stampLength && dataModified == this.stampDataModified) {
+         /* Файл снова совпал с открытой версией — правку с диска отменили */
+         this.externalChange = false;
+         this.changeBarVisible = false;
+
+         return;
+      }
+
+      this.externalChange = true;
+      this.externalModified = modified;
+      this.externalLength = length;
+      this.externalDataModified = dataModified;
+   }
+
+   /**
+    * Принимает правку с диска: просит содержимое у сервера и сбрасывает буфер
+    */
+   private void applyExternalChange() {
+      if (this.data == null) {
+         return;
+      }
+
+      String id = ((Script) this.data).getId();
+
+      this.externalChange = false;
+      this.changeBarVisible = false;
+      this.stampId = id;
+      this.stampModified = this.externalModified;
+      this.stampLength = this.externalLength;
+      this.stampDataModified = this.externalDataModified;
+      this.reloadFromServer = true;
+
+      this.requestData(id);
+   }
+
+   /**
+    * Оставляет содержимое редактора и гасит уведомление, приняв текущий файл как базовый
+    */
+   private void rejectExternalChange() {
+      if (this.data == null) {
+         return;
+      }
+
+      this.externalChange = false;
+      this.changeBarVisible = false;
+      this.stampId = ((Script) this.data).getId();
+      this.stampModified = this.externalModified;
+      this.stampLength = this.externalLength;
+      this.stampDataModified = this.externalDataModified;
+   }
+
+   @Override
+   public boolean mouseClicked(GuiContext context) {
+      if (this.externalChange && this.changeBarVisible && context.mouseButton == 0) {
+         int x = context.mouseX;
+         int y = context.mouseY;
+
+         if (this.inside(this.applyX0, this.applyY0, this.applyX1, this.applyY1, x, y)) {
+            this.applyExternalChange();
+
+            return true;
+         }
+
+         if (this.inside(this.rejectX0, this.rejectY0, this.rejectX1, this.rejectY1, x, y)) {
+            this.rejectExternalChange();
+
+            return true;
+         }
+      }
+
+      return super.mouseClicked(context);
+   }
+
+   private static boolean inside(int x0, int y0, int x1, int y1, int x, int y) {
+      return x >= x0 && x < x1 && y >= y0 && y < y1;
+   }
+
+   /**
+    * Табличка «файл изменён снаружи» с кнопками применения и отклонения правки
+    */
+   private void drawExternalChangeBar(GuiContext context) {
+      if (!this.externalChange || this.font == null || this.editor == null
+              || !this.editor.isVisible() || this.code == null || !this.code.isVisible()) {
+         this.changeBarVisible = false;
+
+         return;
+      }
+
+      String message = IKey.lang("mappet.gui.scripts.external_change").get();
+      String apply = IKey.lang("mappet.gui.scripts.external_apply").get();
+      String reject = IKey.lang("mappet.gui.scripts.external_reject").get();
+
+      int x = this.editor.area.x + 8;
+      int y = this.editor.area.y + GuiScriptTabBar.getHeight() + 6;
+      int pad = 6;
+      int gap = 6;
+      int buttonPadding = 5;
+      int applyWidth = this.font.method_1727(apply) + buttonPadding * 2;
+      int rejectWidth = this.font.method_1727(reject) + buttonPadding * 2;
+
+      int x0 = x - 4;
+      int y0 = y - 4;
+      int x1 = x + pad + this.font.method_1727(message) + gap + applyWidth + gap + rejectWidth + pad;
+      int y1 = y + 14;
+
+      GuiDraw.drawRect(x0, y0, x1, y1, 0xD8000000);
+
+      GuiDraw.drawStringWithShadow(this.font, message, x + pad, y, 0xFFFFFFFF);
+
+      this.applyX0 = x + pad + this.font.method_1727(message) + gap;
+      this.applyY0 = y - 3;
+      this.applyX1 = this.applyX0 + applyWidth;
+      this.applyY1 = y + 13;
+
+      this.rejectX0 = this.applyX1 + gap;
+      this.rejectY0 = y - 3;
+      this.rejectX1 = this.rejectX0 + rejectWidth;
+      this.rejectY1 = y + 13;
+
+      this.drawChangeBarButton(context, this.applyX0, this.applyY0, this.applyX1, this.applyY1, apply, buttonPadding);
+      this.drawChangeBarButton(context, this.rejectX0, this.rejectY0, this.rejectX1, this.rejectY1, reject, buttonPadding);
+
+      this.changeBarVisible = true;
+   }
+
+   private void drawChangeBarButton(GuiContext context, int x0, int y0, int x1, int y1, String label, int padding) {
+      boolean hovered = this.inside(x0, y0, x1, y1, context.mouseX, context.mouseY);
+
+      GuiDraw.drawRect(x0, y0, x1, y1, hovered ? 0x50FFFFFF : 0x28FFFFFF);
+      GuiDraw.drawStringWithShadow(this.font, label, x0 + padding, y0 + 4, 0xFFFFFFFF);
+   }
+
+   /**
+    * Пока файл правили снаружи, автосохранение молча затёрло бы эту правку
     */
    private void updateAutosave() {
+      if (this.externalChange) {
+         return;
+      }
+
       if (this.lastEditTime == 0L || this.data == null || this.code == null || !this.code.isVisible()) {
          return;
       }
@@ -711,8 +915,21 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
       }
    }
 
+   /**
+    * После своей записи метку времени файла заново снимет опрос, а уведомление уже неактуально
+    */
+   @Override
+   public void save() {
+      super.save();
+
+      this.stampId = null;
+      this.externalChange = false;
+      this.changeBarVisible = false;
+      this.reloadFromServer = false;
+   }
+
    private void drawToast() {
-      if (this.toast == null || this.font == null) {
+      if (this.toast == null || this.font == null || this.externalChange) {
          return;
       }
 
@@ -971,6 +1188,13 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
 
    public void fill(Script data, boolean allowed) {
       String last = this.data == null ? null : ((Script) this.data).getId();
+      /* Ответ сервера на «применить»: содержимое перечитано с диска, буфер больше не считается изменённым */
+      String reloadingId = this.reloadFromServer && last != null ? last : null;
+
+      this.reloadFromServer = false;
+      this.externalChange = false;
+      this.changeBarVisible = false;
+
       super.fill(data, allowed);
       this.editor.setVisible(data != null);
       this.beautify.setVisible(data != null && allowed);
@@ -980,9 +1204,20 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
       this.updateButtons();
 
       if (data != null) {
+         boolean reload = reloadingId != null && reloadingId.equals(data.getId());
+         String previous = (String) this.tabInitialCode.get(data.getId());
+         /* Экран показывает ровно то, что пришло с сервера — базовой становится эта версия */
+         boolean fresh = reload
+            || last != null && last.equals(data.getId())
+            || previous == null
+            || !previous.equals(data.code);
+
          this.openScriptTab(data.getId());
-         if (!this.tabInitialCode.containsKey(data.getId())) {
+
+         if (fresh) {
             this.tabInitialCode.put(data.getId(), data.code);
+            this.modifiedScriptTabs.remove(data.getId());
+            this.lastEditTime = 0L;
          }
          this.setRepl(false);
          this.code.setJavaScriptDiagnostics("js".equals(data.getScriptExtension()));

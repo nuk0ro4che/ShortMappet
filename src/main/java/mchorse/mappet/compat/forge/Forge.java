@@ -81,9 +81,15 @@ public final class Forge {
    /** Looks up a method by name and parameter types, returns {@code null} when there is none */
    public static Method mappet$method(Class<?> owner, String name, Class<?>... parameters) {
       String key = owner.getName() + "#" + name;
+      boolean exact = true;
 
       for (int i = 0; i < parameters.length; i++) {
-         key += "#" + parameters[i].getName();
+         if (parameters[i] == null) {
+            key += "#*";
+            exact = false;
+         } else {
+            key += "#" + parameters[i].getName();
+         }
       }
 
       Method cached = METHODS.get(key);
@@ -94,9 +100,15 @@ public final class Forge {
 
       Method found = null;
 
-      try {
-         found = owner.getMethod(name, parameters);
-      } catch (Throwable e) {
+      if (exact) {
+         try {
+            found = owner.getMethod(name, parameters);
+         } catch (Throwable e) {
+            /* Fall through to the loose lookup below */
+         }
+      }
+
+      if (found == null) {
          for (Method method : owner.getMethods()) {
             if (!method.getName().equals(name) || method.getParameterCount() != parameters.length) {
                continue;
@@ -106,7 +118,7 @@ public final class Forge {
             boolean matches = true;
 
             for (int i = 0; i < types.length && matches; i++) {
-               matches = types[i].isAssignableFrom(parameters[i]);
+               matches = parameters[i] == null || types[i].isAssignableFrom(parameters[i]);
             }
 
             if (matches) {

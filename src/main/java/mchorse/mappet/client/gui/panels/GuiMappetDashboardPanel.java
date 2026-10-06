@@ -196,6 +196,11 @@ public abstract class GuiMappetDashboardPanel<T extends AbstractData> extends Gu
 
    public void pickData(String id) {
       this.save();
+      this.requestData(id);
+   }
+
+   /** Запрашивает содержимое у сервера без локального сохранения (нужно, чтобы принять правку с диска) */
+   protected void requestData(String id) {
       this.requestedDataId = id;
       Dispatcher.sendToServer(new PacketContentRequestData(this.getType(), id));
    }

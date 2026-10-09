@@ -54,6 +54,8 @@
         "RenderSystemSeeThroughMixin",
         "ScreenAccessor",
         "ReceivingLevelScreenMixin",
+        "MinecraftWorldLoadMixin",
+        "MinecraftServerReadyMixin",
         "GuiUserInterfaceShaderMixin",
         "LightmapTextureManagerAccessor",
         "ClientBlockUpdateRenderMixin"

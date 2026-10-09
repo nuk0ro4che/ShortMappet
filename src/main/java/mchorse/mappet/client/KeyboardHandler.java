@@ -30,7 +30,6 @@ import net.minecraft.class_310;
 import net.minecraft.class_3928;
 import net.minecraft.class_4185;
 import net.minecraft.class_437;
-import net.minecraft.class_442;
 import net.minecraft.class_481;
 import net.minecraft.class_490;
 import net.minecraft.class_491;
@@ -87,21 +86,25 @@ if (screen instanceof class_490 || screen instanceof class_481) {
          return;
       }
 
-      class_4185 button = class_4185.method_46430(class_2561.method_43471("gui.cancel"), (ignored) -> cancelWorldLoading(client, server))
+      /* На случай, если прошлая попытка отмены так и не дошла до миксина */
+      WorldLoadCancelState.reset();
+
+      class_4185 button = class_4185.method_46430(class_2561.method_43471("gui.cancel"), (ignored) -> cancelWorldLoading(client))
          .method_46434(width / 2 - 100, height / 2 + 80, 200, 20)
          .method_46431();
 
       addDrawableChild(screen, button);
     }
 
-private static void cancelWorldLoading(class_310 client, class_1132 server) {
-      /* Останавливаем сервер, иначе мир загрузится уже после возврата в меню.
-         halt(false) не ждёт остановки сервера, иначе блокируется поток рендера */
-      server.method_3747(false);
-
-      /* disconnect() здесь вызывать нельзя: он обнуляет integratedServer, пока
-         WorldOpenFlows ещё в работе, из-за чего Essential падает с NPE */
-      client.method_1507(new class_442());
+private static void cancelWorldLoading(class_310 client) {
+      /* Останавливать сервер прямо здесь нельзя: Minecraft.method_29610
+         синхронно ждёт готовности сервера в цикле на потоке рендера, поэтому
+         halt() здесь либо зависает, либо оставляет поток рендера навсегда
+         внутри цикла (из-за чего кнопка «Выход из игры» перестаёт работать).
+         Вместо этого только помечаем отмену, а миксины MinecraftWorldLoadMixin
+         и MinecraftServerReadyMixin корректно прерывают загрузку и останавливают
+         сервер уже после выхода из цикла ожидания. */
+      WorldLoadCancelState.request();
    }
 
    private static void addDrawableChild(class_437 screen, class_4185 button) {

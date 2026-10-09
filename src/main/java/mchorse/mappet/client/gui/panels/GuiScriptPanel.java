@@ -118,6 +118,9 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    private long stampModified;
    private long stampLength;
    private long stampDataModified;
+   /* Ответы, запросы которых ушли до нашей записи или обновления буфера, базовой меткой быть не могут */
+   private int stampRequestPending;
+   private int stampStaleDiscard;
    private boolean externalChange;
    private long externalModified;
    private long externalLength;
@@ -715,6 +718,7 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
       String id = ((Script) this.data).getId();
 
       Dispatcher.sendToServer(new PacketRequestScriptStamp(id, this.isClientOnlyScripts()));
+      this.stampRequestPending++;
    }
 
    /**
@@ -722,6 +726,15 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
     * расхождение с ней означает, что файл правили вне редактора
     */
    public void receiveScriptStamp(String id, long modified, long length, long dataModified) {
+      if (this.stampRequestPending > 0) {
+         this.stampRequestPending--;
+      }
+
+      if (this.stampStaleDiscard > 0) {
+         this.stampStaleDiscard--;
+         return;
+      }
+
       if (id == null || this.data == null || !id.equals(((Script) this.data).getId())) {
          return;
       }
@@ -922,6 +935,9 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
    public void save() {
       super.save();
 
+      /* Ответ на опрос, ушедший до записи, вернёт старую метку — базовой он не станет */
+      this.stampStaleDiscard += this.stampRequestPending;
+      this.stampRequestPending = 0;
       this.stampId = null;
       this.externalChange = false;
       this.changeBarVisible = false;
@@ -1194,6 +1210,13 @@ public class GuiScriptPanel extends GuiMappetDashboardPanel<Script> {
       this.reloadFromServer = false;
       this.externalChange = false;
       this.changeBarVisible = false;
+
+      /* Буфер показывает содержимое с диска: базовой станет первая метка после этого,
+         ответы, запросы которых ушли раньше, описывают уже не актуальную ситуацию */
+      this.stampStaleDiscard += this.stampRequestPending;
+      this.stampRequestPending = 0;
+      this.stampId = null;
+      this.lastStampPoll = 0L;
 
       super.fill(data, allowed);
       this.editor.setVisible(data != null);

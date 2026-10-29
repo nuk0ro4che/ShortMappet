@@ -22,6 +22,7 @@ import mchorse.mclib.client.gui.utils.Elements;
 import mchorse.mclib.client.gui.utils.Icons;
 import mchorse.mclib.client.gui.utils.keys.IKey;
 import mchorse.mclib.utils.Direction;
+import net.minecraft.class_2487;
 import net.minecraft.class_310;
 
 
@@ -176,6 +177,18 @@ public class GuiShaderPanel extends GuiMappetDashboardPanel<ShaderFile> {
 
    public boolean needsBackground() {
       return false;
+   }
+
+   @Override
+   protected ShaderFile createClientData(String id, class_2487 tag) {
+      ShaderFile shader = new ShaderFile();
+
+      if (tag != null) {
+         shader.deserializeNBT(tag);
+      }
+
+      shader.setId(id);
+      return shader;
    }
 
    public ContentType getType() {

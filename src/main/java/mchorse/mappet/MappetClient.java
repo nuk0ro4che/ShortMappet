@@ -3,6 +3,7 @@ package mchorse.mappet;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import mchorse.mappet.api.misc.ClientSettings;
 import mchorse.mappet.api.shaders.ShaderManager;
@@ -57,6 +58,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.class_1074;
 import net.minecraft.class_1299;
 import net.minecraft.class_2561;
+import net.minecraft.class_310;
+import net.minecraft.class_3262;
 import net.minecraft.class_3264;
 import net.minecraft.class_3283;
 import net.minecraft.class_3285;
@@ -72,6 +75,8 @@ public class MappetClient implements ClientModInitializer {
    public static ClientSettings clientSettings;
    public static ShaderManager clientShaders;
    private static boolean soundsPackLoaded;
+   private static boolean soundsPackRegistered;
+   private static boolean soundsPackReloadRequested;
    private static boolean soundsPackWarningShown;
    private static Field soundPackProviders;
    private static boolean customSoundsChecked;
@@ -83,6 +88,64 @@ public class MappetClient implements ClientModInitializer {
          customSoundsPresent = !SoundPack.getCustomSoundEvents().isEmpty();
       }
       return customSoundsPresent;
+   }
+
+   /**
+    * Registers the "Mappet custom sounds" resource pack provider and enables
+    * the pack, so that it becomes a part of the next resource reload.
+    *
+    * <p>This has to happen before the list of the packs to load is built,
+    * otherwise the pack would only be picked up by the next reload, which
+    * would mean an extra reload of all the resources right after the game
+    * started. Such an extra reload is not harmless: it frees the block atlas
+    * texture while VulkanMod still holds a pending layout transition for it,
+    * which makes the graphics driver crash with a SIGSEGV as soon as the
+    * transition is submitted (on world join).</p>
+    *
+    * @param packs the client's resource pack manager
+    * @return whether the pack is registered and enabled
+    */
+   public static boolean registerSoundPack(class_3283 packs) {
+      if (soundsPackRegistered) {
+         return true;
+      }
+
+      if (CommonProxy.configFolder == null || !hasCustomSounds()) {
+         return false;
+      }
+
+      if (ClientProxy.sounds == null) {
+         ClientProxy.sounds = new File(CommonProxy.configFolder, "sounds");
+      }
+
+      if (!addSoundPackProvider(packs)) {
+         return false;
+      }
+
+      /* Rebuild the list of the available packs, so that the provider we have
+       * just added is taken into account, and enable the pack. */
+      packs.method_14445();
+      packs.method_49427("mappet_custom_sounds");
+
+      soundsPackRegistered = true;
+
+      return true;
+   }
+
+   /**
+    * Called every time the resource manager is reloaded to check whether the
+    * custom sounds pack was a part of the reload.
+    *
+    * @param packs the packs that are being loaded
+    */
+   public static void onResourceReload(List<class_3262> packs) {
+      for (class_3262 pack : packs) {
+         if (pack instanceof SoundPack) {
+            soundsPackLoaded = true;
+
+            return;
+         }
+      }
    }
 
    private static boolean addSoundPackProvider(class_3283 packs) {
@@ -118,6 +181,13 @@ public class MappetClient implements ClientModInitializer {
    }
 
    public void onInitializeClient() {
+      ClientProxy.sounds = new File(CommonProxy.configFolder, "sounds");
+      /* Register the custom sounds pack as early as possible, so that it is
+       * included in the resource reload the game does on startup. */
+      if (class_310.method_1551() != null) {
+         registerSoundPack(class_310.method_1551().method_1520());
+      }
+
       clientScriptRuntime = new ClientScriptManager();
 clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_settings.json"));
        clientSettings.load();
@@ -182,20 +252,20 @@ clientSettings = new ClientSettings(new File(CommonProxy.configFolder, "client_s
       ClientTickEvents.END_CLIENT_TICK.register(DiscordRPC::tick);
       ClientTickEvents.END_CLIENT_TICK.register((client) -> ClientHandlerMouseSensitivity.syncSensitivity());
       ClientTickEvents.END_CLIENT_TICK.register((client) -> VanillaWorldLightManager.tick());
-      ClientProxy.sounds = new File(CommonProxy.configFolder, "sounds");
       ClientTickEvents.END_CLIENT_TICK.register((client) -> {
-         if (!hasCustomSounds() || soundsPackLoaded) {
+         if (!hasCustomSounds() || soundsPackLoaded || soundsPackReloadRequested) {
             return;
          }
 
          class_3283 packs = client.method_1520();
-         if (!addSoundPackProvider(packs)) {
+
+         if (!registerSoundPack(packs)) {
             return;
          }
 
-         soundsPackLoaded = true;
-         packs.method_14445();
-         packs.method_49427("mappet_custom_sounds");
+         /* Fallback for the case the pack was registered too late to be a part
+          * of the last reload, so we have to reload the resources once more. */
+         soundsPackReloadRequested = true;
          client.method_1513();
       });
        Themes.initiate();

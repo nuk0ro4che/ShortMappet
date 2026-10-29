@@ -63,6 +63,18 @@ public final class HudRawCapture {
     * and light of other formats are ignored this way.
     */
    public static void floatAt(BufferBuilderAccessor self, int index, float value) {
+      /**
+       * Vertices are not only written by the HUD: the chunk meshes are built
+       * on the worker threads (Fabric's Indigo renderer meshes the chunks in
+       * a pool), so this can be called from a thread that has no access to
+       * the render state. Touching {@link RenderSystem} from there crashes the
+       * game with "Rendersystem called from wrong thread", so the capture is
+       * limited to the render thread, where the HUD is actually drawn.
+       */
+      if (!mappet$renderThread()) {
+         return;
+      }
+
       boolean capturing = HudCapture.isCapturing();
 
       if (!capturing) {
@@ -149,6 +161,11 @@ public final class HudRawCapture {
    }
 
    public static void endBatch() {
+      /** The chunk meshes are ended on the worker threads too, they have no batch of ours to close */
+      if (!mappet$renderThread()) {
+         return;
+      }
+
       if (mappet$debug()) {
          batches++;
       }
@@ -319,6 +336,15 @@ public final class HudRawCapture {
       }
 
       return debug;
+   }
+
+   /**
+    * The capture reads the bound texture and the texture manager, which are
+    * only available on the render thread. Every other thread (the chunk
+    * builder threads of Fabric's renderer, for example) has to be ignored.
+    */
+   private static boolean mappet$renderThread() {
+      return RenderSystem.isOnRenderThread();
    }
 
    /**

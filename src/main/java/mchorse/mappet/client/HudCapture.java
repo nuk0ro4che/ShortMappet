@@ -84,7 +84,8 @@ public final class HudCapture {
    private static List<CustomDraw> customDraws = new ArrayList();
    private static HudVisibilityState.Element tag;
    private static HudVisibilityState.Element savedTag;
-   private static boolean capturing;
+   /** Read by the chunk builder threads, so it has to be visible everywhere */
+   private static volatile boolean capturing;
    private static final Set<String> VANILLA_HUD_TEXTURES = new HashSet<>(Arrays.asList(
       "minecraft:textures/gui/icons.png",
       "minecraft:textures/gui/hotbar.png",

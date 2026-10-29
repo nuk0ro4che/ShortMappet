@@ -4,6 +4,7 @@ import mchorse.mappet.api.huds.HUDScene;
 import mchorse.mappet.api.ui.UIFile;
 import mchorse.mappet.api.npcs.Npc;
 import mchorse.mappet.api.scripts.Script;
+import mchorse.mappet.api.shaders.ShaderFile;
 import mchorse.mappet.api.utils.AbstractData;
 import mchorse.mappet.api.utils.ContentType;
 import mchorse.mappet.client.gui.GuiMappetDashboard;
@@ -43,6 +44,10 @@ public class ClientHandlerContentData extends ClientMessageHandler<PacketContent
                   data.deserializeNBT(message.data);
                } else if (message.type == ContentType.UIS) {
                   data = new UIFile();
+                  data.setId(message.name);
+                  data.deserializeNBT(message.data);
+               } else if (message.type == ContentType.SHADERS) {
+                  data = new ShaderFile();
                   data.setId(message.name);
                   data.deserializeNBT(message.data);
                } else {

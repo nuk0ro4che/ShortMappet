@@ -780,6 +780,13 @@ public class DocResolver {
    public static String findReturnTypeByMethodInClass(String className, String methodName) {
       if (className != null && !className.isEmpty() && methodName != null && !methodName.isEmpty()) {
          methodName = resolveAliasMethodName(methodName);
+
+         String known = (String)KNOWN_RETURN_TYPES.get(methodName);
+
+         if (known != null) {
+            return known;
+         }
+
          String[] classes = className.split(",");
 
          try {
@@ -849,6 +856,12 @@ public class DocResolver {
    }
 
    public static String findReturnTypeByMethodName(String methodName) {
+      String known = (String)KNOWN_RETURN_TYPES.get(methodName);
+
+      if (known != null) {
+         return known;
+      }
+
       try {
          Object docs = resolveDocs();
          if (docs != null) {
@@ -1256,6 +1269,16 @@ public class DocResolver {
          return v != null ? simpleName(v.toString()) : "";
       } catch (Exception var5) {
          try {
+            Field f = findField(obj.getClass(), "returns");
+            f.setAccessible(true);
+            Object returns = f.get(obj);
+            if (returns != null) {
+               return getReturnType(returns);
+            }
+         } catch (Exception var6) {
+         }
+
+         try {
             Field f = findField(obj.getClass(), "type");
             f.setAccessible(true);
             Object v = f.get(obj);
@@ -1381,6 +1404,7 @@ public class DocResolver {
       KNOWN_RETURN_TYPES.put("getRotations", "ScriptVector");
       KNOWN_RETURN_TYPES.put("getLook", "ScriptVector");
       KNOWN_RETURN_TYPES.put("getSettings", "IGameSettings");
+      KNOWN_RETURN_TYPES.put("getCameraShake", "ICameraShake");
       KNOWN_RETURN_TYPES.put("getHand", "IHandSettings");
       KNOWN_RETURN_TYPES.put("getBlock", "IScriptBlockState");
       KNOWN_RETURN_TYPES.put("getTileEntity", "IScriptTileEntity");

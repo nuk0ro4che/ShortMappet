@@ -10,6 +10,10 @@ public interface IScriptItemStack {
 
    boolean isEmpty();
 
+   boolean isFood();
+
+   boolean isDrinkable();
+
    IScriptItem getItem();
 
    IScriptItemStack copy();

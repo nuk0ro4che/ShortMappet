@@ -160,7 +160,9 @@ public abstract class LivingEntityEventMixin {
    )
    private void mappet$useTick(CallbackInfo ci) {
       if (!this.mappet$self().method_37908().field_9236 && !this.mappet$self().method_6030().method_7960()) {
-         CommonProxy.scriptedItemEventHandler.onScriptedItemUseTick(new LegacyEvents.LivingEntityUseItemEvent.Tick(this.mappet$self(), this.mappet$self().method_6030(), this.mappet$self().method_6014()));
+         LegacyEvents.LivingEntityUseItemEvent.Tick event = new LegacyEvents.LivingEntityUseItemEvent.Tick(this.mappet$self(), this.mappet$self().method_6030(), this.mappet$self().method_6014());
+         CommonProxy.scriptedItemEventHandler.onScriptedItemUseTick(event);
+         CommonProxy.eventHandler.onPlayerUseItemTick(event);
       }
 
    }
@@ -171,7 +173,9 @@ public abstract class LivingEntityEventMixin {
    )
    private void mappet$useFinish(CallbackInfo ci) {
       if (!this.mappet$self().method_37908().field_9236 && !this.mappet$self().method_6030().method_7960()) {
-         CommonProxy.scriptedItemEventHandler.onScriptedItemUseFinish(new LegacyEvents.LivingEntityUseItemEvent.Finish(this.mappet$self(), this.mappet$self().method_6030().method_7972(), this.mappet$self().method_6014()));
+         LegacyEvents.LivingEntityUseItemEvent.Finish event = new LegacyEvents.LivingEntityUseItemEvent.Finish(this.mappet$self(), this.mappet$self().method_6030().method_7972(), this.mappet$self().method_6014());
+         CommonProxy.scriptedItemEventHandler.onScriptedItemUseFinish(event);
+         CommonProxy.eventHandler.onPlayerUseItemFinish(event);
       }
 
    }

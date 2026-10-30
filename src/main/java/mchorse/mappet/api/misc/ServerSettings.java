@@ -55,6 +55,10 @@ public final Trigger playerRespawn;
 public final Trigger stateChanged;
     public final Trigger soundEnded;
     public final Trigger playerTick;
+    public final Trigger playerEatTick;
+    public final Trigger playerEatFinish;
+    public final Trigger playerDrinkTick;
+    public final Trigger playerDrinkFinish;
 
    public Trigger register(String key, Trigger trigger) {
       return this.register(key, (String)null, trigger);
@@ -107,6 +111,10 @@ public final Trigger stateChanged;
       this.serverLoad = this.register("server_load", new Trigger());
       this.serverTick = this.register("server_tick", new Trigger());
       this.playerTick = this.register("player_tick", new Trigger());
+      this.playerEatTick = this.register("player_eat_tick", new Trigger());
+      this.playerEatFinish = this.register("player_eat_finish", new Trigger());
+      this.playerDrinkTick = this.register("player_drink_tick", new Trigger());
+      this.playerDrinkFinish = this.register("player_drink_finish", new Trigger());
       this.playerChat = this.register("player_chat", "chat", new Trigger());
       this.playerLogIn = this.register("player_login", new Trigger());
       this.playerLogOut = this.register("player_logout", new Trigger());

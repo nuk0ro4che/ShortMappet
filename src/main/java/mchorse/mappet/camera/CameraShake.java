@@ -24,6 +24,29 @@ public class CameraShake {
       this.endsAt = 0L;
    }
 
+   public int stopSmooth() {
+      if (!this.active) {
+         return 0;
+      }
+
+      int ticks = this.getSmoothStopTicks();
+      this.stopSmooth(ticks);
+      return ticks;
+   }
+
+   public void stopSmooth(int ticks) {
+      ticks = Math.max(1, ticks);
+      this.endsAt = System.currentTimeMillis() + (long)ticks * 50L;
+   }
+
+   public int getSmoothStopTicks() {
+      if (this.frequency <= 0.0D) {
+         return 10;
+      }
+
+      return Math.max(1, (int)Math.ceil(20.0D / this.frequency));
+   }
+
    public boolean isActive() {
       if (this.active && this.endsAt > 0L && System.currentTimeMillis() >= this.endsAt) {
          this.stop();

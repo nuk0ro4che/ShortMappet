@@ -8,6 +8,7 @@ import mchorse.mappet.api.scripts.user.items.IScriptItem;
 import mchorse.mappet.api.scripts.user.items.IScriptItemStack;
 import mchorse.mappet.api.scripts.user.nbt.INBTCompound;
 import mchorse.mappet.compat.NbtCompat;
+import mchorse.mappet.utils.ItemUtils;
 import net.minecraft.class_1799;
 import net.minecraft.class_2487;
 import net.minecraft.class_2499;
@@ -36,6 +37,14 @@ public class ScriptItemStack implements IScriptItemStack {
 
    public boolean isEmpty() {
       return this.stack.method_7960();
+   }
+
+   public boolean isFood() {
+      return ItemUtils.isFood(this.stack);
+   }
+
+   public boolean isDrinkable() {
+      return ItemUtils.isDrinkable(this.stack);
    }
 
    public IScriptItemStack copy() {

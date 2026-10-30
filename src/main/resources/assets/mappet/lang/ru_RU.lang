@@ -354,6 +354,22 @@ mappet.gui.settings.triggers.player_item_interact=Игрок: при взаим�
 mappet.gui.settings.triggers.descriptions.player_item_interact=Этот отменяемый триггер срабатывает когда игрок кликает правой кнопкой мыши по воздуху с предметом в руках.
 mappet.gui.settings.triggers.variables.player_item_interact=§7N/A§r
 
+mappet.gui.settings.triggers.player_eat_tick=Игрок: каждый тик при поедании еды
+mappet.gui.settings.triggers.descriptions.player_eat_tick=Срабатывает каждый тик, пока игрок ест еду. В скрипте §6c.subject§r — игрок, а §6item§r — стек еды.
+mappet.gui.settings.triggers.variables.player_eat_tick=§6item§r, §7IScriptItemStack§r еды, которую едят.
+
+mappet.gui.settings.triggers.player_eat_finish=Игрок: съел еду
+mappet.gui.settings.triggers.descriptions.player_eat_finish=Срабатывает, когда игрок заканчивает есть еду.
+mappet.gui.settings.triggers.variables.player_eat_finish=§6item§r, §7IScriptItemStack§r съеденной еды.
+
+mappet.gui.settings.triggers.player_drink_tick=Игрок: каждый тик при питье
+mappet.gui.settings.triggers.descriptions.player_drink_tick=Срабатывает каждый тик, пока игрок пьёт напиток (бутылку воды, зелье, молоко и т.п.). В скрипте §6c.subject§r — игрок, а §6item§r — стек напитка.
+mappet.gui.settings.triggers.variables.player_drink_tick=§6item§r, §7IScriptItemStack§r напитка, который пьют.
+
+mappet.gui.settings.triggers.player_drink_finish=Игрок: выпил напиток
+mappet.gui.settings.triggers.descriptions.player_drink_finish=Срабатывает, когда игрок заканчивает пить напиток (бутылку воды, зелье, молоко и т.п.).
+mappet.gui.settings.triggers.variables.player_drink_finish=§6item§r, §7IScriptItemStack§r выпитого напитка.
+
 mappet.gui.settings.triggers.player_entity_interact=Игрок: при взаимодействии с сущностью
 mappet.gui.settings.triggers.descriptions.player_entity_interact=Этот отменяемый триггер срабатывает когда игрок кликает правой кнопкой мыши по сущности. Субъект - игрок, объект - сущность.\n\nВ зависимости от того как сущность обрабатывает взаимодействие, этот триггер §6может быть вызван дважды§r, для каждой руки (см. переменные ниже).
 mappet.gui.settings.triggers.variables.player_entity_interact=§6hand§r, рука которая взаимодействовала с сущностью (§7main§r или §7off§r).

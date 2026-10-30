@@ -7917,6 +7917,24 @@
           "annotations": []
         },
         {
+          "name": "isFood",
+          "doc": "Является ли предмет в стеке едой (например, яблоко, хлеб, стейк).",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "isDrinkable",
+          "doc": "Является ли предмет в стеке напитком (например, бутылка воды, зелье, молоко).",
+          "returns": {
+            "type": "boolean"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
           "name": "getItem",
           "doc": "Получить предмет в стеке.",
           "returns": {
@@ -15770,6 +15788,30 @@
             "type": "void"
           },
           "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "stopSmooth",
+          "doc": "Плавно завершить тряску камеры. Длительность затухания рассчитывается по текущей частоте — один полный период колебаний.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [],
+          "annotations": []
+        },
+        {
+          "name": "stopSmooth",
+          "doc": "Плавно завершить тряску камеры за указанное количество тиков.",
+          "returns": {
+            "type": "void"
+          },
+          "arguments": [
+            {
+              "name": "ticks",
+              "type": "int",
+              "doc": "Длительность затухания в тиках."
+            }
+          ],
           "annotations": []
         },
         {

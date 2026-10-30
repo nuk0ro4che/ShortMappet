@@ -59,6 +59,7 @@ import mchorse.mappet.network.common.scripts.PacketClick;
 import mchorse.mappet.network.common.scripts.PacketCancelDeath;
 import mchorse.mappet.api.scripts.client.ClientScriptExecutor;
 import mchorse.mappet.network.common.content.PacketClientSettings;
+import mchorse.mappet.utils.ItemUtils;
 import mchorse.mappet.utils.MappetMovementLock;
 import mchorse.mappet.utils.RunnableExecutionFork;
 import net.fabricmc.api.EnvType;
@@ -825,6 +826,56 @@ class_2680 state = event.getState();
    private void onPlayerTickClient(LegacyEvents.TickEvent.PlayerTickEvent event) {
       RenderingHandler.update();
       KeyboardHandler.updateHeldKeys();
+   }
+
+   public void onPlayerUseItemTick(LegacyEvents.LivingEntityUseItemEvent.Tick event) {
+      if (!(event.getEntity() instanceof class_1657)) {
+         return;
+      }
+
+      class_1657 player = (class_1657)event.getEntity();
+
+      if (player.method_37908().field_9236 || Mappet.settings == null) {
+         return;
+      }
+
+      class_1799 stack = event.getItem();
+
+      if (ItemUtils.isDrinkable(stack)) {
+         if (!Mappet.settings.playerDrinkTick.isEmpty()) {
+            this.trigger(event, Mappet.settings.playerDrinkTick, this.createUseItemContext(player, stack));
+         }
+      } else if (ItemUtils.isFood(stack) && !Mappet.settings.playerEatTick.isEmpty()) {
+         this.trigger(event, Mappet.settings.playerEatTick, this.createUseItemContext(player, stack));
+      }
+   }
+
+   public void onPlayerUseItemFinish(LegacyEvents.LivingEntityUseItemEvent.Finish event) {
+      if (!(event.getEntity() instanceof class_1657)) {
+         return;
+      }
+
+      class_1657 player = (class_1657)event.getEntity();
+
+      if (player.method_37908().field_9236 || Mappet.settings == null) {
+         return;
+      }
+
+      class_1799 stack = event.getItem();
+
+      if (ItemUtils.isDrinkable(stack)) {
+         if (!Mappet.settings.playerDrinkFinish.isEmpty()) {
+            this.trigger(event, Mappet.settings.playerDrinkFinish, this.createUseItemContext(player, stack));
+         }
+      } else if (ItemUtils.isFood(stack) && !Mappet.settings.playerEatFinish.isEmpty()) {
+         this.trigger(event, Mappet.settings.playerEatFinish, this.createUseItemContext(player, stack));
+      }
+   }
+
+   private DataContext createUseItemContext(class_1657 player, class_1799 stack) {
+      DataContext context = new DataContext(player);
+      context.getValues().put("item", ScriptItemStack.create(stack));
+      return context;
    }
 
    @SubscribeEvent

@@ -11,6 +11,10 @@ public interface ICameraShake {
 
    void stop();
 
+   void stopSmooth();
+
+   void stopSmooth(int ticks);
+
    boolean isActive();
 
    void setIntensity(double intensity);

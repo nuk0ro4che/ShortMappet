@@ -18,7 +18,8 @@ public class ClientSettings implements INBTSerializable<class_2487> {
         "player_open_container", "player_close_container", "player_journal",
         "entity_damaged", "entity_attacked", "entity_death", "entity_landed",
         "living_knockback", "projectile_impact", "living_equipment_change",
-        "player_entity_leash", "state_changed", "sound_ended"
+        "player_entity_leash", "state_changed", "sound_ended",
+        "player_eat_tick", "player_eat_finish", "player_drink_tick", "player_drink_finish"
     };
 
     private File file;

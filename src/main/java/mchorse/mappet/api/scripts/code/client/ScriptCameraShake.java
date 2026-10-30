@@ -5,6 +5,7 @@ import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.camera.CameraShake;
 import mchorse.mappet.capabilities.character.Character;
 import mchorse.mappet.network.Dispatcher;
+import mchorse.mappet.network.client.scripts.ClientHandlerCameraShake;
 import mchorse.mappet.network.common.scripts.PacketCameraShake;
 import net.minecraft.class_1657;
 import net.minecraft.class_3222;
@@ -28,12 +29,23 @@ public class ScriptCameraShake implements ICameraShake {
 
    public void start(int ticks, double pitch, double yaw, double roll, double frequency) {
       this.shake.start(ticks, pitch, yaw, roll, frequency);
-      this.sync();
+      this.sync(true);
    }
 
    public void stop() {
       this.shake.stop();
-      this.sync();
+      this.sync(true);
+   }
+
+   public void stopSmooth() {
+      int ticks = this.shake.stopSmooth();
+      this.sync(false, ticks);
+   }
+
+   public void stopSmooth(int ticks) {
+      ticks = Math.max(1, ticks);
+      this.shake.stopSmooth(ticks);
+      this.sync(false, ticks);
    }
 
    public boolean isActive() {
@@ -46,7 +58,7 @@ public class ScriptCameraShake implements ICameraShake {
 
    public void setIntensity(double pitch, double yaw, double roll) {
       this.shake.setIntensity(pitch, yaw, roll);
-      this.sync();
+      this.sync(false);
    }
 
    public ScriptVector getIntensity() {
@@ -55,7 +67,7 @@ public class ScriptCameraShake implements ICameraShake {
 
    public void setFrequency(double frequency) {
       this.shake.setFrequency(frequency);
-      this.sync();
+      this.sync(false);
    }
 
    public double getFrequency() {
@@ -64,17 +76,25 @@ public class ScriptCameraShake implements ICameraShake {
 
    public void setDuration(int ticks) {
       this.shake.setDuration(ticks);
-      this.sync();
+      this.sync(false);
    }
 
    public int getDuration() {
       return this.shake.getDuration();
    }
 
-   private void sync() {
+   private void sync(boolean restart) {
+      this.sync(restart, 0);
+   }
+
+   private void sync(boolean restart, int fadeTicks) {
       ScriptVector intensity = this.shake.getIntensity();
+      PacketCameraShake packet = new PacketCameraShake(this.shake.isActive(), restart, this.shake.getDuration(), intensity.x, intensity.y, intensity.z, this.shake.getFrequency(), fadeTicks);
+
       if (this.player instanceof class_3222) {
-         Dispatcher.sendTo(new PacketCameraShake(this.shake.isActive(), this.shake.getDuration(), intensity.x, intensity.y, intensity.z, this.shake.getFrequency()), (class_3222)this.player);
+         Dispatcher.sendTo(packet, (class_3222)this.player);
+      } else {
+         ClientHandlerCameraShake.apply(packet);
       }
    }
 }

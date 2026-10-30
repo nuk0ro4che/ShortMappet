@@ -356,6 +356,22 @@ mappet.gui.settings.triggers.player_item_interact=Player: interact with an item
 mappet.gui.settings.triggers.descriptions.player_item_interact=This cancelable trigger gets triggered when a player right clicks in the air with item.
 mappet.gui.settings.triggers.variables.player_item_interact=§7N/A§r
 
+mappet.gui.settings.triggers.player_eat_tick=Player: every tick while eating food
+mappet.gui.settings.triggers.descriptions.player_eat_tick=This gets triggered every tick while a player is eating food. In the script, §6c.subject§r is the player and §6item§r is the food item stack.
+mappet.gui.settings.triggers.variables.player_eat_tick=§6item§r, §7IScriptItemStack§r of the food that is being eaten.
+
+mappet.gui.settings.triggers.player_eat_finish=Player: ate food
+mappet.gui.settings.triggers.descriptions.player_eat_finish=This gets triggered when a player finishes eating food.
+mappet.gui.settings.triggers.variables.player_eat_finish=§6item§r, §7IScriptItemStack§r of the food that was eaten.
+
+mappet.gui.settings.triggers.player_drink_tick=Player: every tick while drinking
+mappet.gui.settings.triggers.descriptions.player_drink_tick=This gets triggered every tick while a player is drinking a drinkable item (water bottle, potion, milk, etc.). In the script, §6c.subject§r is the player and §6item§r is the drink item stack.
+mappet.gui.settings.triggers.variables.player_drink_tick=§6item§r, §7IScriptItemStack§r of the drink that is being drunk.
+
+mappet.gui.settings.triggers.player_drink_finish=Player: drank a drink
+mappet.gui.settings.triggers.descriptions.player_drink_finish=This gets triggered when a player finishes drinking a drinkable item (water bottle, potion, milk, etc.).
+mappet.gui.settings.triggers.variables.player_drink_finish=§6item§r, §7IScriptItemStack§r of the drink that was drunk.
+
 mappet.gui.settings.triggers.player_entity_interact=Player: interact with an entity
 mappet.gui.settings.triggers.descriptions.player_entity_interact=This cancelable trigger gets triggered when a player right clicks an entity. Subject is the player, and object is the entity that player has interacted with.\n\nDepending on entity interaction handling, this trigger §6might get triggered twice§r for every hand (see variables below). 
 mappet.gui.settings.triggers.variables.player_entity_interact=§6hand§r, the hand that interacted with the entity (§7main§r or §7off§r).

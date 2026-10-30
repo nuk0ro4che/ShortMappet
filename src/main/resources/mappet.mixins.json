@@ -27,6 +27,7 @@
         "EntityMorphRendererMixin",
         "GameRendererHandMorphMixin",
         "ClientInteractionMixin",
+        "ClientPlayerUseItemMixin",
         "ClientBlockInteractionMixin",
         "ClientBlockActionMixin",
         "ClientBlockItemPlaceMixin",

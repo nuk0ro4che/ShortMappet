@@ -61,6 +61,7 @@ import mchorse.mappet.api.scripts.client.ClientScriptExecutor;
 import mchorse.mappet.network.common.content.PacketClientSettings;
 import mchorse.mappet.utils.ItemUtils;
 import mchorse.mappet.utils.MappetMovementLock;
+import mchorse.mappet.utils.MappetSprintHunger;
 import mchorse.mappet.utils.RunnableExecutionFork;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -506,6 +507,7 @@ class_2680 state = event.getState();
    @SubscribeEvent
    public void onPlayerLogsOut(LegacyEvents.PlayerEvent.PlayerLoggedOutEvent event) {
       MappetMovementLock.clear(event.player.method_5667());
+      MappetSprintHunger.clear(event.player.method_5667());
 
       if (!Mappet.settings.playerLogOut.isEmpty()) {
          DataContext context = new DataContext(event.player);

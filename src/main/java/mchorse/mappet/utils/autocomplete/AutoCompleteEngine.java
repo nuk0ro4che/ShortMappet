@@ -380,6 +380,8 @@ public class AutoCompleteEngine {
          addApiSuggestion(suggestions, lowerPrefix, "disableSprint", "boolean disabled", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "isJumpDisabled", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "isSprintDisabled", "", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "disableSprintHunger", "boolean disabled", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "isSprintHungerDisabled", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "disableWalking", "boolean disabled", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "isWalkingDisabled", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "disableKey", "String bind, boolean disabled", "fn");
@@ -390,13 +392,17 @@ public class AutoCompleteEngine {
          addApiSuggestion(suggestions, lowerPrefix, "setHUDWorldLighting", "String id, boolean enabled", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "setHUDWorldLighting", "String id, boolean enabled, float intensity (0.0..4.0)", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "applyShader", "String id, boolean ui, boolean hud", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "applyShader", "String id, Map params", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "applyShader", "String id, boolean ui, boolean hud, Map params", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeShader", "boolean ui, boolean hud", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeShader", "String id", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeShader", "String id, boolean ui, boolean hud", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "applyUIShader", "String id", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "applyUIShader", "String id, Map params", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeUIShader", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeUIShader", "String id", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "applyHUDShader", "String id", "fn");
+         addApiSuggestion(suggestions, lowerPrefix, "applyHUDShader", "String id, Map params", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeHUDShader", "", "fn");
          addApiSuggestion(suggestions, lowerPrefix, "removeHUDShader", "String id", "fn");
       }

@@ -1,5 +1,7 @@
 package mchorse.mappet.api.shaders;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import mchorse.mappet.api.utils.AbstractData;
 import net.minecraft.class_2487;
 
@@ -29,6 +31,13 @@ public class ShaderFile extends AbstractData {
    public String vertex = DEFAULT_VERTEX;
    public String fragment = DEFAULT_FRAGMENT;
 
+   /**
+    * Default shader parameters (uniforms and config overrides). Runtime
+    * parameters supplied through {@code player.applyShader(id, params)} are
+    * merged on top of this map in a render-time copy.
+    */
+   public Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+
    public class_2487 serializeNBT() {
       class_2487 tag = new class_2487();
       tag.method_10556("Enabled", this.enabled);
@@ -47,6 +56,7 @@ public class ShaderFile extends AbstractData {
       tag.method_10569("ShadowDistance", this.shadowDistance);
       tag.method_10582("Vertex", this.vertex == null ? "" : this.vertex);
       tag.method_10582("Fragment", this.fragment == null ? "" : this.fragment);
+      tag.method_10566("Parameters", ShaderParameters.toNbt(this.parameters));
       return tag;
    }
 
@@ -67,5 +77,33 @@ public class ShaderFile extends AbstractData {
       if (tag.method_10545("ShadowDistance")) this.shadowDistance = Math.max(1, tag.method_10550("ShadowDistance"));
       if (tag.method_10545("Vertex")) this.vertex = tag.method_10558("Vertex");
       if (tag.method_10545("Fragment")) this.fragment = tag.method_10558("Fragment");
+      if (tag.method_10545("Parameters")) this.parameters = ShaderParameters.fromNbt(tag.method_10562("Parameters"));
+   }
+
+   /**
+    * Creates a render-time copy. The id is preserved so status checks keep
+    * working against the original file instance.
+    */
+   public ShaderFile copy() {
+      ShaderFile shader = new ShaderFile();
+      shader.setId(this.getId());
+      shader.enabled = this.enabled;
+      shader.global = this.global;
+      shader.depthBuffer = this.depthBuffer;
+      shader.world = this.world;
+      shader.hideInFirstPerson = this.hideInFirstPerson;
+      shader.renderOnHand = this.renderOnHand;
+      shader.renderStage = this.renderStage;
+      shader.blendMode = this.blendMode;
+      shader.passes = this.passes;
+      shader.scale = this.scale;
+      shader.duration = this.duration;
+      shader.shadowMap = this.shadowMap;
+      shader.shadowResolution = this.shadowResolution;
+      shader.shadowDistance = this.shadowDistance;
+      shader.vertex = this.vertex;
+      shader.fragment = this.fragment;
+      shader.parameters = ShaderParameters.copy(this.parameters);
+      return shader;
    }
 }

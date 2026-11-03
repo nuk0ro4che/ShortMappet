@@ -1,5 +1,6 @@
 package mchorse.mappet.api.scripts.user.entities;
 
+import java.util.Map;
 import java.util.Set;
 import mchorse.mappet.api.scripts.user.client.ICameraShake;
 import mchorse.mappet.api.scripts.user.client.IGameSettings;
@@ -49,6 +50,13 @@ void disableJump(boolean disabled);
     
     boolean isSprintDisabled();
 
+    /**
+     * Allows or forbids sprinting regardless of the player's hunger level.
+     */
+    void disableSprintHunger(boolean disabled);
+
+    boolean isSprintHungerDisabled();
+
 
    void playAnimation(String animation);
 
@@ -83,6 +91,16 @@ void disableJump(boolean disabled);
 
    boolean applyShader(String id, boolean ui, boolean hud);
 
+   /**
+    * Applies a shader with runtime parameters. Keys are uploaded as GLSL
+    * uniforms, while reserved keys such as {@code renderOnHand},
+    * {@code blendMode} or {@code passes} override the shader configuration for
+    * this application only.
+    */
+   boolean applyShader(String id, Map<String, Object> parameters);
+
+   boolean applyShader(String id, boolean ui, boolean hud, Map<String, Object> parameters);
+
    
    void removeShader();
 
@@ -99,6 +117,8 @@ void disableJump(boolean disabled);
 
    boolean applyUIShader(String id);
 
+   boolean applyUIShader(String id, Map<String, Object> parameters);
+
    
    void removeUIShader();
 
@@ -109,6 +129,8 @@ void disableJump(boolean disabled);
 
 
    boolean applyHUDShader(String id);
+
+   boolean applyHUDShader(String id, Map<String, Object> parameters);
 
    
    void removeHUDShader();

@@ -115,5 +115,6 @@ public final class RenderingHandler {
       ClientEntityTransitions.clear();
       ClientManagedSoundManager.clear();
       ClientShaderRuntime.reset();
+      ClientSprintHungerState.reset();
    }
 }

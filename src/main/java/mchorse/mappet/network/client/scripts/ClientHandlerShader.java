@@ -35,7 +35,7 @@ public class ClientHandlerShader extends ClientMessageHandler<PacketShader> {
 
       shader.enabled = true;
       shader.world = true;
-      ClientShaderRuntime.apply(shader, message.target);
+      ClientShaderRuntime.apply(shader, message.target, message.parameters);
    }
 
    private ShaderFile resolve(String id) {

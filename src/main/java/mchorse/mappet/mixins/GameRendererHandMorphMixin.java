@@ -36,14 +36,29 @@ public abstract class GameRendererHandMorphMixin
     private void mappet$renderShaderBeforeHand(class_4587 matrices, class_4184 camera, float tickDelta, CallbackInfo ci)
     {
         ClientShaderRuntime.render(tickDelta);
-        ClientShaderRuntime.beginHand();
     }
 
+    /**
+     * Ends the hand capture after {@code renderHandsWithItems} has returned but
+     * before TACZ draws its scope lenses (injected at
+     * {@code ScreenEffectRenderer.renderScreenEffect}). This matters because
+     * Accelerated Rendering flushes the deferred hand/gun geometry in an AFTER
+     * callback on the {@code renderHandsWithItems} call, so ending the capture
+     * inside {@code renderHandsWithItems} would composite the hand before the
+     * TACZ gun was drawn and the shader would not affect the gun.
+     *
+     * <p>{@code PoseStack.popPose()} is the first call after that flush and
+     * still inside the same first person branch, so it is used as the marker
+     * instead of the scope lens injection point (which TACZ also uses).</p>
+     */
     @Inject(
-        method = "method_3188(FJLnet/minecraft/class_4587;)V",
-        at = @At("RETURN")
+        method = "method_3172(Lnet/minecraft/class_4587;Lnet/minecraft/class_4184;F)V",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/class_4587;method_22909()V"
+        )
     )
-    private void mappet$endHandCapture(float tickDelta, long startTime, class_4587 matrices, CallbackInfo ci)
+    private void mappet$endShaderHand(class_4587 matrices, class_4184 camera, float tickDelta, CallbackInfo ci)
     {
         ClientShaderRuntime.endHand(tickDelta);
     }

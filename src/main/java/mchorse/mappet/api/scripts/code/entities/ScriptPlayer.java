@@ -21,6 +21,7 @@ import mchorse.mappet.api.huds.HUDScene;
 import mchorse.mappet.api.shaders.ShaderFile;
 import mchorse.mappet.api.scripts.code.client.ClientClipboardCache;
 import mchorse.mappet.client.ClientMovementLockState;
+import mchorse.mappet.client.ClientSprintHungerState;
 import mchorse.mappet.client.RenderingHandler;
 import mchorse.mappet.network.client.scripts.ClientHandlerSound;
 import mchorse.mappet.network.client.scripts.ClientHandlerMousePosition;
@@ -63,6 +64,7 @@ import mchorse.mappet.capabilities.character.ICharacter;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketClipboard;
 import mchorse.mappet.network.common.scripts.PacketMovementLock;
+import mchorse.mappet.network.common.scripts.PacketSprintHunger;
 import mchorse.mappet.network.common.scripts.PacketKeyBinding;
 import mchorse.mappet.network.common.scripts.PacketBlockBreakSpeed;
 import mchorse.mappet.network.common.scripts.PacketEntityRotations;
@@ -107,6 +109,7 @@ import net.minecraft.class_746;
 import mchorse.mappet.utils.MappetSprintSpeed;
 import mchorse.mappet.utils.MappetBlockBreakSpeed;
 import mchorse.mappet.utils.MappetMovementLock;
+import mchorse.mappet.utils.MappetSprintHunger;
 import net.minecraft.class_3419;
 import net.minecraft.class_329;
 import net.minecraft.class_5894;
@@ -216,6 +219,26 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
       return this.entity instanceof class_746 && ClientMovementLockState.isSprintDisabled();
    }
 
+   /**
+    * Allows or forbids sprinting regardless of the player's hunger level.
+    */
+   public void disableSprintHunger(boolean disabled) {
+      if (this.entity instanceof class_3222) {
+         MappetSprintHunger.setDisabled(this.entity.method_5667(), disabled);
+         Dispatcher.sendTo(new PacketSprintHunger(disabled), (class_3222)this.entity);
+      } else if (this.entity instanceof class_746) {
+         ClientSprintHungerState.setDisabled(disabled);
+      }
+   }
+
+   public boolean isSprintHungerDisabled() {
+      if (this.entity instanceof class_3222) {
+         return MappetSprintHunger.isDisabled(this.entity.method_5667());
+      }
+
+      return this.entity instanceof class_746 && ClientSprintHungerState.isDisabled();
+   }
+
    public void disableWalking(boolean disabled) {
       if (this.entity instanceof class_3222) {
          MappetMovementLock.setWalkDisabled(this.entity.method_5667(), disabled);
@@ -300,18 +323,32 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
 
 
    public boolean applyShader(String id, boolean ui, boolean hud) {
+      return this.applyShader(id, ui, hud, null);
+   }
+
+   /**
+    * Applies a shader with runtime parameters. Keys are uploaded as GLSL
+    * uniforms, while reserved keys such as {@code renderOnHand},
+    * {@code blendMode} or {@code passes} override the shader configuration for
+    * this application only.
+    */
+   public boolean applyShader(String id, Map<String, Object> parameters) {
+      return this.applyShader(id, false, false, parameters);
+   }
+
+   public boolean applyShader(String id, boolean ui, boolean hud, Map<String, Object> parameters) {
       if (this.getShader(id) == null) {
          return false;
       }
 
       String key = id.trim();
 
-      Dispatcher.sendTo(PacketShader.apply(0, key), this.getMinecraftPlayer());
+      Dispatcher.sendTo(PacketShader.apply(0, key, parameters), this.getMinecraftPlayer());
       if (ui) {
-         Dispatcher.sendTo(PacketShader.apply(1, key), this.getMinecraftPlayer());
+         Dispatcher.sendTo(PacketShader.apply(1, key, parameters), this.getMinecraftPlayer());
       }
       if (hud) {
-         Dispatcher.sendTo(PacketShader.apply(2, key), this.getMinecraftPlayer());
+         Dispatcher.sendTo(PacketShader.apply(2, key, parameters), this.getMinecraftPlayer());
       }
       return true;
    }
@@ -349,6 +386,10 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
       return this.applyShaderToTarget(id, 1);
    }
 
+   public boolean applyUIShader(String id, Map<String, Object> parameters) {
+      return this.applyShaderToTarget(id, 1, parameters);
+   }
+
    
    public void removeUIShader() {
       Dispatcher.sendTo(PacketShader.remove(1), this.getMinecraftPlayer());
@@ -364,6 +405,10 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
       return this.applyShaderToTarget(id, 2);
    }
 
+   public boolean applyHUDShader(String id, Map<String, Object> parameters) {
+      return this.applyShaderToTarget(id, 2, parameters);
+   }
+
    
    public void removeHUDShader() {
       Dispatcher.sendTo(PacketShader.remove(2), this.getMinecraftPlayer());
@@ -375,12 +420,16 @@ public class ScriptPlayer extends ScriptEntity<class_1657> implements IScriptPla
    }
 
    private boolean applyShaderToTarget(String id, int target) {
+      return this.applyShaderToTarget(id, target, null);
+   }
+
+   private boolean applyShaderToTarget(String id, int target, Map<String, Object> parameters) {
       ShaderFile shader = this.getShader(id);
       if (shader == null) {
          return false;
       }
 
-      Dispatcher.sendTo(PacketShader.apply(target, id.trim()), this.getMinecraftPlayer());
+      Dispatcher.sendTo(PacketShader.apply(target, id.trim(), parameters), this.getMinecraftPlayer());
       return true;
    }
 

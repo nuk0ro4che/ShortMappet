@@ -2,6 +2,7 @@ package mchorse.mappet.mixins;
 
 import mchorse.mappet.client.ClientFirstPersonLight;
 import mchorse.mappet.client.HandMorphRenderer;
+import mchorse.mappet.client.shaders.ClientShaderRuntime;
 import mchorse.mappet.hand.HandState;
 import mchorse.mappet.hand.Hands;
 import net.minecraft.class_1268;
@@ -11,6 +12,7 @@ import net.minecraft.class_1799;
 import net.minecraft.class_4587;
 import net.minecraft.class_4597;
 import net.minecraft.class_742;
+import net.minecraft.class_746;
 import net.minecraft.class_759;
 import net.minecraft.class_7833;
 import net.minecraft.class_811;
@@ -30,6 +32,18 @@ public abstract class HeldItemRendererMixin {
 
    @Unique
    private HandState.Side mappet$currentHand;
+
+   /**
+    * Starts capturing the first person hand into the shader buffer. The
+    * capture ends in {@link GameRendererHandMorphMixin} after
+    * {@code renderHandsWithItems} returns, because mods like Accelerated
+    * Rendering defer the hand/gun draw into an AFTER callback on that call
+    * and would otherwise draw the gun after the hand was composited.
+    */
+   @Inject(method = {"method_22976(FLnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_746;I)V"}, at = {@At("HEAD")})
+   private void mappet$beginShaderHand(float tickDelta, class_4587 matrices, class_4597.class_4598 consumers, class_746 player, int light, CallbackInfo ci) {
+      ClientShaderRuntime.beginHand();
+   }
 
    @Inject(method = {"method_3228"}, at = {@At("HEAD")}, cancellable = true)
    private void mappet$transformFirstPersonHand(class_742 player, float tickDelta, float pitch, class_1268 hand, float swingProgress, class_1799 stack, float equipProgress, class_4587 matrices, class_4597 consumers, int light, CallbackInfo ci) {

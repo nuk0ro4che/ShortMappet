@@ -9,6 +9,7 @@ public class CameraShake {
    private double roll;
    private double frequency = 1.0D;
    private long endsAt;
+   private int remainingTicks;
 
    public void start(int ticks, double pitch, double yaw, double roll, double frequency) {
       this.active = true;
@@ -22,6 +23,7 @@ public class CameraShake {
    public void stop() {
       this.active = false;
       this.endsAt = 0L;
+      this.remainingTicks = 0;
    }
 
    public int stopSmooth() {
@@ -36,6 +38,7 @@ public class CameraShake {
 
    public void stopSmooth(int ticks) {
       ticks = Math.max(1, ticks);
+      this.remainingTicks = ticks;
       this.endsAt = System.currentTimeMillis() + (long)ticks * 50L;
    }
 
